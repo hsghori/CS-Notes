@@ -1,1 +1,5 @@
-../2018-1 CSCI 464 Artificial Intelligence/notes.md
+---
+title: Artificial Intelligence Notees
+author: Haroon Ghori
+geometry: margin=1in
+---
