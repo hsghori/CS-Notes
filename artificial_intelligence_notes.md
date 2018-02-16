@@ -154,7 +154,7 @@ geometry: margin=1in
  	- Uniform Cost Search 
  		- Very similar to BFS but we prioritize by cost instead of depth.
  		- Push nodes (paths) onto the fringe in order of cost (lowest cost first). 
- 		- We treat the fringe as a queue. This allows us to explore the fringe by exploring the cheapest nodes first. 
+ 		- We treat the fringe as a prioirity queue (lowest cost --> highest priority). This allows us to explore the fringe by exploring the cheapest nodes first. 
  		```Python
  			def uniformCostSearch(problem):
 			    visited, p_queue = set(), util.PriorityQueue()
