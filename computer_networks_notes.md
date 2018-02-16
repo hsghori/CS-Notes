@@ -4,7 +4,7 @@ author: Haroon Ghori
 geometry: margin=1in
 ---
 
-# Basic Internet Organization 
+### Basic Internet Organization 
 - The internet is essentially a network or subnetworks. End-of-systems and networks are connected to the network by switches instead of being directly connected to the network. 
     - This is done to reduce the number of edges between nodes in the network. 
     - The internet ties all the switches together using an IP protocol. In this way, different hardwares and devices can communicate on the same network. 
@@ -51,7 +51,7 @@ geometry: margin=1in
             - $queue_length = long_term_average_arrival_rate * waiting_time$ (Little's Law)
         - Processing Delay: Overall end to end delay.
 
-# Sockets and Socket Programming
+### Sockets and Socket Programming
 - In a Unix OS, all IO happens through "file descriptors". 
 - File Descriptor - an integer associated with a file. 
     - The file can be a terminal, pipe, network connection, etc. 
@@ -68,7 +68,7 @@ geometry: margin=1in
         - Datagram sockets use a User Datagram Protocol (UDP). Applications and protocols built on top of datagram sockets will usually impliment some kind of packet acknowledgement to make sure that no data is lost over the connection.
 - Socket Programming in C/C++ 
 
-# Protocol Layering
+### Protocol Layering
 - Applications communicate is handled by a stack such that the high level communication is built on top of those in the lower layers:
     - Application
     - Presentation (OSI)
@@ -147,7 +147,7 @@ Ethernet <-> Ethernet <-> Ethernet
         - This may be broken for performaancy / policy optimization. 
     - Fate sharing: Fail together or don't fail at all. 
 
-# THe HTTP Protocol 
+### The HTTP Protocol 
 - The "world wide web" is a distributd database of pages linked through the Hypertext Transport Protocol (HTTP). 
     - HTTP was first implimented in 1990 and has been subsequently updated.
 - Content on the web has a 
@@ -178,23 +178,23 @@ Ethernet <-> Ethernet <-> Ethernet
     4. Server sends response
     5. Client closes connection.
 - HTTP Request 
-```
-    [method] [resource] [protocol version]
-    <HEADER LINES >
+    ```
+        [method] [resource] [protocol version]
+        <HEADER LINES >
 
-    [Body (optional)]
-```
+        [Body (optional)]
+    ```
     - The first line is the request line. 
     - The next few lines are the header lines 
     - The blank line indicates the seperation of the header and the body
     - The body is the data being sent (for a PUT or POST)
 - HTTP Response 
-```
-    [protocol version] [status code] [status phase]
-    < HEADER LINES >
+    ```
+        [protocol version] [status code] [status phase]
+        < HEADER LINES >
 
-    [data]
-```
+        [data]
+    ```
     - The first line is the status line. 
     - The next few lines are the header lines 
     - The blank line indicates the seperation of the header and the data
@@ -287,16 +287,16 @@ Ethernet <-> Ethernet <-> Ethernet
         - Partition the namespace and distribute administration of each partition. 
         - Distribute name resolution for each partition. 
         - This was implimented in a hierarchy as a tree. 
-```
-                       root
-   /        /       /    |       \      \     \     \
- .edu    .com    .gov   .mil   .org   .net   .uk   .fr ...
-    \
-     jhu.edu 
-      \
-       cs.jhu.edu
+            ```
+                                   root
+               /        /       /    |       \      \     \     \
+             .edu    .com    .gov   .mil   .org   .net   .uk   .fr ...
+                \
+                 jhu.edu 
+                  \
+                   cs.jhu.edu
 
-```
+            ```
         - The domain name is a leaf to root path in the tree. Each domain is responsible for managing collisions. (.edu must make sure there are no collisions of it's direct children, jhu.edu must maintain everything under it, etc). 
         - A zone corresponds to an administrative authority that is responsible for that portion of the hierarchy. 
     - Hierarchy implimentation 

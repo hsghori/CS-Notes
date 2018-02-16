@@ -1,5 +1,5 @@
 ---
-title: "Blockchains and Cryptocurrencies Notees"
+title: Blockchains and Cryptocurrencies Notees
 author: Haroon Ghori
 geometry: margin=1in
 ---
@@ -261,15 +261,15 @@ geometry: margin=1in
             - Nodes extend their chain by following the longest current chain. 
             - There must be 6 confirmations (block must be extended 6 times) before it is accepted in teh blockchain. 
             - Double spending probability decreases exponentialy with number of confirmations. 
-```
-                                | H()   | \  
-                                | data  |   -> | H()  | -> | H()  | -> | H()  |
-                                            -> | data |    | data |    | data |
-                                | H()   | / 
-                                | data* | 
+                ```
+                                                | H()   | \  
+                                                | data  |   -> | H()  | -> | H()  | -> | H()  |
+                                                            -> | data |    | data |    | data |
+                                                | H()   | / 
+                                                | data* | 
 
-    data* contains some kind of double spending attack or invalid transaction
-```
+                    data* contains some kind of double spending attack or invalid transaction
+                ```
     - Incentive
         - Block Reward  
             - Block creator (node that broadcasts a proposed block on a round) includes a special coin creation transaction in the block which pays the creator for creating the blcok. 
