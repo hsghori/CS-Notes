@@ -4,41 +4,41 @@ author: Haroon Ghori
 geometry: margin=1in
 ---
 
+#### Wrapper Classes
+- java primative types
+	- int
+	- double
+	- char
+	- float
+	- long
+	- byte
+	- boolean
 - Wrapper Classes
-	- java primative types
-		- int
-		- double
-		- char
-		- float
-		- long
-		- byte
-		- boolean
-	- Wrapper Classes
-		- int => Integer
-		- double => Double
-		- char => Character
-		- ...
-	- Wrapper classes are instantiable classes that correspond to primative data types.
-	- Autobox - primative types can be automatically be converted to wrapper classes when needed.
+	- int => Integer
+	- double => Double
+	- char => Character
+	- ...
+- Wrapper classes are instantiable classes that correspond to primative data types.
+- Autobox - primative types can be automatically be converted to wrapper classes when needed.
 
-- Generics
-	- Creates a "generic" methods and classes that work with unspecified data types.
-		- Generic method header
-			```Java
-			public static <T> <returnType> methodName(T thing)
-			```
-		- Generic class header
-			```Java
-			public class myDoubleGen<T1, T2>
-			```
-		- Implementing Generics
-			- You cannot implement an array of generics directly
-				- `T[] ra = new T[n]` (not allowed)
-				- `T[] ra = (T[]) new Object[n]` (allowed)
-			- Any type `<T>` can fit into a generic type so long as it's an instantiable class (eg Wrapper Class)
-				- we must use `<T> = Integer` instead of `<T> = int`
-			
-### Java Collections Framweork
+#### Generics
+- Creates a "generic" methods and classes that work with unspecified data types.
+	- Generic method header
+		```Java
+		public static <T> <returnType> methodName(T thing)
+		```
+	- Generic class header
+		```Java
+		public class myDoubleGen<T1, T2>
+		```
+	- Implementing Generics
+		- You cannot implement an array of generics directly
+			- `T[] ra = new T[n]` (not allowed)
+			- `T[] ra = (T[]) new Object[n]` (allowed)
+		- Any type `<T>` can fit into a generic type so long as it's an instantiable class (eg Wrapper Class)
+			- we must use `<T> = Integer` instead of `<T> = int`
+		
+#### Java Collections Framweork
 - Collection - an object that groups multiple elements in a single unit
 	- typically data items that form a "natural" group
 - Collections Framweork- a unified architecture for representing and manipulating collections.
@@ -88,7 +88,7 @@ geometry: margin=1in
 		- `TreeMap<K,V>`
 		- `LinkedMap<K,V>`
 
-### Abstract Data Types
+#### Abstract Data Types
 - Data type - a collection of values and the operations that can be applied to them
 	- Interface
 		- Gives you a list of operations (method headers) that can be performed on a data type, but doesn't define what they do / how they work. Tells the programmer how the user can interact with the object, but leaves the definitions to the programmer.
@@ -111,69 +111,69 @@ geometry: margin=1in
 		- Somewtimes we need to modify th eequivalence relatin as we go, changing the partition
 			- the formerly disjointed sets get combined
 		- Given n equivalence relation over S and two items from S, how can we determine if the elements are equivalent. 
-* Bag
-	- Basically a Set (from the java collections framework) but duplicates are allowed. 
-		- Order doesn't matter
-		- Size doesn't matter
-		- Operations
-			- create
-			- add
-			- clear
-			- size
-			- isEmpty
-			- remove
-			- list
-			- contains
-	- Unlike sets Bags do not have union, intersection, and setDifference methods
-- Partition
-	- a collection of disjoint subsets
-	- begins with every element in its own subset
-		- the subsets are then repeatedly joined via a union operator
-	Implementation
-		- Simplify names
-			- let N be the number of items in a structure
-			- then we assume that the names of the items in our structure are {0, N-1}
-		- Example
-			- A Structure with a Quick Union Method
-				- to start each item is in it's own set named with its own name
-				- use an array to store names of sets
-					- position i holds the name of the set that contains item i
-				- performing find(x)
-					- return array[x]
-					- takes O(1) time
-						- constant time
-						- very fast
-				- performing union(a, b)
-					- find(a) to learn i, the name of 'a's set
-					- find(b) to learn j, the name of 'b's set
-					- Go through the array and replace all 'j's with 'i's
-					- O(N) time
-			- A Structure with a Quick Union Method
-				- Use a tree to represent each set with the root being the name of the set
-					- one "top" element is called the root with related elements branching "below"
-					- elements with no branches are called leaves
-				- each node keps track of it's parent
-				- tree is represented by an array where array[i] gives the parent of item i
-					-array[0] = -1 since root has no parent
-				- performing find(x)
-					- check arrray[x]
-						- if array[x] == -1
-							- return x
-						- else
-							- check array[array[x]]
-						- repeat until we find the root (name) of the set
-					- performing union(a, b)
-						- find(a) to find the root of a
-						- find(b) to find the root of b
-						- set a[b] to b 
-							- the b is the parent of a
-					- use union-by-size
-						- set the root value for b to be -size(b).
-							- then search for any negative number instead of -1 when performing find(x)
-						- then always attatch the smaller tree to the larger toree to keep trees small. 
-						- then no tree can have depth greater than log(N)
-					- use path compression
-						- when performing find(x) set all nodes between x and the root to point to the root. Compresses all paths such that find(x) becomes much faster
+
+#### Bag
+- Basically a Set (from the java collections framework) but duplicates are allowed. 
+	- Order doesn't matter
+	- Size doesn't matter
+	- Operations
+		- create
+		- add
+		- clear
+		- size
+		- isEmpty
+		- remove
+		- list
+		- contains
+- Unlike sets Bags do not have union, intersection, and setDifference methods
+
+#### Partition
+- a collection of disjoint subsets
+- begins with every element in its own subset
+	- the subsets are then repeatedly joined via a union operator
+- Simplify names
+	- let N be the number of items in a structure
+	- then we assume that the names of the items in our structure are {0, N-1}
+- A Structure with a Quick Union Method
+	- to start each item is in it's own set named with its own name
+	- use an array to store names of sets
+		- position i holds the name of the set that contains item i
+	- performing find(x)
+		- return array[x]
+		- takes O(1) time
+			- constant time
+			- very fast
+	- performing union(a, b)
+		- find(a) to learn i, the name of 'a's set
+		- find(b) to learn j, the name of 'b's set
+		- Go through the array and replace all 'j's with 'i's
+		- O(N) time
+- A Structure with a Quick Union Method
+	- Use a tree to represent each set with the root being the name of the set
+		- one "top" element is called the root with related elements branching "below"
+		- elements with no branches are called leaves
+	- each node keps track of it's parent
+	- tree is represented by an array where array[i] gives the parent of item i
+		-array[0] = -1 since root has no parent
+	- performing find(x)
+		- check arrray[x]
+			- if array[x] == -1
+				- return x
+			- else
+				- check array[array[x]]
+			- repeat until we find the root (name) of the set
+		- performing union(a, b)
+			- find(a) to find the root of a
+			- find(b) to find the root of b
+			- set a[b] to b 
+				- the b is the parent of a
+		- use union-by-size
+			- set the root value for b to be -size(b).
+				- then search for any negative number instead of -1 when performing find(x)
+			- then always attatch the smaller tree to the larger toree to keep trees small. 
+			- then no tree can have depth greater than log(N)
+		- use path compression
+			- when performing find(x) set all nodes between x and the root to point to the root. Compresses all paths such that find(x) becomes much faster
 
 #### Iterators
 - An object that allows us to access each element in a collection in turn. 
@@ -1006,7 +1006,7 @@ search tree, but not necessarily balanced.
 	- Time Complexity
 		- O(d(M + N))
 
-### Text Processing
+#### Text Processing
 - Strings are usually encoded as arrays of characters, each represented by a certain number of bits
 - Then we must decide the bit combinations to store each character
 - Fixed Length
@@ -1107,7 +1107,7 @@ search tree, but not necessarily balanced.
 			- store substring indices of where each chain occurs in the original passage instead of all the characters at nodes (so only need to store 2 integers instead of multiple characters)
 			- nodes is O(S)
 
-### JUnit Testing
+#### JUnit Testing
 - Tags
 	- `@Before`
 		- Tags a method that will run before each test
