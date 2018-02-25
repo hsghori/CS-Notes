@@ -68,27 +68,19 @@ geometry: margin=1in
  		- We treat the fringe as a stack and push successors onto the fringe in a defined way (ie always in the same direction order). This allows us to explore the deepest path first.  
  		```Python 
 		def depthFirstSearch(problem):
-		    visited, stack = set(), Stack()
-		    desc = dict()
-		    stack.push((problem.getStartState(), None, 0))
-		    lst = []
-		    while True:
-		        (state, step, cost) = stack.pop()
-		        if problem.isGoalState(state):
-		            curr = (state, step, cost)
-		            break
+		    visited, stack = set(), util.Stack()
+		    curr = (problem.getStartState(), [], 0)
+		    while not problem.isGoalState(curr[0]):
+		        (state, steps, cost) = curr
 		        if state not in visited:
 		            visited.add(state)
-		            parent = (state, step, cost)
-		            for successor in problem.getSuccessors(state):
-		                if successor[0] not in visited:
-		                    stack.push(successor)
-		                    desc[successor] = parent
-		    while curr[0] != problem.getStartState():
-		        lst.append(curr[1])
-		        curr = desc[curr]
-		    lst.reverse()
-		    return lst
+		            for suc in problem.getSuccessors(state):
+		                if suc[0] not in visited:
+		                    tmp = steps + [suc[1]]
+		                    suc = (suc[0], tmp, suc[2])
+		                    stack.push(suc)
+		        curr = stack.pop()
+		    return curr[1]
  		```
  		- Complete: If there are no cycles - will always find a path. 
  		- Optimal: No - will not always find the best path. Will always find the x-most path if x is the direction we push onto the fringe first. 
@@ -108,28 +100,19 @@ geometry: margin=1in
  		- We treat the fringe as a queue. This allows us to explore the fringe a layer at a time. 
  		```Python
 		def breadthFirstSearch(problem):
-		    visited, queue = set(), Queue()
-		    desc = dict()
-		    queue.push((problem.getStartState(), None, 0))
-		    lst = []
-		    while True:
-		        (state, step, cost) = queue.pop()
-		        if problem.isGoalState(state):
-		            curr = (state, step, cost)
-		            break
+		    visited, queue = set(), util.Queue()
+		    curr = (problem.getStartState(), [], 0)
+		    while not problem.isGoalState(curr[0]):
+		        (state, steps, cost) = curr
 		        if state not in visited:
 		            visited.add(state)
-		            parent = (state, step, cost)
-		            successors = problem.getSuccessors(state)
-		            for suc in successors:
+		            for suc in problem.getSuccessors(state):
 		                if suc[0] not in visited:
+		                    tmp = steps + [suc[1]]
+		                    suc = (suc[0], tmp, suc[2])
 		                    queue.push(suc)
-		                    desc[suc] = parent
-		    while curr[0] != problem.getStartState():
-		        lst.append(curr[1])
-		        curr = desc[curr]
-		    lst.reverse()
-		    return lst
+		        curr = queue.pop()
+    		return curr[1]
  		```
  		- Complete: Yes - if a solution exists, BFS must find it. 
  		- Optimal: Yes - if the costs are all 1. 
@@ -158,28 +141,19 @@ geometry: margin=1in
  		- We treat the fringe as a prioirity queue (lowest cost --> highest priority). This allows us to explore the fringe by exploring the cheapest nodes first. 
  		```Python
 		def uniformCostSearch(problem):
-		    visited, p_queue = set(), PriorityQueue()
-		    desc = dict()
-		    p_queue.push((problem.getStartState(), None, 0), 0)
-		    lst = []
-		    while True:
-		        (state, step, cost) = p_queue.pop()
-		        if problem.isGoalState(state):
-		            curr = (state, step, cost)
-		            break
+		    visited, p_queue = set(), util.PriorityQueue()
+		    curr = (problem.getStartState(), [], 0)
+		    while not problem.isGoalState(curr[0]):
+		        (state, steps, cost) = curr
 		        if state not in visited:
 		            visited.add(state)
-		            parent = (state, step, cost)
-		            for successor in problem.getSuccessors(state):
-		                if successor[0] not in visited:
-		                    successor = (successor[0], successor[1], successor[2] + cost)
-		                    p_queue.push(successor, successor[2])
-		                    desc[successor] = parent
-		    while curr[0] != problem.getStartState():
-		        lst.append(curr[1])
-		        curr = desc[curr]
-		    lst.reverse()
-		    return lst
+		            for suc in problem.getSuccessors(state):
+		                if suc[0] not in visited:
+		                    tmp = steps + [suc[1]]
+		                    suc = (suc[0], tmp, suc[2] + cost)
+		                    p_queue.push(suc, suc[2])
+		        curr = p_queue.pop()
+		    return curr[1]
  		```
  		- If the solution costs $C^* $ and arcs cost at least $\epsilon$ then the effective depth is roughly $c^* / \epsilon$. 
  		- Complete: Yes
@@ -194,28 +168,19 @@ geometry: margin=1in
  		- Push states onto the fringe with $priority = path_cost(state) + heuristic(state)$. So explore nodes with the lowest estimated heuristic (closest to goal) AND path cost (cheap to reach). 
  		```Python
  		def aStarSearch(problem, heuristic):
- 			visited, p_queue = set(), PriorityQueue()
-		    desc = dict()
-		    p_queue.push((problem.getStartState(), None, 0), 0)
-		    lst = []
-		    while True:
-		        (state, action, cost) = p_queue.pop()
-		        if problem.isGoalState(state):
-		            curr = (state, action, cost)
-		            break
+		    visited, p_queue = set(), util.PriorityQueue()
+		    curr = (problem.getStartState(), [], 0)
+		    while not problem.isGoalState(curr[0]):
+		        (state, steps, cost) = curr
 		        if state not in visited:
 		            visited.add(state)
-		            parent = (state, action, cost)
-		            for successor in problem.getSuccessors(state):
-		                if successor[0] not in visited:
-		                    successor = (successor[0], successor[1], successor[2] + cost)
-		                    p_queue.push(successor, successor[2] + heuristic(successor[0], problem))
-		                    desc[successor] = parent
-		    while curr[0] != problem.getStartState():
-		        lst.append(curr[1])
-		        curr = desc[curr]
-		    lst.reverse()
-		    return lst
+		            for suc in problem.getSuccessors(state):
+		                if suc[0] not in visited:
+		                    tmp = steps + [suc[1]]
+		                    suc = (suc[0], tmp, suc[2] + cost)
+		                    p_queue.push(suc, suc[2] + heuristic(suc[0], problem))
+		        curr = p_queue.pop()
+		    return curr[1]
  		```
  		- Complete: Yes 
  		- Optimal: Yes
