@@ -292,4 +292,75 @@ geometry: margin=1in
         - Nodes automatically recalculate the target ($D$) every two weeks. THe goal is that the average time between blocks being mined is 10mins. 
         - The $nonce$ should be published as part of the block that is mined. That way other miners can simply verify the solution by running $H(nonce | block) < D$. 
 
+### Asynchronous Networks
+- Adversary controls scheduling delivery of messages between honest parties
+    - Security of the blockchain protocol is that a majority of the network is honest. 
+    - If an adversary can delay the messages of the honest parties he could potentially overcome the honest majority problem. 
+- An adversary can corrupt up to $p$ fraction of the total participants. 
+-  Each party can make $k$ querries to the random oracle (hash function). An adversary who controls n parties can make n * k queries to the random oracle.
+- Genesis block: a block with no data -> the first block in the blockchain. 
+    - Defines the start of the protocol. 
+    - A pointer to the beginning
+- At each round a node will mine a block - ie he will package all the transactions he's heard into a single block and find nonce such that $H(nonce | block)$ < D$. He will then broadcast the block with the $nonce$ to the rest of the network. 
+    - Other nodes will check the valididity of the proof of work by querrying the random oracle to verify $H(nonce | data)$ satisfies the proof of work problem. 
+    - For any node, if the length of the recieved chain is longer than the node's current chain, the node discards it's chain in favor of the received chain. 
+- An adversary can create a delay $delay$ between two honest parties. 
+- Chain Growth
+    - All honest parties must have chains of consistent lengths after $\delta$ rounds. 
+    - In some small $t$ number of rounds, each chain must grow by some $T$ number of rounds.
+- Chain Quality 
+    - Chain quality is the fraction of nodes mined by honest parties. 
+    - For T consecutive blocks, the fraction of honest blocks is roughly $1 - (1 + \delta)\frac{\beta}{\gamma}$. 
+- T-consistency
+    - For every round $r' \geq r$ the first $K-T$ blocks of all blockchains should be the same. 
+- __Fill in some info - i stopped paying attention :(__
 
+- PUblic ledger: A distributed database of records. 
+	- The ledger is immutable and publically accesible. 
+	- You cannot change the order of the records 
+	- There should be some consistent view of the ledger. 
+- Liveness 
+	- If an honest party wants to add a message, it should appear on the (local) ledger of every honest party after some "wait time" (some sufficiently large time period of t rounds). 
+		- If an honest party wants to post, it can do so. 
+ - Persistence
+ 	- If a message m gets added to the local ledger of some honest player at position j, then it will appear at sposition j in the (local) ledger of every other honest party at all future times after some small delay. 
+- PAt any point, a party's local ledger is determined by truncating its current view of the blockchain by T blocks. 
+	- Liveness follows from chain growth and chain quality properties of the blockchain
+	- Persistence follows from the consistency and chain growth properties of the blockchain. 
+
+# Mechanics of Bitcoin 
+- Bitcoin transactions
+	- In an account based ledger system it is very inefficient to check validity of transactions. You must go through the entire blockchain to determine whether or not a user has enough money to make a particular transaction. 
+	- Bircoin uses a transaction based ledger. In this ledger system, each transaction contains a pointer to a previous transaction. If Alice wants to transfer some coins to Bob, she references a previous transaction from which she will draw money. Thenverifying a transaction just involves following the reference to the previous transaction to ensure that the money actually exists (ie that the transactio nproduced enough money to make the new transaction). 
+```
+fill in 
+
+```
+	- Transaction metadata
+```
+fill in 
+```
+- Bitcoin scripts
+	- The input and output addresses of a bitcoin transaction are really scripts. 
+		- Concatinate the input and output script - if it runs without error, the transaction is accepted. 
+	- Output script is called scriptPubKey. Input script is called scriptSig
+	- Bitcoin scripting language 
+		- Built for bitcoin 
+		- Simple, compact 
+		- Support for cryptography 
+		- Stack based 
+		- Limits on time / memory 
+		- No looping 
+		- Not turing complete
+	- Supports basic arithmetic, conditions, logic / data handling, and crypto. 
+	- OP_CHECKMULTISIG is a built in support for joint signuitures. 
+	- Most scripts are simple verification scripts. 
+	- Proof of burn -> lets you destroy bitcoins. 
+		- The function itself returns some arbitrary data. 
+		- So this function can be used to publish arbitrary data on the blockchain (for example timestamping a document). 
+		- This function can also be used to require people to destroy bitcoins in order to get new Altcoins (non-bitcoin cryptocurrencies). 
+- Application of Scripts
+	- Fair transactions __Fill in__
+	- Micropayments
+		- Alice wants to pay BOB for each minute of wifi service. But she doesn't want to incurr a transaction fee for every minute. (General pay as you go subscription). 
+		- g
