@@ -48,7 +48,7 @@ geometry: margin=1in
  	- Searching with a search tree
  		- When searching with a search tree, the idea is to expand out potential plans and maintain a "fringe" of partial plans under construction. 
  		- We are trying to expand out as few plans as possible.
- 		```Python
+ 		```
 		def tree_search(problem, strategy):
 			initiate the search tree using the initial state of problem
 			do:
