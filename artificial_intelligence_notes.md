@@ -47,7 +47,7 @@ geometry: margin=1in
 	- This tree is also too big to feasibly store, so for most problems we don't actually build the entire tree. 
 - Searching with a search tree
 	- When searching with a search tree, the idea is to expand out potential plans and maintain a "fringe" of partial plans under construction. 
-	- We are trying to expand out as few plans as possible.
+	- We are trying to expand out as few plans as possible.\
 	```
 	def tree_search(problem, strategy):
 		initiate the search tree using the initial state of problem
@@ -65,28 +65,28 @@ geometry: margin=1in
 - __Note that in these search algorithms we are literally searching the search tree itself.__ 
 - Depth First Search
 	- Strategy is to expand the deepest node (path) first. 
-	- We treat the fringe as a stack and push successors onto the fringe in a defined way (ie always in the same direction order). This allows us to explore the deepest path first.  
+	- We treat the fringe as a stack and push successors onto the fringe in a defined way (ie always in the same direction order). This allows us to explore the deepest path first.  \
 	```Python 
-def depthFirstSearch(problem):
-    visited, stack = set(), util.Stack()
-    curr = (problem.getStartState(), [], 0)
-    while not problem.isGoalState(curr[0]):
-        (state, steps, cost) = curr
-        if state not in visited:
-            visited.add(state)
-            for suc in problem.getSuccessors(state):
-                if suc[0] not in visited:
-                    tmp = steps + [suc[1]]
-                    suc = (suc[0], tmp, suc[2])
-                    stack.push(suc)
-        curr = stack.pop()
-    return curr[1]
+	def depthFirstSearch(problem):
+	    visited, stack = set(), util.Stack()
+	    curr = (problem.getStartState(), [], 0)
+	    while not problem.isGoalState(curr[0]):
+	        (state, steps, cost) = curr
+	        if state not in visited:
+	            visited.add(state)
+	            for suc in problem.getSuccessors(state):
+	                if suc[0] not in visited:
+	                    tmp = steps + [suc[1]]
+	                    suc = (suc[0], tmp, suc[2])
+	                    stack.push(suc)
+	        curr = stack.pop()
+	    return curr[1]
 	```
 	- Complete: If there are no cycles - will always find a path. 
 	- Optimal: No - will not always find the best path. Will always find the x-most path if x is the direction we push onto the fringe first. 
 	- Time Complexity: Exponential $O(b^m)$ where $m$ is the depth of the tree. 
 	- Space Complexity: $O(b * m)$ where $b$ is the branching factor and $m$ is the depth of the tree. 
-	- This is a general view of the search tree for DFS.
+	- This is a general view of the search tree for DFS.\
 	```
                |        /\
                |       /--\
@@ -97,28 +97,28 @@ def depthFirstSearch(problem):
 - Breadth First Search 
 	- Strategy is to expnd the shallowest node (path) first.
 	- Push nodes onto the fringe in order of shallowness. 
-	- We treat the fringe as a queue. This allows us to explore the fringe a layer at a time. 
+	- We treat the fringe as a queue. This allows us to explore the fringe a layer at a time. \
 	```Python
-def breadthFirstSearch(problem):
-    visited, queue = set(), util.Queue()
-    curr = (problem.getStartState(), [], 0)
-    while not problem.isGoalState(curr[0]):
-        (state, steps, cost) = curr
-        if state not in visited:
-            visited.add(state)
-            for suc in problem.getSuccessors(state):
-                if suc[0] not in visited:
-                    tmp = steps + [suc[1]]
-                    suc = (suc[0], tmp, suc[2])
-                    queue.push(suc)
-        curr = queue.pop()
-	return curr[1]
+	def breadthFirstSearch(problem):
+	    visited, queue = set(), util.Queue()
+	    curr = (problem.getStartState(), [], 0)
+	    while not problem.isGoalState(curr[0]):
+	        (state, steps, cost) = curr
+	        if state not in visited:
+	            visited.add(state)
+	            for suc in problem.getSuccessors(state):
+	                if suc[0] not in visited:
+	                    tmp = steps + [suc[1]]
+	                    suc = (suc[0], tmp, suc[2])
+	                    queue.push(suc)
+	        curr = queue.pop()
+		return curr[1]
 	```
 	- Complete: Yes - if a solution exists, BFS must find it. 
 	- Optimal: Yes - if the costs are all 1. 
 	- Time complexity: Exponential $O(b^s)$ where $s$ is the level of the shallowest solution. 
 	- Space complexity: $O(b^s)$ where $b$ is the branching factor and $s$ is the depth of the shallowest level. 
-	- This is a general view of the search tree for DFS.
+	- This is a general view of the search tree for DFS.\
 	```
                |        /\
              s |       /--\
@@ -138,22 +138,22 @@ def breadthFirstSearch(problem):
 - Uniform Cost Search 
 	- Very similar to BFS but we prioritize by cost instead of depth.
 	- Push nodes (paths) onto the fringe in order of cost (lowest cost first). 
-	- We treat the fringe as a prioirity queue (lowest cost --> highest priority). This allows us to explore the fringe by exploring the cheapest nodes first. 
+	- We treat the fringe as a prioirity queue (lowest cost --> highest priority). This allows us to explore the fringe by exploring the cheapest nodes first. \
 	```Python
-def uniformCostSearch(problem):
-    visited, p_queue = set(), util.PriorityQueue()
-    curr = (problem.getStartState(), [], 0)
-    while not problem.isGoalState(curr[0]):
-        (state, steps, cost) = curr
-        if state not in visited:
-            visited.add(state)
-            for suc in problem.getSuccessors(state):
-                if suc[0] not in visited:
-                    tmp = steps + [suc[1]]
-                    suc = (suc[0], tmp, suc[2] + cost)
-                    p_queue.push(suc, suc[2])
-        curr = p_queue.pop()
-    return curr[1]
+	def uniformCostSearch(problem):
+	    visited, p_queue = set(), util.PriorityQueue()
+	    curr = (problem.getStartState(), [], 0)
+	    while not problem.isGoalState(curr[0]):
+	        (state, steps, cost) = curr
+	        if state not in visited:
+	            visited.add(state)
+	            for suc in problem.getSuccessors(state):
+	                if suc[0] not in visited:
+	                    tmp = steps + [suc[1]]
+	                    suc = (suc[0], tmp, suc[2] + cost)
+	                    p_queue.push(suc, suc[2])
+	        curr = p_queue.pop()
+	    return curr[1]
 	```
 	- If the solution costs $C^* $ and arcs cost at least $\epsilon$ then the effective depth is roughly $c^* / \epsilon$. 
 	- Complete: Yes
