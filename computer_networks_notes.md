@@ -470,3 +470,22 @@ __fill in the rest of this__
 	- A larger datacenter may have more layers. 
 	- An HTTP get request will be sent to the top level core switches, which will send the request down through the aggregator switches. The single request is decomposed into multiple components which are each handled by a specific switch / set of switches. 
 		- The responses from the switches are recomposed and sent out to the client via the core switch. 
+
+# Transport Protocols
+- Stop and wait is inefficeint __Fill In__. 
+- Sliding window - use pipelining to increases throughput. 
+- Acknowledgements
+	- Cumulative: acknowledge mah packets at a time
+	- Selective: acknowledge individual packets 
+- Sliding window protocol __fill in__. 
+	- GBM __fill in__
+	- Selecgive repeat __fill in__
+- 
+# TCP
+- TCP delivers a reliable, in order byte stream 
+	- TCP resends lost packets recursively 
+	- TCP only hands consecutive chunks of data to application
+	- TCP assumes there is an incoming stream of data and attempts to deliver it to apps. 
+	- The TCP header contains the source port, destination port, sequence number, acknowledgment, etc. The body of the request contains the data. 
+	- A TCP stream of bytes are provided using "segments". 
+	- 
