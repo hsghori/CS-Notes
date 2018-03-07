@@ -1,5 +1,7 @@
 ---
-title: Artificial Intelligence Notees author: Haroon Ghori geometry: margin=1in
+title: Artificial Intelligence Notees 
+author: Haroon Ghori 
+geometry: margin=1in
 ---
 
 ## Search Problem
@@ -60,19 +62,21 @@ title: Artificial Intelligence Notees author: Haroon Ghori geometry: margin=1in
 - Searching with a search tree
 	- When searching with a search tree, the idea is to expand out potential
 	  plans and maintain a "fringe" of partial plans under construction.
-	- We are trying to expand out as few plans as possible.\
-```
-def tree_search(problem, strategy): 
-	initiate the search tree using the initial
-		state of problem 
-	do: 
-		get next node based on strategy 
-		if there are no candidates for expansion: 
-			return False 
-		if the node contains a goal state:
-			return the corresponding solution (path from start to node) 
-		else: expand the node and add the resulting nodes to the search tree
-```
+	- We are trying to expand out as few plans as possible.
+
+	```
+	def tree_search(problem, strategy): 
+		initiate the search tree using the initial
+			state of problem 
+		do: 
+			get next node based on strategy 
+			if there are no candidates for expansion: 
+				return False 
+			if the node contains a goal state:
+				return the corresponding solution (path from start to node) 
+			else: expand the node and add the resulting nodes to the search tree
+	```
+
 	- The biggest question is how you explore the fringe nodes.
 		- ie what is `strategy`?
 - __Note that in these search algorithms we are literally searching the search
@@ -173,8 +177,8 @@ def tree_search(problem, strategy):
 	  effective depth is roughly $c^* / \epsilon$.
 	- Complete: Yes
 	- Optimal: Yes
-	- Time complexity: $O(b^{$C^* / \epsilon})$.
-	- Space complexity: $O(b^{$C^* / \epsilon})$.
+	- Time complexity: $O(b^{C^* / \epsilon})$.
+	- Space complexity: $O(b^{C^* / \epsilon})$.
 - The search algorithms we've talked about above have been "uninformed search".
   That means that they haven't taken into account the direction (in the search
   treee) where the solution may be. Informed search algorithms use __heuristic
@@ -223,9 +227,9 @@ def tree_search(problem, strategy):
 		- We can say tht n will be expanded before B because
 			- $f(n) \leq f(G)$ because h is admissible
 			- $f(G) \leq f(B)$ because B is suboptimal
-				- $f(G) = c_G + h(G)$, $f(B) = c_B + h(B)$ and $h(G) = h(B) =
-				  0$ since h is admissible.
-				- Since B is bad, $c_G \leq c_B$.
+			- $f(G) = c_G + h(G)$, $f(B) = c_B + h(B)$ and $h(G) = h(B) =
+			0$ since h is admissible.
+			- Since B is bad, $c_G \leq c_B$.
 	- Given two heuristics $h_a$ and $h_c$ and $\forall n \ h_a(n) \geq
 	  h_c(n)$, $h_a$ dominates $h_c$.
 	- Heuristics form a semi lattice. The maximum of all admissible heuristic
@@ -326,13 +330,13 @@ def tree_search(problem, strategy):
 	- Edge consistency
 		- An edge X -> Y is conssitent if for every x in the tail there is some
 		  Y in the head that can ve assigned without violating a constraint.
-			- We make an edge consistent by removing potential assignment
-			  values from the tail.
+		- We make an edge consistent by removing potential assignment
+		values from the tail.
 		- Forward checking is enforcing consistency of an incoming arc.
 		- Visit all edges until they are all consistent
-			- If there is an arc that cannot be made to be consistent (ie
-			  attempting to make the arc consistent results in an empty domain)
-			  backtrack.
+		- If there is an arc that cannot be made to be consistent (ie
+		attempting to make the arc consistent results in an empty domain)
+		backtrack.
 		- Edge consistency does not detect all failures.
 	- Edge consistency is more powerful than forward checking, but it's much
 	  more expensive.
@@ -426,8 +430,9 @@ def tree_search(problem, strategy):
 	- Much simpler than a general game.
 - Value of a state: the besst achievable outcome from that state.
 	- In the terminal state, this value is known.
-	- For non-terminal states, V(s) = max_{s' \in children(s))} V(s'). That is,
-	  the value of a state is the maximum value of the values of its children.
+	- For non-terminal states, $V(s) = max_{s' \in children(s))} V(s')$. That 
+	is, the value of a state is the maximum value of the values of its 
+	children.
 - Minimax Values: The best value we can achieve assuming an optimal adversary.
 	- In minimax we consider the search tree as layers - one layer where an
 	  agent maximizes the end value and another layer where the adversary tries
@@ -589,9 +594,9 @@ def tree_search(problem, strategy):
 - Some games have mixtures of minimax and expectimax. That is that the search
   tree has mixtures of min, max, and expected value layers.
 
-```
-                 root                (MAX) 
-          /        |         \ 
+``` 
+                root                 (MAX) 
+         /        |         \ 
         x1        x2         x3 (EXPECTED)
        /  \      /  \       /  \ 
      x11 x12  x21  x22   x31   x32   (MIN)
@@ -683,9 +688,9 @@ should the agent prefer to obtain a reward sooner or later?
 - A queue state (s,a) is an action we've comitted to from some state s, but 
 that hasn't been caried out yet. 
 - Optimal Quantities
-	- Utility of a state: $V* (s)$ is the expected utility starting in s and 
+	- Utility of a state: $V* (s)$ is the expected reward starting in s and 
 	acting optimally. Expectimax utility. 
-	- Utility of a queue state: $Q* (s,a)$ is the expected utility starting out
+	- Utility of a queue state: $Q* (s,a)$ is the expected reward starting out
 	having taken action a from state s and then acting optimally. 
 	- Value of a stae is the expected future utility from a state
 	- Optimal policy: $\pi * (s)$ the optimal action from state s
@@ -708,25 +713,25 @@ $$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
 overheat. However he get's more reward (has a higher chance of winning the
 race) if he drives fast. From any state he can either accelerate or decelerate.
 
-        | Cool          |      Hot      |  Overheated  
--------------------------------------------------------
-        |   P(s')  | R  |   P(s')  | R  |   P(s')  | R 
---------------------------------------------------------        
-Go Slow | 1.0 Slow | +1 | 0.5 Slow | +1 | 1.0 OH   | 0 
-        |          |    | 0.5 Fast | +1 |          | 0 
-Go Fast | 0.5 Fast | +2 | 1.0 OH   | -10| 1.0 OH   | 0 
-          0.5 Slow | +2 |          |    |          | 0 
+|        | Cool          |      Hot      |  Overheated  |
+|--------|----------|----|---------------|----------|---|
+|        |   P(s')  | R  |   P(s')  | R  |   P(s')  | R | 
+|--------|----------|----|----------|----|----------|---|        
+|Go Slow | 1.0 Slow | +1 | 0.5 Slow | +1 | 1.0 OH   | 0 |
+|        |          |    | 0.5 Fast | +1 |          | 0 |
+|Go Fast | 0.5 Fast | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
+|        | 0.5 Slow | +2 |          |    |          | 0 |
 
  We can use this table and the Bellman equation to calculate the optimal policy
  for this situation. 
 
-      | Cool               | Hot                | Overheated
---------------------------------------------------------------------
-      | Value | Opt Action | Value | Opt Action | Value | Opt Action 
- -------------------------------------------------------------------
- V_2  |  3.5  |  Go Fast   |  2    | Go slow    | 0     | NA
- V_1  |   2   |  Go Fast   |  1    | Go slow    | 0     | NA
- V_0  |   0   |  NA        |  0    | NA         | 0     | NA
+|      | Cool               | Hot                | Overheated        |
+|------|-------|------------|-------|------------|-------|-----------|
+|      | Value | Opt Action | Value | Opt Action | Value | Opt Action| 
+|------|-------|------------|-------|------------|-------|-----------|
+| V_2  |  3.5  |  Go Fast   |  2    | Go slow    | 0     | NA        |
+| V_1  |   2   |  Go Fast   |  1    | Go slow    | 0     | NA        |
+| V_0  |   0   |  NA        |  0    | NA         | 0     | NA        |
 
 We can calculate 
 $$V_1 (cold) = max_{a} {\sum_{s'}{T(s,a,s')[R(s,a,s') + V_0{s'}]}}$$
@@ -736,6 +741,174 @@ $$V_1 (cold) = max(T_(cool, slow, cool) [R(cool, slow, cool) + V_0 (cool)] + T_
 (hot)])$$
 
 This example doesn't include the $\gamma$ (discount) parameter. 
+
+- Policy Evaluation. We don't always have the optimal oplicy - sometimes our
+policy is fixed. Calculating the values for a fixed policy is pretty easy. 
+- $V^{\pi} (s)$ is the expected total discounted reward starting in $s$ and
+following policy $\pi$. 
+$$V^{\pi} (s) = \sum_{s'}{T(s, \pi (s), s') [R(s, \pi (s), s') + \gamma V^
+{\pi} (s')]}$$ 
+- This is effectively the original Bellman equation, but without maxing over 
+the different actions (since $\pi (s)$ is a fixed action). 
+	- We compute the values in the same way.
+	- Set $V_0 (s) = 0 \forall s \in S$. 
+	- $V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s') + V_
+	{k}^{\pi} (s')]$
+	- This computation is $A$ times more efficient than computing the optimal
+	policy (since we don't need to max over all actions). 
+- Without the max, the system of equation just turns into a system of linear
+equations - so we can also solve the system using any linear equation solving
+method. 
+- Given the optimal values how can we figure out the policy?
+	- Use expecimax, but only for one step. 
+	- $\pi* (s) = \argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* (s')]}$.
+	- "action selection from values is kinda a pain in the butt" - Dan Klein 
+- Knowing the optimal Q values make it trivial to find the optimal action. 
+	- $\pi* (s) = \argmax_{a} Q(s, a)$. 
+- Policy Iteration. How do we iteratively improve a given policy. 
+	- Value iteration is a pretty slow process. $O(S^2 A)$ per iteration.
+	- The max at each state rarely changes so we end up doing a lot of work. 
+	- The policy often converges long before the values.
+- Policy iteration algorithm 
+	1. Policy Evaluation: calculate utilities for some fixed policy (not 
+	optimal utilites) until convergence. 
+		- Let $\pi (s)$ be the policy calculated in step 2 (or the initial). 
+		- Do until values converge
+			- V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s'+
+			V_{k}^{\pi} (s')]$
+	2. Policy Improvement: update policy using one-step look ahead with r
+	esulting converged (but not optimal) utilities at future values. 
+		- Let V(s) be the values calculated in step 1. 
+		- $\pi (s) = \argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* (s')]}$
+	3. Repeaat steps 1 and 2 until policy converges. 
+	- THis is an EM algorithm - ML is everywhere bitches. 
+	- The improvement step is not faster than value iteration. The evaluation 
+	step is significantly faster and happens many times before an improvement 
+	step. That's where we see our speedup. 
+- Value iteration and policy iteration do the same thing. Both provide optimal
+values and policies (if you do it right). 
+	- Value iteration: every iteeration updates both the values and (
+	implicitly) the policy.
+	- Policy improvement: we do several passes that updates the utilities and 
+	then update the policy
+	- Both are dynamic programming algorithms / EM algorithms. 
+
+### Reinforcement Learning
+- Basic concept of reinforcement learning:
+	- There is an agent who does an action in an environemtn
+	- The agen performs some action in the environment 
+	- The environment sends back a reward and a "percept" (a state). 
+		- We want to maximize the reward, but we don't know how the world works.
+- In reinforcement learning we assume that hte world is a Markov Decision
+Process (MDP). We're still trying to learn a policy, state values, etc. But we
+don't know the probability distribution. So we need to try a bunch of thinge,
+learn from our successes and failures, and eventually learn the distribution of
+the MDP and thereby find the optimal policy. 
+- Offline vs Online 
+	- Offline = learning by simulating 
+	- Online = learning by doing in the real world 
+- Model based learning - learn an approximate model of the MDP based on our
+experiences. Then use that model to generate a policy. 
+	- In state $s$ we take action $a$, count outcomes $s'$. 
+	- Normalize to get an estimate for $T(s, a, s')$. 
+	- Discover each $R(s, a, s')$ when we experience $(s, a, a')$. 
+- Model free approach - Instead of generating a probability distribution based
+on experiences, calculate the expected value of a state directly using the
+experiences. 
+- Passive reinforcement learning - some agent is acting in the real world and 
+we have no control over its actions. We are essentially watching a fixed policy
+and are trying to learn that policy. 
+	- Direct Evaluation - Watch an action unfold, act according to pi. Every 
+	time you visit a state not what the sum of discounted rewards was. Average
+	those samples. If we do this long enough we'll be able to estimate the policy. 
+		- This works out in the end. However it can result in odd intermediate 
+		results because we don't take into account state connection. Each 
+		state is learned seperately and therefore takes a long time to learn. 
+	- Sample based policy evaluation - an approximation of the policy 
+	evaluation algorithm using sample averagees as opposed to known transition
+	functions / rewards. 
+		- Every time you're at $s$, take sample of outcomes $s'$ by doing the 
+		action and average. 
+		$$sample_1 = R(s, \pi(s), s_{1}') + V_k^{\pi}(s_1')$$
+		$$sample_2 = R(s, \pi(s), s_{2}') + V_k^{\pi}(s_2')$$
+		...
+		$$sample_n = R(s, \pi(s), s_{n}') + V_k^{\pi}(s_n')$$
+		take the average of n samples 
+		- The big problem is that we can't garuntee we'll get back to $s$.
+	- Temporal difference learning 
+		- Learn from every experience. Update V(s) each time we experience a
+		transition. Likely outcomes $s'$ will contribute to updates more 
+		often. 
+		$$sample = R(s, \pi(s), s') + \gamma V^{\pi}(s')$$
+		$$V^{\pi}(s) = (1 -\alpha) V^{\pi}(s) + \alpha * sample$$
+		or
+		$$V^{\pi}(s) =  V^{\pi}(s) + \alpha(sample - V^{\pi}(s))
+		- $\alpha$ is called the learning rate. 
+		- The learning rate creates an "exponential moving average" which 
+		weights more recent samples more heavily. 
+		- This works for passive learning, but not active. 
+		- Active reinforcement learning - we need to learn the Q values as 
+		well as the state values. 
+- Full reinforcement learning - we want to learn optimal policies	
+	- We don't know transitions or rewards. However we can choose the actions. 
+	- This is an online process. 
+- Q Learning is a modification of the Bellman equations which allows us to 
+learn Q values. For a chance node we can learn the Q values by taking the
+average of the optimal values for each state - where each value is defined as
+the max of it's Q values. 
+$$Q_{k+1}(s,a) = \sum_{s'}{T(s,a,s') [R(s,a,s') + \gamma max_{a'}{Q(s',a)}]}$$
+- Q Learning:
+	- receive a sample s, a, s', r)
+	- consider the old estimate Q(s,a)
+	- calculate $sample = R(s, a, s') + max_{a'}(Q(s,a,s'))$
+	- update q value: $Q(s, a) = Q(s, a) - \alpha (Q(s, a) - sample)$
+	- This process is essentially the same as temporal difference learning. 
+- Q learning will converge to the optimal policy even if you're acting
+sub-optimally. 
+	- this is called off policy learning. 
+	- You have to explore enough.
+	- The learning rate has to be small. 
+	- In the limit it doesn't matter how we select actions. 
+- Exploration vs Exploitation 
+	- Exploration - trying new things 
+	- Exploitation - going with what you know to be good 
+	- There is a balance between exploration and exploitation that needs to be
+	struck.
+- A simple scheme for forcing exploration is to force a random action (based on
+some small probability). 
+	- This is called epsilon greedy. 
+	- This could backfire once you've learned the optimal policy. 
+		- This can be mitigated by lowering epsilon over time. 
+- Exploration function
+	- Take a value estimate and visist counda dn return an
+	optimistic utility $F(u, n) = u + k / n$. 
+		- k is some bonus 
+	- Then alter the Q update: $Q(s,a) <- _ {\alpha} R(s, a, s') + max_{a'}{f(Q
+	(s',a'),N(s',a'))}$. 
+		- N is the number of times that action has been taken. 
+	- This not only boosts actions that haven't been tried but also boosts 
+	paths that lead to actions that haven't been tried. 
+- Regret is a meaure of your total mistakes. 
+	- A measure of total mistake cost - the difference between our expected 
+	awards including youthful suboptimality and optimal (expected) rewards. 
+	- The exploration reduces regret compared to random exploration. 
+- Approximate Q Learning 
+	- A method of reinforcement learning with a large number of states. 
+	- We want to generalise a state as a vector (array) of features. 
+	- Our Q values are linear combinations of weighted feature pairs. The 
+	challenge is coming up with intelligent features. 
+	- Algorithm:
+		- receive a sample $(s, a, s', r)$ 
+		- calculate $difference = [r + \max_{a'}Q(s', a')] - Q(s, a)$
+		- update $w_i = w_i + \alpha difference f_i(s,a)$. 
+		- $f_i (s,a)$ is the ith feature of $(s,a)$. 
+- Q learning is a great tool, but the feature based approaches that work well
+aren't usually the ones that approximate V and Q well. Our solution is to learn
+policies that maximize rewards as opposed to the values that predict them. 
+- Policy search starts from an ok solution (eg Q learning) then fine tunes by
+conducting gradient descent on the feature weights. 
+
+
 
 
 
