@@ -712,7 +712,7 @@ $$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
 - Example: Consider the following racecar. If the car drives slowly he cannot
 overheat. However he get's more reward (has a higher chance of winning the
 race) if he drives fast. From any state he can either accelerate or decelerate.
-
+```
 |        | Cool          |      Hot      |  Overheated  |
 |--------|----------|----|---------------|----------|---|
 |        |   P(s')  | R  |   P(s')  | R  |   P(s')  | R | 
@@ -721,10 +721,10 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 |        |          |    | 0.5 Fast | +1 |          | 0 |
 |Go Fast | 0.5 Fast | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
 |        | 0.5 Slow | +2 |          |    |          | 0 |
-
+```
  We can use this table and the Bellman equation to calculate the optimal policy
  for this situation. 
-
+```
 |      | Cool               | Hot                | Overheated        |
 |------|-------|------------|-------|------------|-------|-----------|
 |      | Value | Opt Action | Value | Opt Action | Value | Opt Action| 
@@ -732,7 +732,7 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 | V_2  |  3.5  |  Go Fast   |  2    | Go slow    | 0     | NA        |
 | V_1  |   2   |  Go Fast   |  1    | Go slow    | 0     | NA        |
 | V_0  |   0   |  NA        |  0    | NA         | 0     | NA        |
-
+```
 We can calculate 
 $$V_1 (cold) = max_{a} {\sum_{s'}{T(s,a,s')[R(s,a,s') + V_0{s'}]}}$$
 $$V_1 (cold) = max(T_(cool, slow, cool) [R(cool, slow, cool) + V_0 (cool)] + T_
