@@ -1208,15 +1208,15 @@ System.out.println(lakers.toString());
 
 One of the major differences between primitive types and Objects is how they are represented in memory. We can visualize the computer memory as a array where the data at the $i$th index corresponds to memory address $i$:
 
-![memory](memory.png)
+![memory](src/memory.png)
 
 When we define a primitive, for example `int primitive = 1;`, the variable `primitive` points to (aka references) some memory address $i$ and the data at memory address $i$ is the value of `primitive` (ie 1).
 
-![storing a primative](primitive_in_memory.png)
+![storing a primative](src/primitive_in_memory.png)
 
 However, when we define an Object, for exmample `SomeClass nonPrimitive = new SomeClass();`, the variable `nonPrimitive` references some memory address $j$ but the data at memory adress $j$ is another memory address $k$. The data at memory address $k$ is the data corresponding to `nonPrimitive`.
 
-![storing an object](non_primitive_in_memory.png)
+![storing an object](src/non_primitive_in_memory.png)
 
 This distinction comes into play when we pass variables into methods. Java "passes by reference value". That means that when if I have a variable `x` that references some memory address $A$, when I pass `x` into a method the computer will copy the data at $A$ and save it at a new memory address $B$.
 
