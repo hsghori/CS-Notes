@@ -1,5 +1,5 @@
 ---
-title: Artificial Intelligence Notees 
+title: Artificial Intelligence Notes 
 author: Haroon Ghori 
 geometry: margin=1in
 ---
@@ -322,7 +322,7 @@ geometry: margin=1in
   intelligently (ordering) and ruling out assignment quickly (filtering).
 - Filtering
 	- Forward Checking
-		- Keep track of domains fro unassigned variiables and cross off bad
+		- Keep track of domains for unassigned variiables and cross off bad
 		  options
 		- Remove values that violate a constraint in another variable when
 		  adding to the existing assignment.
@@ -713,20 +713,20 @@ $$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
 overheat. However he get's more reward (has a higher chance of winning the
 race) if he drives fast. From any state he can either accelerate or decelerate.
 ```
-|        | Cool          |      Hot      |  Overheated  |
-|--------|----------|----|---------------|----------|---|
-|        |   P(s')  | R  |   P(s')  | R  |   P(s')  | R | 
+|States->| Cool          |      Hot      |  Overheated  |
+|--------|---------------|---------------|--------------|
+|Actions |   P(s')  | R  |   P(s')  | R  |   P(s')  | R | 
 |--------|----------|----|----------|----|----------|---|        
-|Go Slow | 1.0 Slow | +1 | 0.5 Slow | +1 | 1.0 OH   | 0 |
-|        |          |    | 0.5 Fast | +1 |          | 0 |
-|Go Fast | 0.5 Fast | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
-|        | 0.5 Slow | +2 |          |    |          | 0 |
+|Go Slow | 1.0 Cool | +1 | 0.5 Cool | +1 | 1.0 OH   | 0 |
+|        | 0.0 Hot  | +0 | 0.5 Hot  | +1 |          | 0 |
+|Go Fast | 0.5 Cool | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
+|        | 0.5 Hot  | +2 |          |    |          | 0 |
 ```
  We can use this table and the Bellman equation to calculate the optimal policy
  for this situation. 
 ```
 |      | Cool               | Hot                | Overheated        |
-|------|-------|------------|-------|------------|-------|-----------|
+|------|--------------------|--------------------|-------------------|
 |      | Value | Opt Action | Value | Opt Action | Value | Opt Action| 
 |------|-------|------------|-------|------------|-------|-----------|
 | V_2  |  3.5  |  Go Fast   |  2    | Go slow    | 0     | NA        |
@@ -761,10 +761,11 @@ equations - so we can also solve the system using any linear equation solving
 method. 
 - Given the optimal values how can we figure out the policy?
 	- Use expecimax, but only for one step. 
-	- $\pi* (s) = \argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* (s')]}$.
+	- $\pi* (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
+	(s')]}$.
 	- "action selection from values is kinda a pain in the butt" - Dan Klein 
 - Knowing the optimal Q values make it trivial to find the optimal action. 
-	- $\pi* (s) = \argmax_{a} Q(s, a)$. 
+	- $\pi* (s) = argmax_{a} Q(s, a)$. 
 - Policy Iteration. How do we iteratively improve a given policy. 
 	- Value iteration is a pretty slow process. $O(S^2 A)$ per iteration.
 	- The max at each state rarely changes so we end up doing a lot of work. 
@@ -774,12 +775,13 @@ method.
 	optimal utilites) until convergence. 
 		- Let $\pi (s)$ be the policy calculated in step 2 (or the initial). 
 		- Do until values converge
-			- V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s'+
-			V_{k}^{\pi} (s')]$
+		$$V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s'+
+			V_{k}^{\pi} (s')]$$
 	2. Policy Improvement: update policy using one-step look ahead with r
 	esulting converged (but not optimal) utilities at future values. 
 		- Let V(s) be the values calculated in step 1. 
-		- $\pi (s) = \argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* (s')]}$
+		$$\pi (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
+		(s')]}$$
 	3. Repeaat steps 1 and 2 until policy converges. 
 	- THis is an EM algorithm - ML is everywhere bitches. 
 	- The improvement step is not faster than value iteration. The evaluation 
@@ -819,7 +821,7 @@ experiences.
 we have no control over its actions. We are essentially watching a fixed policy
 and are trying to learn that policy. 
 	- Direct Evaluation - Watch an action unfold, act according to pi. Every 
-	time you visit a state not what the sum of discounted rewards was. Average
+	time you visit a state note what the sum of discounted rewards was. Average
 	those samples. If we do this long enough we'll be able to estimate the policy. 
 		- This works out in the end. However it can result in odd intermediate 
 		results because we don't take into account state connection. Each 
@@ -842,7 +844,7 @@ and are trying to learn that policy.
 		$$sample = R(s, \pi(s), s') + \gamma V^{\pi}(s')$$
 		$$V^{\pi}(s) = (1 -\alpha) V^{\pi}(s) + \alpha * sample$$
 		or
-		$$V^{\pi}(s) =  V^{\pi}(s) + \alpha(sample - V^{\pi}(s))
+		$$V^{\pi}(s) =  V^{\pi}(s) + \alpha(sample - V^{\pi}(s))$$
 		- $\alpha$ is called the learning rate. 
 		- The learning rate creates an "exponential moving average" which 
 		weights more recent samples more heavily. 
@@ -860,7 +862,7 @@ $$Q_{k+1}(s,a) = \sum_{s'}{T(s,a,s') [R(s,a,s') + \gamma max_{a'}{Q(s',a)}]}$$
 - Q Learning:
 	- receive a sample s, a, s', r)
 	- consider the old estimate Q(s,a)
-	- calculate $sample = R(s, a, s') + max_{a'}(Q(s,a,s'))$
+	- calculate $sample = R(s, a, s') + max_{a'}(Q(s', a))$
 	- update q value: $Q(s, a) = Q(s, a) - \alpha (Q(s, a) - sample)$
 	- This process is essentially the same as temporal difference learning. 
 - Q learning will converge to the optimal policy even if you're acting
@@ -900,7 +902,7 @@ some small probability).
 	- Algorithm:
 		- receive a sample $(s, a, s', r)$ 
 		- calculate $difference = [r + \max_{a'}Q(s', a')] - Q(s, a)$
-		- update $w_i = w_i + \alpha difference f_i(s,a)$. 
+		- update $w_i = w_i + \alpha difference \ f_i(s,a)$. 
 		- $f_i (s,a)$ is the ith feature of $(s,a)$. 
 - Q learning is a great tool, but the feature based approaches that work well
 aren't usually the ones that approximate V and Q well. Our solution is to learn
@@ -908,7 +910,495 @@ policies that maximize rewards as opposed to the values that predict them.
 - Policy search starts from an ok solution (eg Q learning) then fine tunes by
 conducting gradient descent on the feature weights. 
 
+# Probabilistic Reasoning
 
+### Probability Basics 
+- A random variable is some aspect of the world about which we have 
+uncertainty. A random variable has a domain of possible values and is denoted 
+by a capital letter. 
+- Probability Distribution: the probability associated with each possible value
+of a random variable. A probability distribution over random variable $R$
+defines $P(R = x) \ \forall x \in D_R$. $P(R=x)$ can also be written $P(x)$ for
+shorthand. A probability distribution must follow two properties:
+	1. $P(x) >= 0 \forall x \ \in D_R$
+	2. $\sum_{x \in D_R} {P(x)} = 1$
+- Joint distribution: A joint distribution over a set of random variables $X_1,
+X_2, ..., X_n$ specifies the probability of each possible assignemnt $P(X_1 =
+x_1, X_2 = x_2, ... , X_n = x_n)$. 
+	- Given a distribution of $n$ variables with domain sizes $d$, the
+	distribution is of size $d^n$. 
+- A probabalisitc models is a joint distribution over a set of random 
+variables.
+	- Given a joint distribution we can calculate the prbability of any one
+	event by summing over all arrangements where the event occurs. 
+	- An event is a subset of the assignmnets. 
+- A marginal distribution is a sub-tables which eliminates variables from a
+joint distribution. 
+	- Essentially building a joint distribution over a subset of the random
+	variables. 
+	- An easy example - given some joint distribution $X_1$, $X_2$ we can
+	calculate $P(X_1 = x) = \sum_{X_2=x_2}P(X_1 = x, X_2=x_2)$
+- Conditional probability: $P(a | b) = \frac{P(a, b)}{P(b)}$
+- Conditional distributions are probability distributions over some variables
+given fixed values of others. 
+- Product rule: $P(x, y) = P(x | y) P(y)$ - this is a method for encoding a
+joint distribution. 
+- Chain Rule: We can write any joint distribution $P(x_1, x_2, ..., x_n)$ as
+$$P(x_1, x_2, ..., x_n) = P(x_1)P(x_2 | x_1)P(X_3 | x_2, x_1) ... $$
+or 
+$$P(x_1, x_2, ..., x_n) = \Pi_{i}^{n}{P(x_i | x_1 ... x_{i-1})}$$
+- Bayes Rule: $P(x | y) = \frac{P(y | x) P(x)}{P(y)}$. 
+	- Prior Probability: $P(x)$
+	- Posterior Probability: $P(x | y)$
+- Two variables are independent if $P(X,Y) = P(X)P(Y)$ for all possible values
+of $X$ and $Y$. 
+- Conditional Independene: Variables A and B are conditionaly independent given
+C if:
+	- $P(A, B | C) = P(A | C)P(B | C)$ 
+	- $P(A | B, C) = P(A | C)$
+
+
+### Markov Models
+
+__Markov Models__
+
+- A markov model is a probabalistic inference model that is used to make
+inferences based on sequences of actions over time and space. A markov model is
+essentially a sequence of random variables such that each variable is only
+dependent on the previous variable (or some set of previous variables)
+
+```
+ (x1) -> (x2) -> (x3) -> ... -> (xN)
+```
+
+- $P(x1), P(x2|x2), P(x3|x2) ... $ are called transition probabilities. 
+- Then we can use the chain rule to see determine the probability of a specific
+sequence. 
+$$P(X_1, X_2, ..., X_T) = P(X_1) \Pi_{i=2}^{T} {P(X_i | X_{i-1})}$$
+- Note here we assume that $X_i \bot X_{i-2} | X_{i-1}$. or that $X_i$ and $X_
+{i-2}$ are conditionaly independent given $X_{i-1}$. 
+- Markov models, when run for long enough, usually converge to a "stationary
+distribution". We can solve for the stationary distribution either by running
+the simulation for a while and by solving a set of linear equations. For a
+binary state stystem
+$$P(X_{\infty} = a) = P(X_{\infty} = a, X_{\infty - 1} = a) + P(X_{\infty} =
+a, X_{\infty - 1} = b)$$
+$$P(X_{\infty} = b) = P(X_{\infty} = b, X_{\infty - 1} = a) + P(X_{\infty} =
+b, X_{\infty - 1} = b)$$
+$$P(X_{\infty} = a) + P(X_{\infty} = b) = 1$$
+
+__Hidden Markov Models__
+
+- Markov models are very useful for reasoning over some kind of sequence (over
+time or space). 
+- A Hidden Markov Model is a Markov Model with "hidden" and "observed" states
+
+```
+ (z1) -> (z2) -> (z3) -> ... -> (zN)
+  |       |       |      ...     |     
+  V       V       V              V
+ (x1) -> (x2) -> (x3) -> ... -> (xN)
+```
+
+- We define $E_{z_{i}}(x)$ as $P(x_i = x | z_i = z)$ and $T(z', z)$ as $P(z_
+{i+1} = z' | z_{i} = z). 
+
+- Based on our knowledge of MMs above, determing the joint distribution of a 
+HMM is reasonably straight forward. 
+	- Let $B(Z_t)=P(Z_t | x_1...x_t)$ 
+	- $B$ is a belief vector that essentialy gives the probability of the state
+	of the hidden state at time $t$ given the current "evidence" (observed
+	states). 
+	- Then for one time step, 
+	$$P(Z_{t+1} | x_1...x_t) = \sum_{z}P(Z_{t+1} | Z_t = z) P(z_t |
+	x_1...x_t)$$
+	- And
+	$$P(Z_{t+1} | x1...x_{t+1}) = \frac{P(x1...x_{t+1} | Z_{t+1})P(Z_{t+1} |
+	x_1...x_t)}{P(x1...x_{t+1})}$$
+- Forward Algorithm is a dynamic algorithm to get the probability of the 
+current state given all observed evidence. Eg find $P(z_t | x_1...x_t)$
+$$P(z_t | x_1...x_t) = \frac{P(z_t,  x_1...x_t)}{P(x_1...x_t)}$$
+$$P(z_t, x_1...x_t) = \sum_{z_{t-1}}{P(z_{t-1}, z_t, x_1...x_t)}$$
+$$ = \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_{t-1})P(x_1|x_{t-1}) P(x_t | z_t)}$$
+$$ = P(x_t | z_t) \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_{t-1})P(x_1|x_{t-1})}$$
+$$P(z_t | x_1...x_t) =\frac{ P(x_t | z_t) \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_
+{t-1})P(x_1|x_{t-1})} } {P(x_1...x_t}$$
+- Then the probabilty distribution of the HMM is given by 
+$$P(x1...xN, z1...zN) = P(z_1)E_{z_1}(x_i) \Pi_{k=2}^{n}{T(Z_{k}, Z_{k-1}) E_
+{z_{k}}(x_k)}$$
+
+__Particle Filtering__
+
+- Particle Filtering is an appappximate inference technique that reduces the
+statem space of an HMM (useful
+if Z is too large to use exact inference). Instead of tracking values of Z,
+track samples. Each sample is called a particle and time per step is linked to
+the number of samples taken. 
+- Every particle can take some value $X_i$ - there are $ N << |X| particles in
+the system. $P(x)$ represents the number of particles that take on the value
+$x$ - so increasing the number of particles (obviously) increases the accuracy
+of the approximate inference. 
+- At the beginning, each value is 
+
+### Baysean Networks
+- A baysean network is a graphical approach to representing a joint probability
+distribution over some set of random variables. Bayes nets are used to build a
+model of the world. 
+- A bayes net directed, acyclic graph (DAG)
+where each vertex represents a random variable $X$ and an edge from $x$ to $y$
+defines some "causation" or dependence of $y$ on $x$.  
+	- A bayes net consists of the dependencies and local "conditional
+	probability tables" (CPTs) ie $P(X | parents_{X})$
+	- We can use this local information along with the dependency information
+	encorded in the graph to "infer" the joint probability distrbution encoded
+	by the network using the following equation:
+	$$P(x_1, x_2, ..., x_n) = \Pi_{i=1}^{n} {P(x_i | parents(x_i))}$$
+- A general joint distribution is of size $O(2^N)$ for $N$ variables. A Bayes 
+net is $O(N * 2^k)$ if each node has up to $k$ parents. 
+
+- Independence in bayes nets. 
+	- `(A) -> (B) <- (C)` : A and C are independent (blocking); A and C are
+	conditionaly dependent given B
+	- `(A) -> (B) -> (C)` : A and C are conditionaly independent given B 
+	(blocking); A and C are dependent 
+	- `(A) <- (B) -> (C)` : A and C are conditionaly independent given B 
+	(blocking); A and C are dependent 
+- Sets $A$ and $B$ of random variables are independent given set $C$ if there
+exists no unblocked path from the vertices in $A$ to the vertices in $B$ if the
+vertices in $C$ are observed. $A$ and $B$ are said to be D-seperated by $C$. 
+	- So to determine if any vertices are independent given a set of observed
+	variables we simply check to see if all paths between the variables are
+	blocked. 
+
+__Inference__
+
+- Inference is essentially the process of finding some useful information about
+from a bayes net. Usually we want to know the "posterior probability" of some
+querry variables or the "most likely explanation". 
+	1. Posterior Probability: $P(Q | E_1 = e_i, ..., E_k = e_k)$
+	2. Most Likely Explanation: $argmax_q P(Q = q | E_1 = e_i, ..., E_k = e_k)$
+- Inference by enumeraation is the most naive form of inference
+	- Evidence variables $E_1...E_k = e_1...e_k$
+	- Query variables: $Q$
+	- Hidden variables: $H_1...H_r$
+	- Calculate 
+	$$P(Q | e_1...e_k) = \frac{P(Q, e_1...e_k)}{P(e_1,...,e_k)}$$
+	$$P(Q, e_1,...,e_k) = \sum_{h_1...h_r}{P(Q, h_1,...,h_r, e_1,...,e_k)}$$
+	- Note that final equation involves summing over all possible hidden
+	variables. Also recall that $P(x_1, x_2, ..., x_k) = \Pi_{i=1}^{n} {P(x_i |
+	parents(x_i))}$. 
+	- This is obviously a very inefficient solution. In fact, inference in a
+	Bayes Net is an NP-hard problem. 
+- Factors
+	- A "factor" is a conglomeration of nodes where some may be specified and
+	other unspecified.
+	- A single node is (itself) a factor. 
+- Joining Variables
+	- We can We can join factors together by combining CPTs. 
+
+```
+R = rain, T = traffic, L = late
+
+Bayes Net
+----------
+(R) -> (T) -> (L)
+
+P(R)
++r = 0.1
+-r = 0.9
+
+P(T | R)
++r +t = 0.8
++r -t = 0.2
+-r +t = 0.1
+-r -t = 0.9
+
+P(L | T)
++t +l = 0.3
++t -l = 0.7
+-t +l = 0.1
+-t -l = 0.9
+
+Factors
+-------
+Join on R
+P(R, T) = P(T | R) P(R)
++r +t = .08
++r -t = .02
+-r +t = .09
+-r -t = .81
+
+Join on T
+P(R, T, L) = P(L | R, T) P(R, T)
++r +t -l = 0.024
++r +t +l = 0.056
++r -t -l = 0.002
++r +t +l = 0.018
+-r +t +l = 0.027
+-r +t -l = 0.063
+-r -t +l = 0.081
+-r -t -l = 0.0729
+```
+
+- Eliminating Variables
+	- We can also use factors to eliminate hidden variables (essentially by
+	summing variables together). 
+
+```
+P(R, T)
++r +t = .08
++r -t = .02
+-r +t = .09
+-r -t = .81
+
+Eliminate R = sum_R P(R, T)
++t = .17
+-t = .83
+```
+
+- Join and elimination are the only two operations we need to do inference
+enumeration and variable elimination. 
+	- In inference by enumeration we essentially join over all hidden variables
+	and then eliminate the hidden variables. 
+- In variable elimination we essentially join on a single hidden variable and
+then eliminate it. 
+	- Given some query $P(Q | E_1=e_1,...E_k=e_k)$
+	- Start with local CPTs 
+	- While there are still hiden variables
+		- Pick a hidden variable H
+		- Join all factors mentioning H
+		- Eliminate (sume over) H - this generates another factor. 
+	- Join all remaining factors and normalize by $P(e_1...e_k)$. 
+- Example
+
+```
+(R) -> (T) -> (L)
+```
+
+- Inference by enumeration
+$$P(L) = \sum_{t}{\sum_{r}{P(L|t) P(t | r) P(r)}}$$
+	1. $P(t | r) P(r)$ - join on R
+	2. $P(L | t) P(r, t$ - join on T
+	3. $\sum_{r}$ - eliminating R
+	4. $\sum_{t}$ - eliminating T
+- Variable Elimination
+$$P(L) = \sum_{t}{P(L | t) \sum_{r}{P(r) P(t | r)}}$$
+	1. $P(r) P(t | r)$ - join on R
+	2. $\sum_{r}$ - eliminating R
+	3. $P(L | t)$ - join on T
+	4. $\sum_{t}$ - eliminating T
+
+- The innovation in variable elimination is picking $H$ in an intelligent way.
+Some choices of hidden variables would result in large factors whereas other
+choices result in smaller factors - obviously smaller factors lead to more
+efficient inference. 
+	- Generally speaking we should pick factors with less connections first
+	since more connectisons implies a bigger factor table. 
+	- If we are combining k factors with domain sizes d, the resulting factor 
+	is of size	$O(d^k)$. 
+	- In variable elimination we care about the size of the factor tables. 
+	- The computational and space compelxity of variable elimination is
+	determined by the largest factor. And the elimination ordering can greatly
+	affect the size of the largest factor. 
+	- There is no general "optimal ordering" which always results in small
+	factors. 
+- A polytree is a directed graph with no undirected cycles. We can always find
+an efficient ordering with polytrees. 
+
+__Aproximate Inference__
+
+- Approximate inference is a more efficient means of inference from a Bayes 
+Net. Obvisouly (as the name implies), approximate inference is not as exact as
+the types of inference discussed above but it is often a more efficient method
+of inference. 
+- Prior Sampling
+	- Ignore all evidence and sample from teh joint distribution. 
+	- Do inference by counting results. 
+
+	```Python
+	def prior_sampling(X, evidence):
+		'''
+		 X is an ordering of the vertices in the bayes net such that 
+		  parents come before children
+		 evidence is a dcit mapping vertices to the observed value
+		'''
+		x = np.array(n) # sample
+		for i in range(1, n+1):
+			x[i] = sample(P(X[i] | parents(X[i])))
+		return x
+	```
+
+	- This process generates samples with probability
+	$$S_{PS}(x_1,...,x_n) = \Pi_{i=1}^{n}P(x_i | parents(X_i)) = P
+	(x_1,...,x_n)$$
+	- As we increase the number of samples, our sampling becomes more 
+	accurate. 
+- Rejection Sampling
+	- Very similar to prior sampling but with an "early abort" principle. 
+	- Ie if our sample isn't consistent with the query, abort that particular
+	sample construction. 
+
+	```Python
+	def rejection_sampling(X, evidence):
+		'''
+		 X is an ordering of the vertices in the bayes net such that 
+		  parents come before children
+		 evidence is a dcit mapping vertices to the observed value
+		'''
+		x = np.array(n) # sample
+		for i in range(1, n+1):
+			x[i] = sample(from P(X[i] | parents(X[i])))
+			if not x[i].consistent(evidence):
+				return
+		return x
+	```
+
+- Likelihood Weighting
+	- Rejection sampling works well, but is non-ideal if the evidence is
+	unlikely and / or far upstream. In these cases, there will be a lot of
+	wasted work done on samples that are eventually going to be rejected. 
+	- We can fix this problem by "fixing" the evidence values and weighting the
+	sample by the probability of the evidence given their parents. 
+
+	```Python
+	def likelihood_weighting(X, evidence):
+		'''
+		 X is an ordering of the vertices in the bayes net such that 
+		  parents come before children
+		 evidence is a dcit mapping vertices to the observed value
+		'''
+		x = np.array(n) # sample
+		w = 1.0
+		for i in range(1, n):
+			if X[i] in evidence:
+				x[i] = evidence[X[i]]
+				w *= P(x[i] | parents(X[i]))
+			else:
+				x[i] = sample(P(X[i] | parents(X[i])))
+		return x, w
+	```
+
+	- Thus we sample from a distribution 
+	$$S_{WS}(z, e) = \Pi_{i=1}^{l}P(z_i | parents(Z_i))$$
+	$$w(x, e) = \Pi_{i=1}^{m}P(e_i | parents{E_i})$$
+	- $l$ is the number of variables that are not evidence, $m$ is the number 
+	of variables that are evidence. (therefore $Z$ is the set of
+	non-evidence variables and $E$ is the set of evidence variables). Therefore:
+	$$S_{WS}(z, e) * w(z, e) = P(x_1, x_2, ..., x_n)$$
+		- That is the product of the sample and weight recovers the original
+		distribution in the limit. 
+- Gibbs Sampling
+	- Likelihood Weigting is a good techinque, but it doesn't take account of
+	the evidence throughout the entire distribution. Ie downstream evidence is
+	not efficiently considered at upstream variables. 
+	- The main idea behind Gibbs Sampling is that we start with some random /
+	arbitrary assignment that is consistent with the evidence, sample one
+	variable at a time based on the current conditions, and repeat this process.
+	- This algorithm requires us to (in a sense) dome some inference, but these
+	inferences are reasonably easy to calculate. 
+
+	```
+	C = cloudy, S = sprinklers, R = raining, W = grass is wet
+	    (C)
+	    /  \
+	  (S)  (R)
+	    \   /
+	     (W)
+
+	 Evidence is +r (ie it did rain)
+	 1) Randomly set all other variables
+	 	+c, -s, +w, +r
+	 2) Pick one variable
+	   val_s = sample(P(s | +c, +r, +w)) // assume that becomes +s
+	 3) repeat
+	   val_w = sample(P(w | +c, +r, +s))
+	 ...
+
+	```
+
+		- If we need to calculate $P(S | +c, +r, +w)$ we only need to join
+		the CPTs containing $S$ which becomes relatively easy. 
+
+__Decision Networks__
+
+- A decision network is essentially a network which incorporates standard Bayes
+Nets and agents' actions. The bayes nets allow us to calculate expected utility
+for each action. 
+- Node types
+	- `()` - Bayes net node
+	- `[]` - Actions
+	- `<>` - Utility 
+- Action Selection Procedure
+	1. Instantiate all evidence 
+	2. Set action node(s) each possible way
+	3. Calculate the posterior for all parents of the utility nodes given the
+	evidence. 
+	4. Calculate expected utility for each action
+	5. Choose maximizing action. 
+- A utility table defines the utility of a utilty node based on all values of
+the parents of the utility node. 
+- In a decision network we can classify actions as "active" or "sensing". We
+want to compute the calue of acquiring information to determine when to take a
+active action as opposed to gathering more information. 
+	- To accomplish this we can compute the maximum expected utility when we
+	can't sense vs the maximum expected utility when we can sense. 
+- The value of observing a variable $E'$ given an observation of some variable
+$e$ is given as:
+$$VPI(E' | e) = \sum_{e'}P(e' | e)MEU(e, e') - MEU(e)$$
+and
+$$MEU(e) = max_{a} \sum_{s}{P(s | e)U(s, a)}$$
+where $S$ is the set of all possible states and $s$ is an individual state. 
+	- Essentially, the value of perfect information of variable $E'$ is
+	difference between the expected utility when we observe $E'$ and that when
+	we don't. 
+- This develops from the general idea that:
+$$MEU(e) = max_{a} \sum_{s}{P(s | e)U(s, a)}$$
+If we see that $E'=e'$ then
+$$MEU(e, e') = max_{a} \sum_{s} (P(s | e, e') U(s, a)) $$
+But $E'$ is a random variable whose value is unknown so we can't know what its
+value is so we find the expected value. 
+$$MEU(e, E') = \sum_{e'}(P(e' | e)MEU(e, e'))$$
+Then:\
+$$VPI(E' | e) = MEU(e, E') - MEU(e)$$
+- VPI is non-negative and non-addative. 
+- If $parents(U) \perp Z | currentEvidence$ Then $VPI(Z) | currentEvidence > 0$.
+
+- Example
+
+```
+[ Umbrella ]
+          \
+           -- < Utility >
+          /
+( Weather )
+    |
+    V
+( Forecast ) 
+
+F     P(F)
+Good  0.59
+Bad   0.41
+
+W     P(W | F = Bad)
+Sun   0.34
+Rain  0.66
+
+W     P(W | F = Good)
+
+Rain  
+
+A        W      U(A, W)
+leave    sun    100
+leave    rain   0
+take     sun    20
+take     rain   70
+
+MEU(F = bad) = max EU(a, F = bad)
+MEU(F = good) = max EU(a, F = good)
+
+```
+
+# Machine Learning
 
 
 

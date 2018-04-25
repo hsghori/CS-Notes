@@ -38,7 +38,7 @@ geometry: margin=1in
 			time 4 FREE
 		(switch has 4 time intervals)
 	- Frequency multiplexing: Sends each message at a specific frequency.  
-	- Statistical multiplexing: 
+	- Statistical multiplexing: The communication channel is divided into an arbitrary number of variable bitrate digital channels or data streams. The link sharing is adapted to the instantaneous traffic demands of the data streams that are transferred over each channel.
 - Network Metrics
 	- Network Link
 	- Delay
@@ -84,9 +84,11 @@ geometry: margin=1in
 	- Communication between peer layers on different systems is defined by a protocol. 
 		- Ex: two applications may communicate with each other using the HTTP protocol, but that protocol is built off of protocols in the lower layers of the communication stack. 
 - A protocol is an agreement between parties (in the same layer) on how to communicate. It defines the syntax and semantics of communication. 
+
 ```
 [	 Payload	 | Header ]
 ```
+
 - Syntax
 	- Each protocol has a specific header format which gives instructions on how to process the payload. 
 - Semantics
@@ -100,26 +102,35 @@ geometry: margin=1in
 	- Physical: Optical, Copper, Radio, PSTN
 - Layer Encapsulation
 	- Application wraps data in HTTP Layer
-```
-[HTTP Header | HTTP Payload]
-```
+
+	```
+	[HTTP Header | HTTP Payload]
+	```
+
 	- Transport Layer wraps HTTP request in TCP Payload 
-```
-[TCP Header | [HTTP Header | HTTP Payload]]
-```
+
+	```
+	[TCP Header | [HTTP Header | HTTP Payload]]
+	```
+
 	- Network layer wraps TCP request in IP Payload
-```
-[IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]
-```
+
+	```
+	[IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]
+	```
+
 	- Data link layer wraps IP request in ethernet payload.
-```
-[Ethernet Header | [IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]]
-```
+
+	```
+	[Ethernet Header | [IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]]
+	```
+
 	- This data is sent over the physical link and reversed up the stack. 
 - Switches only impliment the physical and datalink layers.
 - Routers impliment the network layer as well as the physical and datalink layers. 
 - Hosts impliment all layers. 
 - Note: Switches and routers are very similar but switches only support local delivery whereas routers support global delivery. 
+
 ```
 Host 1					  Host 2	  
 HTTP					  HTTP
@@ -127,6 +138,7 @@ TCP			 Router		  TCP
 IP			 IP			  IP
 Ethernet <-> Ethernet <-> Ethernet
 ```
+
 - Pros 
 	- Reduces complexity 
 	- Improves flexibilty and modularity
@@ -178,23 +190,27 @@ Ethernet <-> Ethernet <-> Ethernet
 	4. Server sends response
 	5. Client closes connection.
 - HTTP Request 
+
 	```
 		[method] [resource] [protocol version]
 		<HEADER LINES >
 
 		[Body (optional)]
 	```
+
 	- The first line is the request line. 
 	- The next few lines are the header lines 
 	- The blank line indicates the seperation of the header and the body
 	- The body is the data being sent (for a PUT or POST)
 - HTTP Response 
+
 	```
 		[protocol version] [status code] [status phase]
 		< HEADER LINES >
 
 		[data]
 	```
+
 	- The first line is the status line. 
 	- The next few lines are the header lines 
 	- The blank line indicates the seperation of the header and the data
@@ -287,16 +303,18 @@ Ethernet <-> Ethernet <-> Ethernet
 		- Partition the namespace and distribute administration of each partition. 
 		- Distribute name resolution for each partition. 
 		- This was implimented in a hierarchy as a tree. 
-			```
-								   root
-			   /		/		/	 |		 \		\	  \		\
-			 .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...
-				\
-				 jhu.edu 
-				  \
-				   cs.jhu.edu
 
-			```
+		```
+							   root
+		   /		/		/	 |		 \		\	  \		\
+		 .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...
+			\
+			 jhu.edu 
+			  \
+			   cs.jhu.edu
+
+		```
+
 		- The domain name is a leaf to root path in the tree. Each domain is responsible for managing collisions. (.edu must make sure there are no collisions of it's direct children, jhu.edu must maintain everything under it, etc). 
 		- A zone corresponds to an administrative authority that is responsible for that portion of the hierarchy. 
 	- Hierarchy implimentation 
@@ -466,26 +484,553 @@ __fill in the rest of this__
 		- Low bandwidth -> switch to lower bitrate / lower resolution 
 		- High bandwidth -> switch to higher bitrate / higher resolution. 
 - Video Streaming is served by datacenters
-	- A Datacenter consists of ToR switches -> racks -> aggregation switches -> Core switches -> internet
+	- A Datacenter consists of `ToR switches -> racks -> aggregation switches -> Core switches -> internet`
 	- A larger datacenter may have more layers. 
 	- An HTTP get request will be sent to the top level core switches, which will send the request down through the aggregator switches. The single request is decomposed into multiple components which are each handled by a specific switch / set of switches. 
 		- The responses from the switches are recomposed and sent out to the client via the core switch. 
 
 # Transport Protocols
-- Stop and wait is inefficeint __Fill In__. 
-- Sliding window - use pipelining to increases throughput. 
-- Acknowledgements
-	- Cumulative: acknowledge mah packets at a time
-	- Selective: acknowledge individual packets 
-- Sliding window protocol __fill in__. 
-	- GBM __fill in__
-	- Selecgive repeat __fill in__
-- 
-# TCP
-- TCP delivers a reliable, in order byte stream 
+- The transport layer is between the application and network layer. While the
+network layer is used to send the communication to the right host, the 
+transport layer determines which packets are sent to which applications. This 
+is called multiplexing / demultiplexing. 
+	- Multiplexing (Mux): gather and combine data chunks at the source host 
+	form different applications and deliver to the netowrk layer. 
+	- Demultiplexing. Delivering the correct data to corresponding sockets for 
+	a multiplexed stream (sending multiplexed packets to the correct 
+	application). 
+	- This is difficult to implement on the network layer alone. 
+- We use a seperate transport layer because the IP provides a weak service 
+model (thie model itself is called the best-effort). Just using the IP 
+protocol, packets can be corrupted, delayed, dropped, reordered, and 
+duplicated. IP also doesn't provide any guidance on how much traffice to send 
+and when. Dealing with all of these problems on the applifation side would be 
+tedious. 
+- The transport layer exists to provide:
+	- Communication between processies - eg mux and demux from / to 
+	applications. This is implimented using ports
+	- Provide common end-to-end services for app layer. For example, reliable,
+	in-order data delivery and well paced data delivery. This is not the 
+	primary purpose of the transport layer though. 
+- TCP and UDP are the most common transport protocols. 
+	- UDP is a minimalist transport protocol - eg it only provides mux/demux. 
+	- TCP provides reliable, in-order, byte stream abstraction with congestion
+	control. 
+- Sockets 
+	- Sockets are a common software abstractino to exchange network messages 
+	with the transport layer (whixch is in the operating system). 
+	- A UDP socket is of type `SOCK_DGRAM` 
+	- A TCP socket is of type `SOCK_STREAM`
+	- See the socket programming section for specifics on implementation. 
+- Ports 
+	- A port is a 16 bit integer that helps distinguis applications. 
+	- A packet carries the source and destination port number in its transport
+	header. 
+	- The OS stores a mapping between sockets and ports. 
+	- For a UDP port, the OS stores (local port, local IP address) <-> socket. 
+	- For a TCP port, the OS stores (local port, local IP, remote port, remote 
+	IP) <-> socket. 
+- UDP (User Datagram Protocol)
+	- UDP is a lightweight communication between applications. It avoids a lot 
+	of overhead and delays of maintaining order and reliability (by not 
+	enforcing order or reliability). 
+	- UDP basically just contains the desination IP address adn port to support
+	demltiplexing. 
+	- UDP can have optional error checking on the packet contents and could 
+	contain the source port - which can be useful when responding back to the sender. 
+- As mentioned above, the best-effort model of IP can have a lot of downsides.
+Packets can be lost, corrupted, delayed, reordered, destroyed, or duplicated.
+Transport layers exist to provide reliable transport which overcomes the issues
+in eht ebest-effort model. 
+	- Checksums (detect bit errors)
+		- A checksum is a small peice of data which is used to validate data 
+		integrity (but not authenticity). A checksum function (like a hash) 
+		is performed on the checksum which should produce some expected 
+		result. If that result is not found we know the data is corrupted. 
+	- Timers (detect loss)
+	- Acknowledgements (detect loss)
+	- Sequence numbers (detect duplicates)
+
+### Reliable Transport Solutions
+- Stop and Wait 
+	- A correct, but extremely inefficeint reliable transport protocol. 
+
+	```
+	// @ Server
+	do {
+		Server send packet(packet_num)
+		reset timer
+		if (receives ACK) {
+			num++
+		}
+	} while(have packets)
+
+	// @ Receiver 
+	while (packets left to receive) {
+		Receiver waits for packet 
+		if (packet is ok) {
+			send ACK 
+		}
+		else {
+			send INACK
+		}
+	}
+
+	```
+
+	- If transmissio time (TRANS) is significanlty less than RTT, then 
+	$throughput ~ \frac{DATA}{RTT}
+	- RTT = TRANS + time_in_network + time_to_ack
+		- time_in_network is the time the data spends traveling through the 
+		network 
+		- time to ack is the time it takes for the acknowledgement to reach the
+		sender. 
+		- TRANS is the ammount of time it takes the server to physically send 
+		the transmission. 
+- With reliable transport protocols we can make three major design decisions
+which we can use to iimprove on stop and wait:
+	- Which packets can the sender send?
+		- Sliding window
+	- How does the reciever acknolwege packets?
+		- Cumulative 
+		- Selective
+	- Which packets does the sender resend? 
+		- Go-back-N (GBN)
+		- Selective repeat (SR)
+- Sliding Windows 
+	- Here we define a window as a set of adjacent sequence numbers. The size 
+	of the set is the window size. Here we let window size be n. 
+	- The general idea is to send up to n packets at a time using pipelining. 
+		- The sender can send packets in its window and the receiver can accept
+		packets in its window. 
+		- The window of acceptable packets slides on successful acknowledgement. 
+		- The window contains all packets that might still be intransit. 
+		- This is also called "packets in flight". 
+	- If A is the last ack'd packet of the sender without a gap, then the 
+	sender's window is {A+1, A+2, ..., A+n}. If B is the last received packet 
+	without gap  (by the receiver) then the reciever's window is {B+1, 
+	B+2,...,B+n}. 
+	- If windoww size is $n$, then $throughput = min(\frac{n * DATA}{RTT},
+	link_bandwidth)$. 
+	- This is higher throughput than Stop and Waiit. 
+- Cumulative ACK 
+	- ACK carries the next in-order sequence number that 
+	the reciever expects. 
+- Selective ACK 
+	- ACK individually acknowledgges correctly recieved packets. So the 
+	application can keep track of which packets remain to be sent. 
+	- Aelective ACKs offer more precise information but require more 
+	complicated book keeping than cumulative ACK. 
+- Go-Back-N (GBN)
+	- Sender transmits up to n unacknowledged packets. 
+	- Reciever only accepts packets in order. The receiver discards out of 
+	order packets. Note that the receiver uses cumulative acknowledgement. 
+	- Sender sets timer for the 1st outstanding ack.
+		- outstanding ack meaning the ACK we expect given the order we've sent 
+		the requests. 
+	- If there is a timeout, retransmit the entire window (A+1,...,A+n). 
+- Selective Repeat (SR)
+	- Sender transmits up to n unacknowledged packets. 
+	- If packet k is lost but k+1 is not 
+		- Receiver indicates packet k+1 is correctly received 
+		- Sender retransmits only packet k once the ACK times out. 
+	- This is more efficient than GBN wrt retransmissions, but require much 
+	more complex book keeping. 
+- GBN is better when error rate is low - otherwise we waste a lot of bandwidth
+repeating requests.
+- SR is better when the error rate is high - otherwise it's too complex to be
+feasable. 
+- Notes: 
+	- With the sliding window it's possible to fully utilize a link provided 
+	the window size is large neough. 
+	- The sender will have to buffer all unacknowldged packets in case they 
+	require retransmission. 
+	- Receiver may be able to accept out of order packets but only up to its 
+	buffer limit. 
+	- Implimentation complexity depends on protocol details (mainly GBN vs SR) .
+
+### TCP 
+- TCP delivers a reliable, in-order, byte-stream. 
 	- TCP resends lost packets recursively 
-	- TCP only hands consecutive chunks of data to application
-	- TCP assumes there is an incoming stream of data and attempts to deliver it to apps. 
-	- The TCP header contains the source port, destination port, sequence number, acknowledgment, etc. The body of the request contains the data. 
-	- A TCP stream of bytes are provided using "segments". 
+	- TCP only hands consecutive chunks of data to applications 
+	- TCP assumes there's an incoming stream of dataa and attempts to deliver 
+	it to the application. 
+- TCP uses checkshums, sequence numbers, sliding windows, cumulative
+acknolwdgement (like GBN), and buffers out-of-sequence packets (like SR). 
+- A TCP header contains the source port, destination port, sequence number,
+acknowledgement, checksum, and advertised window. The checksum is computed of
+pseudo-header and data. 
+	- The sequence numbers are really byte offsets. 
+- TCP Header 
+
+```
+Source Port       Destination Port 
+        Sequence Num
+Hot Len | 0 | Flags | Advertised Window 
+Checksum    | Urgent Pointer 
+         Options
+```
+
+
+- A TCP stream of bytes is provided using TCP segments. A TCP segment contains 
+a TCP header, We generally use the term TCP packet and segment interchangeably .
+A segment contains a TCP header (as defined above) and some data. The segment
+itself will be wrapped in an IP header when it's sent to the network layer. 
+- TCP Ack: 
+	- Sender sends packet of N bytes. The data starts at sequence number X so the
+	packet consists of bytes [X, X+1, .. , X+N-1]. 
+	- Upon receiving the packet, the receiver sends an ACK of X+N since that's 
+	the next expected byte (cumulative acknowledgement). 
+- Packet Loss
+	- If the highest in-order byte received is Y such that Y+1 < X, ACK
+	acknowledges Y+1 even if this has been ACKed before. 
+	- So if we have some TCP data broken up into 100 byte chunks the sequence
+	numbers will be:
+
+	```
+	100 200 300 400 500 600 700 800 900 
+	```
+
+	- If the 5th packet is lost or corrupted we will see 
+
+	```
+	Request : seqNum 100   Response : seqNum 200 
+	Request : seqNum 200   Response : seqNum 300 
+	Request : seqNum 300   Response : seqNum 400
+	Request : seqNum 400   Response : seqNum 500 
+	Request : seqNum 500   Response : seqNum 500 
+	Request : seqNum 600   Response : seqNum 500 
+	Request : seqNum 700   Response : seqNum 500 
+	...  
+
+	- Note these requests are pipelined so we can't just wait for the ACK to 
+	know which seqNum to request next. The seqNum 600, 700, ... requests 
+	execute correctly. 
+	- The lack of ACK progress means seqNum 500 hasn't been delivered. 
+	- TCP introduces "fast retransmit" which means the duplicate ACKs trigger 
+	early retransmission. In this case retransmission is triggered upon 
+	receiving k duplicate ACKs. 
+		- TCP uses k = 3. 
+		- This is much faster thna waiting for timeout. 
+	- After we've detected a packet loss we have two options:
+		- Request the missing packet and move teh sliding window by the number 
+		duplicate ACKs. This speeds up transmission but may be wrong. 
+		- Send missing packet and wait for ACK to move the sliding window. This
+		strategy slows down transmission because of a single dropped packet. 
+	- In TCP the sender also maintains a single retransmission timer (like GBN)
+	if the sender hasn't received an ACK by timout he retransmits the first 
+	packet in the window. 
+		- If the timeout is too long the connection could have low throughput. 
+		- If the timeout is too short we may retransmit packets that were just
+		delayed. 
+		- The timeout is set to be proportional to RTT. This is done by taking 
+		a weighted average of RTT using exponential weighted average. 
+		$$RTT_{est} = (1-\alpha) RTT_{est} + \alpha RTT_{sample}$$
+		- $\alpha$ is a weiting constant. Usually we use $\alpha = 0.125$. 
+		- We don't use $RTT_{sample}$ from retransmission. 
+		$$RTO = 2 \times RTT_{est}$$
+	- Jacobson/Karels algorithm 
+		- This method for determinig RTO tries to better caputre variability 
+		in RTT by direcly measuring deviation. 
+		$$dev_{sample} = | RTT_{sample} - RTT_{est} |$$
+		$$dev_{est} =  (1-\alpha)dev_{est} + \alpha dev_{sample}$$
+		$$RT) = RTT_{est} + $ dev_{est}$$
+- Establishing a TCP connection requires som eoverhead. 
+	- We need to know the sequence number for the first byte (Initial Sequence
+	Number == ISN). 
+	- We can't use ISN = 0 because the ISN could be used to define a unique
+	connection if ports are resused. 
+	- The hosts exchange ISN when establishing the connection. 
+- The hosts go through a three-way handshake to establish the connection. 
+	- Host A sends SN (open synchronize sequence number) to host B. 
+	- Host B returns and SYN acknowledgement (SYN ACK). 
+	- Host A sends and ACK to acknowledge the SYN ACK. 
+- Note SYN, ACK, etc are flags in the TCP header. 
+	- SYN 's header contains A's port, B's port, A's ISN, and the SYN flag 
+	- SYN ACK's header contains A's port, B's port, B's ISN (in the ACK field) 
+	and the SYN | ACK flag. 
+	- ACK's header contains A's port, B's port, A's ISN, B's ISN+1 (in the ACK
+	field), and the ACK flag. 
+- If the SYN packet gets lost, no SYN-ACK is returned. In this case we want to
+resend. TCP uses a timeout of 3sec (sometimes 6sec) for the initial timout. 
+- Tearing down a TCP connection also requires some overhead. 
+	- The teardown can happen one side at a time
+		- Host A a FIN message to close the connection and receive remaining
+		bytes. 
+		- Host B ACKs the byte to confirm. 
+		- This closed A's side of the connection, but not B's. 
+		- B needs to send a FIN which A needs to ACK for B's connection to close. 
+	- Or the teardown could happen simultaneously.
+		- Host A sends a FIN message to close the connection and receive 
+		remaining bytes. 
+		- B sends FIN along with their ACK of A's FIN. 
+		- A ACK's B's FIN. 
+	- Or the shutdown could happen abruptly 
+		- A sends a RST (reset) to B. 
+		- B doesn't need to ACK - which means the RST could be lost. 
+		- But if B sends anything to A the RST will be re-triggered. 
+	- Note when we say "receive remaining bytes" we main any data still in 
+	flight from A to B (or vice versa). 
+- TCP Flow Control 
+	- IN TCP we need to maintain some control on the flow of data - otherwise 
+	we could overflow the receiver buffer. 
+	- Recall that in the sliding window model:
+		- Sender left edge - beginning of unacknowledged data 
+		- Receiver right edge - beginning of undelivered data 
+		- Right edge = left edge + constant. 
+	- The sender could request a byte that outside the receiver's window (
+	outside his buffer). 
+	- The Receiver uses an Advertised Window (RWND) to prevent the sender from
+	overflowing it's window. Receiver indicates the value of RWND in ACKs. 
+	- The sender ensures that hte total number of bytes in flight <= RWND. 
+	This way the sender ensures that they don't request bytes that they 
+	receiver hasn't reached yet. 
+	- With this model:
+		- Sinder's window advances when new data is ACK'd 
+		- Receiver's window advances as the receiving process consumes data. 
+		- Receiver advertises to the sender when the receiver window ends
+			- Sender agrees not to exceed this ammount. 
+	- UDP donesn't have flow control - data ccan be lost  to buffer overflow in
+	UDP. 
+	- Because of the advertised winddow, the sender can send data no faster 
+	than $\frac{RWND}{RTT}\ bytes/sec$. 
+	- If RWND = 0 the sender keeps probing with one data bytes. 
+- TCP Congestion Control
+	- Congestion is defined by multiple packets arriveing at the router at the 
+	same time. 
+		- If the collision is small (ie 2 packets) the router can just 
+		transmit one and buffer (or drop) the other. 
+	- Internet traffic is bursty and many packets can arrive close in time. 
+	This can cause packet delays and rops which are non-ideal. 
+	- This is overall caused by statistical multiplexing. 
+	- The general solution to the congestion problem is to change the window 
+	size in response to congestion.
+	- The major issues to consider are:
+		- Discovering the available bandwidth 
+		- Adjusting to variations in bandwidth 
+		- Sharing bandwidth between floors 
+	- Solution:
+		- Model the router as a single queue for a particular input-output pair. 
+		- To discover available bandwidth pick a sending rate to match 
+		bottleneck bandwidth. 
+		- To share bandwidth between flows -  we have two problems: how to 
+		adjust total sending rate to match bandwidth and how to allocate 
+		bandwidth between flows. 
+	- Possible approaches to sharing bandwidth between flows: 
+		1. Send without care. This leads to many packet drops. 
+		2. Reservations - prearragne bandwidth allocations. This requires 
+		registration
+		before sending packets and is ntot very well utilized. 
+		3. Pricing - don't drop packets for higher bidders. This requires a 
+		payment model. 
+		4. Dynamic adjustment - hosts infer level of congestion and adjust or 
+		the network reports congestion level to hosts which adjust (or a 
+		combination of the two). This is simple to implement but suboptimal and messy.
+		- The genrality of dynamic adjustment is very powerful. 
+	- Each TCP connection has a window which controls the number of packets in
+	flight 
+		- the sending rate is $\frac{window_size}{RTT}$ .
+		- We vary the widnow size to controlt he sending rate. 
+		- Cnogestion Window: CWND 
+		- Flow control window: RWND 
+		- Sender-side window == min[CWND, RWND]
+	- TCP can detect congestion by:
+		- detecting packet delays - but this is tricky and noisy 
+		- listening to routers (routers can tell hosts when they're congested)
+		- Packet loss - TCP already has to detect this, but this is not always 
+		due to congestion. 
+		- Not all packet losses are the same. Duplicate ACKs come from an 
+		isolated loss whereas timeouts are much more serious. 
+	- Rate control 
+		- Upon receiving an ACK or new data: increase rate 
+		- Upon detecting a loss: decrease rate 
+	- We start out with a "slow start" - eg assume a very small bandwidth and 
+	ramp up quickly for efficiency. 
+		- Initially CWND = 1 (sending rate is MSS / RTT) where MSS is the 
+		maximum TCP segment size. 
+		- Increase the CWND by one for each ACK.
+			- Since the CWND increases, this effectively doubles CWND per 
+			RTT. 
+		- Slow start gives an estimate of available bandwidth but at some 
+		point there will be loss. We introduce a slow start threshold (
+		ssthresh) which is initialized to a large value. If CWND > ssthresh, 
+		stop the Slow Start procedure. 
+	- When CWND > ssthresh we stop rapid growth and focus on maintenance. 
+	We want to track variations in the available bandwidth, oscilating 
+	around the current value. 
+	- Additive Increase Multiplactive Decrease (AIMD) 
+		- For each ACK, $CWND = CWND + 1 / CWND $
+		- For each loss, $ssthresh /= 2$ and do slow start from $CWND=1$
+
+	```
+	do {
+		node detects throughput
+		if (noPacketLoss) {
+			if (CWND < ssthresh) {
+				CWWND ++
+			}
+			else {
+				CWND += 1/CWND
+			}
+		} 
+		else if (timeout)
+			ssThresh = CWND / 2 
+			CWND = 1 
+		}
+		else if (duplicate ACK) {
+			dupACKcount ++ 
+			if (dupAckCount == 3 ) {
+				// fast retransmit 
+				ssthres = CWND / 2 
+				CWND /= 2
+			}
+		}
+	} while (connectionExists);
+	```
+
+	- Congestion avoidance is stilll too slow in recovering from an isolated loss. 
+		- Grant the sender temporary credit for each DupACK to kep packets in 
+		flight. This is called fast recovery. 
+		- If dupACKCount == 3: ssthresh = CWND / 2; CWND = ssthresh + 3 
+		- While in fast recovery, CWND++ for each additionaly dupAck 
+		- Exit fast recovery after receiving new ACK.  
+	- There are a few different flavors of TCP: TCP-Tahoe, TCP-Reno, 
+	TCP-newReno, and TCP-SACK. 
+		- These all have different strategies for dealing with CWND window 
+		changes but they can coexist because they follow the same principle. 
+		Increase CWND on good news, decrease CWND on bad news. 
+- TCP Throughput 
+	- We can calculate TCP throughput as 
+	$$throughput = \sqrt{\frac{3}{2}}\frac{1}{RTT \sqrt{p}}$$
+		- Flows get throughput inversly proportional to RTT (low RTT -> high
+		throughput). 
+		- TCP unfair in the face of heterogeneous RTTs (lower RTT leads to more
+		bandwidth). 
+		- We can use that equation to calculate p, throughput, RTT depending 
+		on our givens. 
+	- Once past some threshold speed we can increase CWND faster. 
+	- TCP throughput swings between W/2 and W. Applications may prefer steady
+	rates. 
+		- Equation based congestion control - ignore TCP's increase / decrease 
+		rules and just follow the equation. Measure drop in percentage p and 
+		set rate accordingly. 
+		- Following the TCP equation ensures TCP compatability. 
+	- TCP may confuse corruption with congestion 
+	- Short flows cannot ramp up 
+		- Short flows never leave slow start  they never attain their fair share. 
+		- Too few packets to trigger dupACKs. 
+	- Short flows share long delays 
+		- A flow deliberately overshoots capacity until it experiences a drop. 
+		Thmis means that delays are large and they're large for everyone. 
+	- Cheating 
+		- There are easy ways to cheat 
+		- Increasing CWNDs faster than 1 MSS per RTT 
+		- Using large initial CWND
+		- Opening many connections
+			- A can open 10 connections to B whereas D opens 1 connection to 
+			D. 
+			- Each connection gets about the same throughput so A get's 10 
+			times more throughput than D. 
+	- Congestion control is intertwined with reliability. 
+		- CWND is adjusted based on ACKs and timouts. 
+		- This makes it difficult to change between cumulative and selective ACK. 
+		- Sometimes we may want congestion control but not reliability (or vice
+		versa). 
+
+# IP 
+- The network layer performs addressing, forwarding, and routing. 
+- Forwarding - directinv a packet to the correct interface so that it
+progressess to its destination. 
+	- It does this by reading the adderess from the packet header and 
+	searching the forwarding tables. 
+	- THis is done on the "data plane". This directs individual packets 
+	and is handled by each router using th elocal routing state. 
+- Routing - Setting up network-wide forwarding tables to enable end-to-end
+communication 
+	- It does this by using routing protocols
+	- This is done on the "control plane" and is accomplished by routers using 
+	some kind of distributed algorithm. 
+- The IP Packet contains an IP header and some payload. The payload is just 
+some data - we can ignore that. The header is an interface that the source and
+destination systems can use to handle the packet. The interface needs to give
+the systems information to:
+	- parse the packet 
+		- IP version number - 4bit
+		- packet length - 16 bit
+	- carry packet to the destination 
+		- destination IP address - 16 bit
+	- deal with problems - loops, corruption, overflow 
+		- Loops: TTL - 8 bit 
+		- Correction: checksum - 16 bit
+		- Packet too large: fragmentation field (32 bit)
+	- accomodate evolution 
+		- Version number
+	- specify special handling
+- Preventing Loops (TTL) 
+	- It is possible to keep forwarding a packet around in a loop. This can 
+	cause packets to cycle for a long time and (if left unckecked) would 
+	comsume all capacity. 
+	- TTL (time to live) field is an 8 bit field that is decrimented at each 
+	step. Once the field is zero, a "time exceeded" message is sent to the sender. 
+- Header Corruption (Checksum)
+	- A 16 bit value computed over the packet header. Each router recalculates 
+	the checksum - if it's not the expected value the packet is discarded. 
+- Fragmentation 
+	- Every link has a Maximum Transmission Unit (MTU) which is the largest 
+	number of bits it can carry as one unit. A router can split the packet 
+	into  multiple fragments if the packet size exceeds the link's MTU. However
+	this must be reassbled to recover the original packet. 
+- Special handling 
+	- There is a type of service flag that allows packets to be treated 
+	differently based on needs (eg indicate priority or congestion). 
+	- Also called the differential service code point.  
+	- this is supposed to test whether or not word wrapping works the way I w
+	- Options
+		- Optional directives to the network. These aren't used that often, 
+		but can include record route, strict source route, loose source routes, or timestamps.
+- The header also contains the information about which transport protocol (TCP<
+ UDP, etc) is used and where responses should be sent (source IP address). 
+- Fragmentation pt 2
+	- Fragmentation is not a trivial problem to deal with. We have to consider a few
+	problems
+	- Where to reassemble the fragments? 
+		- Reassembly is done at the destination since fragments may take 
+		different paths to traverse the network. and the reassembly algorithm 
+		would impose a burden on the network.
+		- We need to be able to identify fragments of the specific packet and 
+		identify if any packets are lost. 
+		- The fragmentation fields are used to identify which fragments belong 
+		together and which offset they are (ie which fragment). 
+		- Flags
+			- Reserved: ignore
+			- DF: don't fragment 
+			- MF: more fragments coming
+		- The fragment without the MF set is the last fragment - this tells 
+		the host whichar are the last bits in the orignial payload. 
+		- All other fragments can be used to fill in holes - we can use the 
+		fragment field for that. 
+		- We use byte offset instead of fragment numbers so we can further fragment. 
+- IPv6
+	- IPv6 was developed by adress exhastion - alows for 128-bit addresses. 
+	- Focused on simplifying the IP protocol 
+	- Eliminated fragmentation, checksum, options, header length. 
+	- Exanded addresses 
+	- Added flow label 
+	- The major philosophy with IPv6 was to leave dealing with errors up to the end users.
+		- Fragmentation and checksum can be handdled by transport layer. 
 	- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
