@@ -4,12 +4,14 @@ author: Haroon Ghori
 geometry: margin=1in
 ---
 
-### Introdcution to Parallel Programming 
+# Laws of Parallel Programming 
+
+### Measuring Parallelism
 - Moore's Law 
 	- The number of transistors that can be inexpensively placed on an integrated
 	circuit doubles approximately every two years. 
-	- This "law" has held for the last fifty yeats. 
-- Moor's law is technically true but deoesn't mean our chips are faster. 
+	- This "law" has held for the last fifty years. 
+- Moor's law is technically true but doesn't mean our chips are faster. 
 - Dennard scaling
 	- As transistors get smaller, their power density stays constant - power is
 	proportional to area. 
@@ -60,7 +62,7 @@ a fixed problem size per processor.
 	- Weak scaling is difficult to express in algorithms.  
 
 ### Factors Against Parallelism
-- there are three major factors against parallelism. 
+- There are three major factors against parallelism. 
 	1. Startup costs associated with initiating processes. 
 		- May overshadow actual processing time. 
 		- Involves thread/process creation, data movement, etc. 
@@ -87,7 +89,7 @@ then exchange the data with other processes.
 	phases, compute, communicate, and barrier. This allows for no overlap.  
 	- Communication and barrier are sequential (unoptimized). 
 
-### Serial to Parallel / OpenMP
+# Serial to Parallel / OpenMP
 - The easiest way to write parallel code is to convert some serial code to
 parallel execution. The idea
 behind this process is to write some serial code, profile it to find the
@@ -115,8 +117,8 @@ the directive `#pragma omp parallel <options>`{.c++}.
 	iterations to run before switching, etc). 
 	- `<scheduling options> = kind [,chunk size]`.
 		- static - divide loop into equal sized chunks 
-		- dynamic - build internal work queue and sipatch blocksize at a time
-		- guided - dynamic schedulign with decreasing block size for load balancing. 
+		- dynamic - build internal work queue and dispatch one block at a time
+		- guided - dynamic scheduling with decreasing block size for load balancing. 
 		- auto - compiler chooses from above 
 		- runtime - runtime configuration chooses from above. 
 		- chunk size = number of iterations per thread. 
@@ -127,8 +129,7 @@ parallel. This is a pretty easy concept to think about and work with when
 coming from serial programming. However we need to be careful about how our
 loops access memory - especially nested loops. 
 
-
-### System Architectures
+# System Architectures
 - Flynn's Taxonomy - characterizes machines by the number of instruction 
 streams and data streams. 
 	- SISD - single instruction, single data 
@@ -137,7 +138,7 @@ streams and data streams.
 		- This doesn't exist 
 	- MIMD - multiple instruction, multiple data
 - SISD is called the Von Neumann architecture. This implements a universal
-turing machine and conforms to serial algorithmic analysis. This is how most
+Turing machine and conforms to serial algorithmic analysis. This is how most
 people think of a computer
 - SIMD has a single instruction stream that is carried out on multiple data
 streams. Eg one program happening on multiple data sets. 
@@ -152,7 +153,7 @@ architectures in existence.
 - Symmetric Multi-Processor 
 	- Shared memory (MIMD) system. All processors can access all memory. 
 	- All memory locations can be accessed at equal speeds. This is called 
-	symetric memory access. 
+	symmetric memory access. 
 	- SMPs have scaling limits. Increasing the number of processors increases
 	competition for memory (fixed memory). 
 - Non Uniform Memory Access (NUMA) 
@@ -208,7 +209,7 @@ referencing the data in the cache more than once.
 	- Sequential - a continuous range of bytes 
 	- Coalesced - uses all associated regions of memory. 
 
-### Loops 
+### Loop Parallelism and OpenMP
 - Loops are relatively simple constructs to parallelize, but we need to take a
 few factors into account. 
 - Loop carried dependencies: when one iteration of a loop depends on the
@@ -455,7 +456,7 @@ up(s)
 - Barrier - a software implementation to synchronize processes on 
 asynchronous hardware. 
 
-### Message Passing
+### Multiprocessing and Message Passing
 - Clusters and multi-process programs with no shared state sometimes need to 
 communicate with each other. 
 	- SPMD model (single program, multiple data), master / slave, loop 
@@ -476,7 +477,11 @@ deadlocks.
 	- we can also create a barrier explicitly in MPI to synchronize actions but
 	that creates global stalls. 
 
-### IO and Checkpointing
+__IO and Checkpointing__
+
+- In large scale programs, failures are inevitable. When writing MPI programs we 
+often want to write some method for recovering from failure (since otherwise a failure 
+would break the program). 
 - Checkpointing is a technique to add fault tolerance into computing systems. 
 It basically consists of saving a snapshot of the application's state, so that 
 it can restart from that point in case of failure. 
@@ -484,7 +489,7 @@ it can restart from that point in case of failure.
 - We find that if startup costs are amortized, writing more small files is 
 better than writing fewer large files. 
 
-### Map / Reduce
+# Map / Reduce
 - The MapReduce framework is a parallel programming model based off of Lisp
 (a functional programming language). 
 - In Lisp A map takes an input function and some values and applies the
@@ -516,32 +521,207 @@ essentially parallelizes the map phase.
 shards and processing those on different machiens. 
 - This process is overseen by a master thread which manages the partitioning 
 of tasks. 
-- Google File System (GFS)
-	- Files are divided into fixed-size chunks of 64 megabytes, similar to 
-	clusters or sectors in regular file systems, which are only extremely 
-	rarely overwritten, or shrunk; files are usually appended to or read. 
-	- A GFS cluster consists of multiple nodes. These nodes are divided into 
-	two types: one Master node and a large number of Chunkservers. 
-	- Each file is divided into fixed-size chunks which are stored in the chunk
-	servers. Each chunk is assigned a unique 64-bit label by the master node 
-	at the time of creation, and logical mappings of files to constituent 
-	chunks are maintained. Each chunk is replicated several times throughout 
-	the network. 
-	- The Master server does not usually store the actual chunks, but rather 
-	all the metadata associated with the chunks. All this metadata is kept 
-	current  by the Master server periodically receiving updates from each 
-	chunk server.
-	- Permissions for modifications are handled by a system of time-limited,
-	expiring "leases", where the Master server grants permission to a process 
-	for a finite period of time during which no other process will be granted 
-	permission by the Master server to modify the chunk. The modifying 
-	chunkserver, which is always the primary chunk holder, then propagates the 
-	changes to the chunkservers with the backup copies. The changes are not 
-	saved until all chunkservers acknowledge, thus guaranteeing the completion 
-	and atomicity of the operation.
-	- Programs access the chunks by first querying the Master server for the
-	locations of the desired chunks. If the chunks are not being operated on, 
-	the Master replies with the locations, and the program then contacts and 
-	receives the data from the chunkserver directly.
-	- Unlike most other file systems, GFS is not implemented in the kernel of 
-	an operating system, but is instead provided as a userspace library.
+
+### Hadoop
+- Hadoop is a map-reduce implementation maintained by Apache. It handles the 
+entire streaming logic and requires the programmer to only impliment the map-reduce
+logic. It has language support in Java and can be implimented as a streaming client
+with Python. 
+- In addition to the mapper and reducer processes, Hadoop introduces three other 
+important components:
+	- Shuffle: The process of routing mapper outputs to the reducers
+	- Combiner: An optional reducer-like process that runs on the mapper
+	nodes. The combiner performs an early reduction on the mapper output
+	which makes input to the shuffle smaller and reduces data handling. 
+	Combiners are typically used to pre-compute aggregates (ie word 
+	counts) or extra (finding max  /min associated with a key).
+	- Partition: The partition of data associated with a parallel 
+	execution unit. The output partition is the part of the result
+	written by each reducing process. Within a given partition the
+	intermediate key-value pairs are processed in increasing key order.
+
+### Google File System (HDFS)
+- Files are divided into fixed-size chunks of 64 megabytes, similar to 
+clusters or sectors in regular file systems, which are only extremely 
+rarely overwritten, or shrunk; files are usually appended to or read. 
+- A GFS cluster consists of multiple nodes. These nodes are divided into 
+two types: one Master node and a large number of Chunkservers. 
+- Each file is divided into fixed-size chunks which are stored in the chunk
+servers. Each chunk is assigned a unique 64-bit label by the master node 
+at the time of creation, and logical mappings of files to constituent 
+chunks are maintained. Each chunk is replicated several times throughout 
+the network. 
+- The Master server does not usually store the actual chunks, but rather 
+all the metadata associated with the chunks. All this metadata is kept 
+current  by the Master server periodically receiving updates from each 
+chunk server.
+- Permissions for modifications are handled by a system of time-limited,
+expiring "leases", where the Master server grants permission to a process 
+for a finite period of time during which no other process will be granted 
+permission by the Master server to modify the chunk. The modifying 
+chunkserver, which is always the primary chunk holder, then propagates the 
+changes to the chunkservers with the backup copies. The changes are not 
+saved until all chunkservers acknowledge, thus guaranteeing the completion 
+and atomicity of the operation.
+- Programs access the chunks by first querying the Master server for the
+locations of the desired chunks. If the chunks are not being operated on, 
+the Master replies with the locations, and the program then contacts and 
+receives the data from the chunkserver directly.
+- Unlike most other file systems, GFS is not implemented in the kernel of 
+an operating system, but is instead provided as a userspace library.
+
+### Resilient Distributed Datasets and Spark
+- A resilient Distributed Dataset (RDD) is a data abstraction used to performm 
+in-memory computations on large clusters. Specifically, the RDD abstarction is 
+an immutable, distribution of data that can be stored on memory or in a cluster
+that can be operated on in parallel with a low level API that provides specific
+transformations and actions. 
+- A transformation is a function that converts an RDD to another RDD (ie 
+transforms the RDD). An action returns some value based to the application 
+or user. 
+	- `RDD.transformation() -> RDD'`
+	- `RDD.action() -> SEQ`
+- RDDs are not necessarily stored in storage in their entirety. Rather an RDD
+maintains the pipeline of transformations that can be used to reconstruct the
+RDD from stable data storage. We can make an RDD persist in memory by calling 
+the `persist()` function. 
+- Transformations include:
+	- map(f: T -> U)
+	- filter(f: T -> bool)
+	- reduceByKey(f: (V, V) -> V)
+	- union()
+	- join()
+	- sort()
+	- ...
+- Actions include:
+	- count()
+	- collect()
+	- reduce(f: (T, T) -> T)
+	- lookup(k : K)
+	- save(path : String)
+- RDDs store a lineage of how they were computed from base data. So On failure, 
+we identify partitions of the RDD that have failed, and recompute the failed 
+partitions in parallel using Spark. This does not require more costly measures
+seen in other memory models
+	- Checkpoint: save required memory in persistent stoarge sufficient to 
+	restart the computation 
+	- Restart: restart computation from a checkpoint
+	- Rollback: undo changes made to memory associated with computations that
+	have failed or did not complete.
+- Distributed shared memory (DSM) is the standard distributed memory model 
+in a cluster. The DSM model allows for memory reads and write to all 
+addresses in a global address space whereas RDD "writes" can only be done 
+through coarse transformation. This means RDDs are only 
+suitable for bulk writes. However, RDDs are more fault tolerant since
+if an RDD is corrupted it can be easily recomputed in parallel on different
+nodes instead of having to roll back the entire application. Furthermore RDDs
+don't need to "checkpoint" their computations since they store their lineage.
+Additionally, since RDDs are immutable we can use them to run backups of slow
+tasks which is harder to do on a DSM where we'd have to worry about memory 
+access. 
+
+### Pig and Hive 
+- Pig is a platform for analyzing large data sets that consists of a high-level language for expressing data analysis programs, coupled with infrastructure for evaluating these programs. The salient property of Pig programs is that their structure is amenable to substantial parallelization, which in turns enables them to handle very large data sets.
+- The Pig data model consists of atoms (simple values), tuples (sequences of values), bags (multisets with duplicates), and maps. 
+- Every Pig program is compiled to several MR programs and run on Hadoop. 
+- Hive is a Data Warehousing package that is constructed on top of Hadoop for analyzing huge amounts of data. Hive is essentially a SQL like system for MR. 
+
+# GPU Programming
+- A Graphics Processing Unit (GPU) is a specialized peive of hardware for rendering 3D graphics. GPUs are essentially an extremely parallel proceser which is designed to render vertices and pixels in parallel. GPUs are programmable and aren't limited to graphical applications. Recently GPUs have been used in bitcoin mining rigs and machine learning applications. 
+- GPUs are designed for math intensive parallel problems so they have more transistors dedicated to ALU (arithmetic logic units) than flow control and data cache. This means that GPUs can be extremely efficient for parallelization but the programs must be more predictable in regards to data access coherency and program flow. 
+
+### CUDA
+- Compute Unified Device Architecture (CUDA) is a way to perform computations on the GPU. It has specification for a computer architecture, a language, and an API. 
+- A CUDA device is a highly parallel processor which can execute many hunderds of threads in parallel. (Thread to stream ration > 1). When writing CUDA software we think in terms of threads instead of processes. The startup and context switching costs per thread are very low. 
+- The CUDA programming model uses a data decomposition approach. The grid is the data domain (1D, 2D, or 3D) and is decomposed into thread blocks. A thread block is decomposed into threads. Thread blocks and threads are given unique identifiers which are used by the kernel to identify which part of a problem to work on. 
+- A kernel is a program that processes a single data element. A thread runs the kernel on a data element. 
+- A thread block may have up to 512 threads and all threads in a thread block time are run on the same multi-processor. this allows threads in a thread block to communicate via shared meemory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. 
+- Warps are the fundamental scheduling unit of the processor. They are groups  or 32 threads that are dispatched two at a time to 16 processors each. Each warp forms a SIMD group. 
+- All parts of tthe processor has read access to constant memory and texture memory and read/write access to global memory. Individual multiprocessors have read/write access to shared memory, and individual threads have private read/write access to local memory and registers. 
+
+__CUDA Language__
+
+- The CUDA language is similar to C/C__. 
+
+- CUDA cannot use C/C++ runtime library functions. Rather there are device specific functions in CUDA. 
+- There is no stack on CUDA. All function calls are inlined and all local variables and function calls are stored in registers. There is no recursion or function pointers. 
+- Declspecs - declaration specifier / declaration qualifier are modifiers applied to declarations of variables and functions (const, extern, static).  CUDA has custom dualspecs (`__device__`, `__host__`, `__global__`) for functions
+	- `__device__` delcares s function that is compiled to and executes on the device. 
+	- `__host__` declares a function that is compiled to and executes on the host. 
+	- `__global__` declares that a function is compiled to and executes on the device. 
+CUDA has dualspecs `__device__`, `__shared__`, and `__constant__` for variables.
+	- `__device__` declares that a global variable is stored on the device. The data resides in global mamory. 
+	- `__shared__` declares that a global variable is stored on the device. if not declared as volatile, reads from different threads are not visible unless a synchronization barrier is used. The data resides in shared memory. 
+	- `__constant__` declares that a global variable is stored on the device. The ata resides in constant memory and has lifetime of entire application. 
+- We can construct vector types with a function `make_{typename}(...)`. A vector type is a char, short, int, long, longlong, float, and double. 
+- CUDA has no malloc or free functions that can be called from the device code - instead we use cudaMalloca dn copy data from the host to initialize. 
+
+__Parallel Reduction__
+
+- Parallel reduction is a means of reducing a problem into smaller problems that can be executed in parallel. This is done using a tree-based approach used within each thread block or for multiple thread blocks. 
+- Parallel reduction must also be able to use multiple thread blocks to process very large arrays. Each of the thread blocks would reduce a portion of the array. The issue here is figuring out how to communicate partial results between the thread blocks. 
+- Global synchronization would a trivial way of solving this problem. This process is essentially syncing global memory after every block produces its result. Once all blocks reach the synchronization point, continue recursively. 
+- CUDA does not have global synchronization because it's expensive to build hardware for GPUs with global synchronization and global synchronization would force us to use less blocks to avoid deadlocks. 
+- We can get over this by decomposing the computation into multiple kernels. The Kernel launch serves as a global synchronization point. 
+	- Launching a kernel has negligible hardware and software overhead. 
+- The goal of parallel reduction is to reach GPU peak performance. Typically we measure this performance in bandwidth - so we want the GPU to reach peak bandwidth. 
+- Reductions: Here we'll go over reductions for summing all the elements in an array. 
+	- Interleaved Addressing
+
+	```C
+	__syncthreads();
+	for (unsigned int s = 1; s < blockDim.x; s*=2) {
+		if (tid % (2*s) == 0) {
+			sdata[tid] += sdata[tid + s]
+		}
+		__sunchtreads();
+	}
+	```
+
+	![](cuda-reduction-1.png){width=400px}
+
+		- This introduces a problem of __thread divergence__. This occurs when threads in a single warp need to do different things (ie they diverge). This can lead to a large loss in performance. We want to avoid conditioning on `tid`. 
+
+	- Interleaved Addressing 2
+
+	```C
+	__syncthreads();
+	for (unsigned int s = 1; s < blockDim.x; s*=2) {
+		int index = 2*s*tid;
+		if (index < blockDim.x) {
+			sdata[index] += sdata[index + s];
+		}
+		__syncthreads();
+	}
+	```
+
+		- Note that this has much less divergence. However, it suffers from shared memory bank conflicts. 
+	- Sequential Addressing
+
+	```C
+	__syncthreads();
+	for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+		if (tid < s) {
+			sdata[tid] += sdata[tid + s];
+		}
+		__syncthreads();
+	}
+	```
+
+	![](cuda-reduction-2.png){width=400px}
+
+		- This reduction is conflict free but leaves a lot of idle threads which isn't particularly efficient. 
+	- Other reductions include unrolling the loop, computing the first add when loading the data, and invoking multiple adds / threads. 
+
+# Roofline
+- The emergence of multicore processors and the diversity of implimentations of computing systems has created a need for a more insightful model of computing performance. 
+- Operational intensity: operations per byte of DRAM traffic. Otherwise calculated as 
+$$I = \frac{W}{Q}$$
+where $W$ is the work and $Q$ is the memory traffic. 
+- The Roofline model is an intuitive visual performance model used to provide performance estimates of a given compute kernel or application running on multi-core, many-core, or accelerator processor architectures, by showing inherent hardware limitations, and potential benefit and priority of optimizations. By combining locality, bandwidth, and different parallelization paradigms into a single performance figure, the model can be an effective alternative to assess the quality of attained performance instead of using simple percent-of-peak estimates, as it provides insights on both the implementation and inherent performance limitations.\
+`attainable\ gflops per  sec = = min(peak floating point performance, peak memory bandwidth * operational intensity)` \
+The Roofline is defined by the peak performance and the peak memory bandwidth.
+- Roofline is an ideal metric. Each process has a roofline and a perfect program would realize the roofline. 
+- Every kernel (or program) has a specific operational intensity - well engineereed kernels have an operational intensity which puts their attainable gfops per second near the roofline. This is a more nuanced view of Amdahl's law. 
+- Some processor optimizations will raise the roofline boundary. Examples include instruction level parallelism (ILP), SIMD (Single instruction multiple data) eg vector instructions, and floating point balance (FP units have multipliers and adders and must use both at the same time. 
+- Roofline is limited in that understanding caching is difficult, t does not account for data movement to accelerators, and doesn't account for GPUs.

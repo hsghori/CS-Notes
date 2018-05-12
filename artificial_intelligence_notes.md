@@ -249,20 +249,20 @@ geometry: margin=1in
 	  $P$. $$h(N) \leq c(N \to P) + h(P)$$
 	- Consistency is stronger than admissibility - that is, a consistent
 	  heuristic is admissible.
-	- The graph search implimentation A* search is complete with a consistent
+	- The graph search implementation A* search is complete with a consistent
 	  heuristic.
 
 ### Constraint Satisfaction Problem (CSP)
 - Identification problem: the goal itself is important as opposed tot he path.
 - Constraint Satisfaction Problem: A subset of search problems. Come up with
   some variable assignment that satisfies a set of constraints.
-	- A state is defined by varilables $X_i$ with values froma a domain $D$.
+	- A state is defined by variables $X_i$ with values froma a domain $D$.
 	- The goal test is a set of constraints specifying allowable combinatiosn
 	  of values for subsets of variables.
 - Constraint Satisfaction Problem is a simple example of aformal representation
   language. Allows useful general purpose algorithms with more power than
   standard search algorithms.
-- Example: Color a map of australia such that each state is a different color.
+- Example: Color a map of Australia such that each state is a different color.
 	- Variables: WA, NT, Q, NSW, V, SA, T (states)
 	- Domains: (red, green, blue)
 	- Constraints:
@@ -286,19 +286,19 @@ geometry: margin=1in
 - Constraints can be unary (restriction on one variable), binary (restriction
   between two variables), or higher order.
 - Applying standard search to CSP
-	- Iinitial State: Nothing has been assigned.
+	- Initial State: Nothing has been assigned.
 	- Current State: defined by values assigned (is a partial assignment of
 	  values).
 	- Successor function: assign k value to an unassigned variabl.
 	- Goal Test: tests if the current assignment is complete and satisfies all
 	  constraints.
 - Using this approach we could apply BFS, DFS, UCS, or A* search to a CSP.
-  However, these are very iniefficient on their own. Consider the map coloring
+  However, these are very inefficient on their own. Consider the map coloring
   case - the successor function of a standard search problem doesn't consider
-  the restrictins of a CSP. So using one of these algorithms would (generally)
+  the restrictions of a CSP. So using one of these algorithms would (generally)
   require traversing the entire search tree.
 - Backtracking Search
-	- Assign one variabel at a time
+	- Assign one variable at a time
 	- Check constraints as you go.
 
 	```
@@ -328,8 +328,8 @@ geometry: margin=1in
 		  adding to the existing assignment.
 		- When an unassigned variable's domain is empty we backtrack.
 	- Edge consistency
-		- An edge X -> Y is conssitent if for every x in the tail there is some
-		  Y in the head that can ve assigned without violating a constraint.
+		- An edge X -> Y is consistent if for every x in the tail there is some
+		  Y in the head that can be assigned without violating a constraint.
 		- We make an edge consistent by removing potential assignment
 		values from the tail.
 		- Forward checking is enforcing consistency of an incoming arc.
@@ -377,10 +377,10 @@ geometry: margin=1in
 		- Cutset Conditioning - Instantiate a set of variables such that the
 		  remaining constraint graph is a tree.
 		- if the cutset is of size c, we may need to instantiate all possible
-		  versions of the cutset. So the algorithmis exponential in c and
+		  versions of the cutset. So the algorithms exponential in c and
 		  linear in the rest of the tree.
 		- Finding the cutset is NP hard.
-	- Tree Decompopsition
+	- Tree Decomposition
 		- Create a tree structured graph of "mega variables" (small groups of
 		  connected variables).
 		- Each mega variable encodes part of the original CSP.
@@ -428,7 +428,7 @@ geometry: margin=1in
 	- This lets us think of a single value that some players maximize and
 	  others minimize.
 	- Much simpler than a general game.
-- Value of a state: the besst achievable outcome from that state.
+- Value of a state: the best achievable outcome from that state.
 	- In the terminal state, this value is known.
 	- For non-terminal states, $V(s) = max_{s' \in children(s))} V(s')$. That 
 	is, the value of a state is the maximum value of the values of its 
@@ -449,22 +449,23 @@ geometry: margin=1in
 		v = -inf 
 		for each successor of state: 
 			v = max(v, min_values(successor))
-			return v
+		return v
 
 		def min_value(state) 
 			if state is terminal: 
 				return terminal(state) # value of terminal state 
-				v = inf 
-				for each successor of state: 
+			v = inf 
+			for each successor of state: 
 				v = min(v, max_values(successor))
 			return v
 
-		def value(state): if state is terminal: 
-			return terminal(state) # value of terminal state 
-				if nextAgent is max: 
-					return max_values(state) 
-				elif nextAvent is min: 
-					return min_values(state)
+		def value(state): 
+			if state is terminal: 
+				return terminal(state) # value of terminal state 
+			if nextAgent is max: 
+				return max_values(state) 
+			elif nextAvent is min: 
+				return min_values(state)
 		```
 
 	- This minimaz algorithm is essentially a DFS. Therefore it is:
@@ -473,15 +474,15 @@ geometry: margin=1in
 	- We can alleviate the resource problems by using depth limited search
 	  instead of DFS and replace the terminal utilities with some evaluation
 	  function for non-terminal positions. This estimates a value of a non-
-	  tterminal state.
-		- This doesn't garuntee optimal play, but going deeper in the tree
+	  terminal state.
+		- This doesn't guarantee optimal play, but going deeper in the tree
 		  (searching more plies) makes a big difference.
 		- Iterative deepening can be used to give the best result possible
 		  given a time limit.
 - Evaluation function: a function that inputs a non-terminal state and returns
   an approximation of the minimax value of the state.
 	- Typically we use a linear combination of important features, but we can
-	  have emore complicated (nonlinear) evaluation functions.
+	  have more complicated (nonlinear) evaluation functions.
 - Alpha Beta Pruning
 	- Minimax allows us to prune the search tree a bit.
 	- Consider the a MAX root node
@@ -509,7 +510,7 @@ geometry: margin=1in
 			  calculating x2 and x3, if any child has a value < a, we don't
 			  need to consider that entire branch since we know the lower bound
 			  on the root.
-		- The inverse (MIN root) is symetric. 
+		- The inverse (MIN root) is symmetric. 
 		
 		```Python
 			# alpha : MAX's best option on the path to the root
@@ -610,10 +611,9 @@ geometry: margin=1in
 - Maximum expected utility - a rational agent should choose the action that
   maximizes its expected utility given its knowledge.
 - Utilities
-	- Utilities are functions from outcomes (states fo the world) to real
+	- Utilities are functions from outcomes (states for the world) to real
 	  numbers that describe an agent's preference.
-	- Utilities can be defined in many ways so long as they summarize th
-	  eagent's goal.
+	- Utilities can be defined in many ways so long as they summarize the agent's goal.
 	- Any "rational" preferences can be summarized as a utility function.
 	- We generally hard code utilities and let behaviors emerge.
 - Preferences
@@ -632,7 +632,7 @@ geometry: margin=1in
 	- Transitivity: (A > B) and (B > C), then A > C
 	- Orderability: A > B or B > A or A ~ B
 	- Continuity: A > B > C then there exists a lottery [p, A: 1-p, C] ~ B
-	- Substantiability: A ~ B then there exists a lottery [p, A; 1-p; C] ~ [p,
+	- Substitutability: A ~ B then there exists a lottery [p, A; 1-p; C] ~ [p,
 	  B; 1-p, C]
 	- Monotonicity: A ~ B then p >= q then [p, A; 1-p, B] >= [q, A; 1-q, B]
 	- If preferences satisfy these axioms we call them rational.
@@ -648,12 +648,12 @@ agent's path. Actions do not always go as planned.
 	- 80% N -> N 
 	- 10% N -> W
 	- 10% N -> E 
-	- If there is a well inth edirection the agent would have taken the agent 
+	- If there is a well in the direction the agent would have taken the agent 
 	stays put. 
 	- The agent receives a reward each time step. There's a small "living" 
 	reward each step and a big reward at the end of the game. Note that we use 
 	"reward" to mean some feedback. Reward can be negative (bad). 
-- We solve these kinds of problems usinng a Markov Decision Process (MDP). 
+- We solve these kinds of problems using a Markov Decision Process (MDP). 
 - A Markov Decision Process is defined by:
 	- A set of states: $s \in S$
 	- A set of actions: $a \in A$
@@ -681,18 +681,18 @@ should the agent prefer to obtain a reward sooner or later?
 	value for later rewards. This is called discounting. 
 - These games could also last forever
 	- We could set finite horizons (depth limited search)
-	- Discounting - the exponenetial decay reduces rewards as the limit 
+	- Discounting - the exponential decay reduces rewards as the limit 
 	increases. 
-	- Absorbing state - garuntee that every state will eventually result in a
-	terminal sttate. 
+	- Absorbing state - guarantee that every state will eventually result in a
+	terminal state. 
 - A queue state (s,a) is an action we've comitted to from some state s, but 
-that hasn't been caried out yet. 
+that hasn't been carried out yet. 
 - Optimal Quantities
 	- Utility of a state: $V* (s)$ is the expected reward starting in s and 
 	acting optimally. Expectimax utility. 
 	- Utility of a queue state: $Q* (s,a)$ is the expected reward starting out
 	having taken action a from state s and then acting optimally. 
-	- Value of a stae is the expected future utility from a state
+	- Value of a stare is the expected future utility from a state
 	- Optimal policy: $\pi * (s)$ the optimal action from state s
 - We define the optimal utility of a state as:
 $$ V* (s) = max_{a} {Q* (s,a)}$$
@@ -700,7 +700,7 @@ $$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
 - This is called the Bellman equation. 
 	- Observe that $\sum_{s'}{T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') 
 	]}$ is effectively finding the expected value of the action $a$. 
-- Time limitted values 
+- Time limited values 
 	- $V_k$ is the optimal value of s if the game ends in k more time steps. 
 	- We call this time limited but it's really depth limited. 
 - Value iteration: Assuming we have a small number of possible states:
@@ -712,6 +712,7 @@ $$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
 - Example: Consider the following racecar. If the car drives slowly he cannot
 overheat. However he get's more reward (has a higher chance of winning the
 race) if he drives fast. From any state he can either accelerate or decelerate.
+
 ```
 |States->| Cool          |      Hot      |  Overheated  |
 |--------|---------------|---------------|--------------|
@@ -722,8 +723,10 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 |Go Fast | 0.5 Cool | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
 |        | 0.5 Hot  | +2 |          |    |          | 0 |
 ```
+
  We can use this table and the Bellman equation to calculate the optimal policy
  for this situation. 
+
 ```
 |      | Cool               | Hot                | Overheated        |
 |------|--------------------|--------------------|-------------------|
@@ -733,6 +736,7 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 | V_1  |   2   |  Go Fast   |  1    | Go slow    | 0     | NA        |
 | V_0  |   0   |  NA        |  0    | NA         | 0     | NA        |
 ```
+
 We can calculate 
 $$V_1 (cold) = max_{a} {\sum_{s'}{T(s,a,s')[R(s,a,s') + V_0{s'}]}}$$
 $$V_1 (cold) = max(T_(cool, slow, cool) [R(cool, slow, cool) + V_0 (cool)] + T_
@@ -772,17 +776,17 @@ method.
 	- The policy often converges long before the values.
 - Policy iteration algorithm 
 	1. Policy Evaluation: calculate utilities for some fixed policy (not 
-	optimal utilites) until convergence. 
+	optimal utilities) until convergence. 
 		- Let $\pi (s)$ be the policy calculated in step 2 (or the initial). 
 		- Do until values converge
 		$$V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s'+
 			V_{k}^{\pi} (s')]$$
 	2. Policy Improvement: update policy using one-step look ahead with r
-	esulting converged (but not optimal) utilities at future values. 
+	resulting converged (but not optimal) utilities at future values. 
 		- Let V(s) be the values calculated in step 1. 
 		$$\pi (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
 		(s')]}$$
-	3. Repeaat steps 1 and 2 until policy converges. 
+	3. Repeat steps 1 and 2 until policy converges. 
 	- THis is an EM algorithm - ML is everywhere bitches. 
 	- The improvement step is not faster than value iteration. The evaluation 
 	step is significantly faster and happens many times before an improvement 
@@ -798,7 +802,7 @@ values and policies (if you do it right).
 ### Reinforcement Learning
 - Basic concept of reinforcement learning:
 	- There is an agent who does an action in an environemtn
-	- The agen performs some action in the environment 
+	- The agent performs some action in the environment 
 	- The environment sends back a reward and a "percept" (a state). 
 		- We want to maximize the reward, but we don't know how the world works.
 - In reinforcement learning we assume that hte world is a Markov Decision
@@ -825,9 +829,9 @@ and are trying to learn that policy.
 	those samples. If we do this long enough we'll be able to estimate the policy. 
 		- This works out in the end. However it can result in odd intermediate 
 		results because we don't take into account state connection. Each 
-		state is learned seperately and therefore takes a long time to learn. 
+		state is learned separately and therefore takes a long time to learn. 
 	- Sample based policy evaluation - an approximation of the policy 
-	evaluation algorithm using sample averagees as opposed to known transition
+	evaluation algorithm using sample averages as opposed to known transition
 	functions / rewards. 
 		- Every time you're at $s$, take sample of outcomes $s'$ by doing the 
 		action and average. 
@@ -890,13 +894,13 @@ some small probability).
 		- N is the number of times that action has been taken. 
 	- This not only boosts actions that haven't been tried but also boosts 
 	paths that lead to actions that haven't been tried. 
-- Regret is a meaure of your total mistakes. 
+- Regret is a measure of your total mistakes. 
 	- A measure of total mistake cost - the difference between our expected 
 	awards including youthful suboptimality and optimal (expected) rewards. 
 	- The exploration reduces regret compared to random exploration. 
 - Approximate Q Learning 
 	- A method of reinforcement learning with a large number of states. 
-	- We want to generalise a state as a vector (array) of features. 
+	- We want to generalize a state as a vector (array) of features. 
 	- Our Q values are linear combinations of weighted feature pairs. The 
 	challenge is coming up with intelligent features. 
 	- Algorithm:
@@ -923,15 +927,15 @@ shorthand. A probability distribution must follow two properties:
 	1. $P(x) >= 0 \forall x \ \in D_R$
 	2. $\sum_{x \in D_R} {P(x)} = 1$
 - Joint distribution: A joint distribution over a set of random variables $X_1,
-X_2, ..., X_n$ specifies the probability of each possible assignemnt $P(X_1 =
+X_2, ..., X_n$ specifies the probability of each possible assignment $P(X_1 =
 x_1, X_2 = x_2, ... , X_n = x_n)$. 
 	- Given a distribution of $n$ variables with domain sizes $d$, the
 	distribution is of size $d^n$. 
-- A probabalisitc models is a joint distribution over a set of random 
+- A probabilistic models is a joint distribution over a set of random 
 variables.
-	- Given a joint distribution we can calculate the prbability of any one
+	- Given a joint distribution we can calculate the probability of any one
 	event by summing over all arrangements where the event occurs. 
-	- An event is a subset of the assignmnets. 
+	- An event is a subset of the assignments. 
 - A marginal distribution is a sub-tables which eliminates variables from a
 joint distribution. 
 	- Essentially building a joint distribution over a subset of the random
@@ -952,17 +956,14 @@ $$P(x_1, x_2, ..., x_n) = \Pi_{i}^{n}{P(x_i | x_1 ... x_{i-1})}$$
 	- Posterior Probability: $P(x | y)$
 - Two variables are independent if $P(X,Y) = P(X)P(Y)$ for all possible values
 of $X$ and $Y$. 
-- Conditional Independene: Variables A and B are conditionaly independent given
+- Conditional Independence: Variables A and B are conditionally independent given
 C if:
 	- $P(A, B | C) = P(A | C)P(B | C)$ 
 	- $P(A | B, C) = P(A | C)$
 
-
 ### Markov Models
 
-__Markov Models__
-
-- A markov model is a probabalistic inference model that is used to make
+- A markov model is a probabilistic inference model that is used to make
 inferences based on sequences of actions over time and space. A markov model is
 essentially a sequence of random variables such that each variable is only
 dependent on the previous variable (or some set of previous variables)
@@ -976,11 +977,11 @@ dependent on the previous variable (or some set of previous variables)
 sequence. 
 $$P(X_1, X_2, ..., X_T) = P(X_1) \Pi_{i=2}^{T} {P(X_i | X_{i-1})}$$
 - Note here we assume that $X_i \bot X_{i-2} | X_{i-1}$. or that $X_i$ and $X_
-{i-2}$ are conditionaly independent given $X_{i-1}$. 
+{i-2}$ are conditionally independent given $X_{i-1}$. 
 - Markov models, when run for long enough, usually converge to a "stationary
 distribution". We can solve for the stationary distribution either by running
 the simulation for a while and by solving a set of linear equations. For a
-binary state stystem
+binary state system
 $$P(X_{\infty} = a) = P(X_{\infty} = a, X_{\infty - 1} = a) + P(X_{\infty} =
 a, X_{\infty - 1} = b)$$
 $$P(X_{\infty} = b) = P(X_{\infty} = b, X_{\infty - 1} = a) + P(X_{\infty} =
@@ -1003,10 +1004,10 @@ time or space).
 - We define $E_{z_{i}}(x)$ as $P(x_i = x | z_i = z)$ and $T(z', z)$ as $P(z_
 {i+1} = z' | z_{i} = z). 
 
-- Based on our knowledge of MMs above, determing the joint distribution of a 
+- Based on our knowledge of MMs above, determining the joint distribution of a 
 HMM is reasonably straight forward. 
 	- Let $B(Z_t)=P(Z_t | x_1...x_t)$ 
-	- $B$ is a belief vector that essentialy gives the probability of the state
+	- $B$ is a belief vector that essentially gives the probability of the state
 	of the hidden state at time $t$ given the current "evidence" (observed
 	states). 
 	- Then for one time step, 
@@ -1023,14 +1024,14 @@ $$ = \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_{t-1})P(x_1|x_{t-1}) P(x_t | z_t)}$$
 $$ = P(x_t | z_t) \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_{t-1})P(x_1|x_{t-1})}$$
 $$P(z_t | x_1...x_t) =\frac{ P(x_t | z_t) \sum_{z_{t-1}}{P(z_{t-1}, x_1...x_
 {t-1})P(x_1|x_{t-1})} } {P(x_1...x_t}$$
-- Then the probabilty distribution of the HMM is given by 
-$$P(x1...xN, z1...zN) = P(z_1)E_{z_1}(x_i) \Pi_{k=2}^{n}{T(Z_{k}, Z_{k-1}) E_
+- Then the probability distribution of the HMM is given by 
+$$P(x_1...x_N, z_1...z_N) = P(z_1)E_{z_1}(x_i) \Pi_{k=2}^{n}{T(Z_{k}, Z_{k-1}) E_
 {z_{k}}(x_k)}$$
 
 __Particle Filtering__
 
-- Particle Filtering is an appappximate inference technique that reduces the
-statem space of an HMM (useful
+- Particle Filtering is an approximate inference technique that reduces the
+state space of an HMM (useful
 if Z is too large to use exact inference). Instead of tracking values of Z,
 track samples. Each sample is called a particle and time per step is linked to
 the number of samples taken. 
@@ -1038,7 +1039,22 @@ the number of samples taken.
 the system. $P(x)$ represents the number of particles that take on the value
 $x$ - so increasing the number of particles (obviously) increases the accuracy
 of the approximate inference. 
-- At the beginning, each value is 
+- Particle Filtering Algorithm:
+	1. Distribute particles in some standard way (random, uniform, etc)
+	2. For each particle x, update x based on change in time: 
+	$$x' = sample(P(X | x))$$
+	where x' is the updated value of the particle, X' is the set of possible values
+	of the particle, and x is the old value of the particle. Here we are essentially
+	sampling from the transition probability distribution for a time step.
+	3. For each particle x, and some noisy observation (evidence e), update x based
+	on the observation:
+	$$w(x) = P(e | x)$$
+	$$B'(X) \propto P(e | X) B(X)$$
+	where B'(X) is the new belief function based on the particles, P(e | X) is the 
+	probability of the evidence based on the current particle distribution (essentially 
+	the product of all the weights) and B(X) is the original particle belief distribution. 
+	Note that $B'(X)$ is not a probability distribution. We can renormalizes by resampling
+	particles from $B'(X)$. 
 
 ### Baysean Networks
 - A baysean network is a graphical approach to representing a joint probability
@@ -1050,18 +1066,17 @@ defines some "causation" or dependence of $y$ on $x$.
 	- A bayes net consists of the dependencies and local "conditional
 	probability tables" (CPTs) ie $P(X | parents_{X})$
 	- We can use this local information along with the dependency information
-	encorded in the graph to "infer" the joint probability distrbution encoded
+	encored in the graph to "infer" the joint probability distrbution encoded
 	by the network using the following equation:
 	$$P(x_1, x_2, ..., x_n) = \Pi_{i=1}^{n} {P(x_i | parents(x_i))}$$
 - A general joint distribution is of size $O(2^N)$ for $N$ variables. A Bayes 
 net is $O(N * 2^k)$ if each node has up to $k$ parents. 
-
 - Independence in bayes nets. 
 	- `(A) -> (B) <- (C)` : A and C are independent (blocking); A and C are
-	conditionaly dependent given B
-	- `(A) -> (B) -> (C)` : A and C are conditionaly independent given B 
+	conditionally dependent given B
+	- `(A) -> (B) -> (C)` : A and C are conditionally independent given B 
 	(blocking); A and C are dependent 
-	- `(A) <- (B) -> (C)` : A and C are conditionaly independent given B 
+	- `(A) <- (B) -> (C)` : A and C are conditionally independent given B 
 	(blocking); A and C are dependent 
 - Sets $A$ and $B$ of random variables are independent given set $C$ if there
 exists no unblocked path from the vertices in $A$ to the vertices in $B$ if the
@@ -1074,10 +1089,10 @@ __Inference__
 
 - Inference is essentially the process of finding some useful information about
 from a bayes net. Usually we want to know the "posterior probability" of some
-querry variables or the "most likely explanation". 
+query variables or the "most likely explanation". 
 	1. Posterior Probability: $P(Q | E_1 = e_i, ..., E_k = e_k)$
 	2. Most Likely Explanation: $argmax_q P(Q = q | E_1 = e_i, ..., E_k = e_k)$
-- Inference by enumeraation is the most naive form of inference
+- Inference by enumeration is the most naive form of inference
 	- Evidence variables $E_1...E_k = e_1...e_k$
 	- Query variables: $Q$
 	- Hidden variables: $H_1...H_r$
@@ -1164,10 +1179,10 @@ enumeration and variable elimination.
 then eliminate it. 
 	- Given some query $P(Q | E_1=e_1,...E_k=e_k)$
 	- Start with local CPTs 
-	- While there are still hiden variables
+	- While there are still hidden variables
 		- Pick a hidden variable H
 		- Join all factors mentioning H
-		- Eliminate (sume over) H - this generates another factor. 
+		- Eliminate (sum over) H - this generates another factor. 
 	- Join all remaining factors and normalize by $P(e_1...e_k)$. 
 - Example
 
@@ -1193,11 +1208,11 @@ Some choices of hidden variables would result in large factors whereas other
 choices result in smaller factors - obviously smaller factors lead to more
 efficient inference. 
 	- Generally speaking we should pick factors with less connections first
-	since more connectisons implies a bigger factor table. 
+	since more connections implies a bigger factor table. 
 	- If we are combining k factors with domain sizes d, the resulting factor 
 	is of size	$O(d^k)$. 
 	- In variable elimination we care about the size of the factor tables. 
-	- The computational and space compelxity of variable elimination is
+	- The computational and space complexity of variable elimination is
 	determined by the largest factor. And the elimination ordering can greatly
 	affect the size of the largest factor. 
 	- There is no general "optimal ordering" which always results in small
@@ -1205,10 +1220,10 @@ efficient inference.
 - A polytree is a directed graph with no undirected cycles. We can always find
 an efficient ordering with polytrees. 
 
-__Aproximate Inference__
+__Approximate Inference__
 
 - Approximate inference is a more efficient means of inference from a Bayes 
-Net. Obvisouly (as the name implies), approximate inference is not as exact as
+Net. Obviously (as the name implies), approximate inference is not as exact as
 the types of inference discussed above but it is often a more efficient method
 of inference. 
 - Prior Sampling
@@ -1288,7 +1303,7 @@ of inference.
 		- That is the product of the sample and weight recovers the original
 		distribution in the limit. 
 - Gibbs Sampling
-	- Likelihood Weigting is a good techinque, but it doesn't take account of
+	- Likelihood Weighting is a good technique, but it doesn't take account of
 	the evidence throughout the entire distribution. Ie downstream evidence is
 	not efficiently considered at upstream variables. 
 	- The main idea behind Gibbs Sampling is that we start with some random /
@@ -1360,7 +1375,7 @@ value is so we find the expected value.
 $$MEU(e, E') = \sum_{e'}(P(e' | e)MEU(e, e'))$$
 Then:\
 $$VPI(E' | e) = MEU(e, E') - MEU(e)$$
-- VPI is non-negative and non-addative. 
+- VPI is non-negative and non-additive. 
 - If $parents(U) \perp Z | currentEvidence$ Then $VPI(Z) | currentEvidence > 0$.
 
 - Example
@@ -1400,5 +1415,175 @@ MEU(F = good) = max EU(a, F = good)
 
 # Machine Learning
 
+- Machine learning is a very hyped subset of artificial intellignece that is used to make decisions or classifications bsed on trends in data. ML is an extremely powerful and diverse field (see machine learning notes). Here we go over some very basic ML algorithms. 
+- In general machine learning we have some model of our data, and we want to tune parameters to fit the example data (training data) we've seen. We define the likelihood function ($L(X, \theta)$) to be the likelihood of the data X and the model parameters $\theta$. We can assume that:
 
+$$L(x, \theta) = \Pi_i P_{\theta}(x_i) = \Pi_i P(x_i | \theta)$$
+
+- We want to maximize the likelihood function - this is the general idea behind the training part of an ML algorithm. 
+
+$$\theta_{ML} = arg \ max_{\theta'} P(X, \theta)$$
+
+- There may also be a set of hyperparameters (learning rate, smoothening factor, dropout, etc) that we want to tune independently of the training data. Specifically we would run the training algorithm ont the training data for different values of the hyperparameters and pick the value of the hyperparameters and regular parameters that gives the best result. 
+
+## Naive Bayes
+
+- Model based classification is the process of building a model where both the labels and features are random variables. We instantiate any observed features and query for the distribution of the labels conditioned on the features. 
+- The naive bayes model assumes that all features are conditionaly independent of each other given the label. THis makes this an extremely easy model to build. 
+- For example, the naive bayes model for digit recognition may look like:
+
+```
+val[0][0] -------->
+val[0][1] -------->
+...
+val[1][0] -------->    Y
+val[1][1] -------->
+...
+val[n-1][n-1] ---->
+```
+
+- Here our goal is to find $P(Y | X)$ where $Y = \{0, 1, 2, ..., 9\}$ and $X$ is the combination of feature values. Since we make a naive bayes assumption, we know that 
+
+$$P(Y | X) = \frac{P(Y, X)}{P(X)}$$
+
+so 
+$$P(Y = y, X) = P(y) \times \Pi_{i,j=0,0}^{n-1,n-1}P(x_{i,j} = val[i,j] | Y = y)$$
+
+Then 
+
+$$P(X) = \sum_{y=0}^{9}{P(Y=y, X)}$$
+
+and 
+
+$$P(Y = y | X) = \frac{P(y) \times \Pi_{i,j=0,0}^{n-1,n-1}P(x_{i,j} = val[i,j] | Y = y) } {\sum_{y=0}^{9}{P(Y=y, X)}}$$
+
+
+- For Naive bayes we need to know the parameters $\theta$ of the model - specifically these are the CPTs P(x_{i,j} | Y) and $P(Y)$. 
+- The easiest way to get these CPTs is to parse the data and count the number of specific occurances. 
+- Naive bayes can also be applied to text. The bag of words Naive bayes model is constructed such that feature $W_i$ is the word at position $i$. We assume that words are conditionally independent of each other given the label. In this case we want to classify emails as SPAM or HAM (not spam) based on the words they contain. 
+
+- In a Bayes net (and in ML models in general) we need to be able to handle unseen features since our training data may not have every possible feature value. Specifically we don't want to assign a 0 probability to unseen features because that could lead to division by zero errors. So we use Laplace smoothing. The basic idea behind Laplace smoothing is to pretend you saw every outcome once more than you actually did. 
+
+$$P_{lap}(x) = \frac{count(x) + 1}{\sum_{x}{count(x) + 1}}$$
+$$P_{lap}(x) = \frac{count(x) + 1}{N + |X|}$$
+
+- We can actually say $P_{lap-k}(x) = \frac{count(x) + k}{N + k|X|}$. Larger values of k ignore the training data whereas smaller values of k "trust" the training data more. 
+- We can do this with conditional probabilities
+
+$$P_{lap-k}(x | y) = \frac{count(x,y) + k}{c(y) + k|X|}$$
+
+- A big part of building a naive bayes model is extracting useful features from the data. For example, when classifying digits, the value of individual pixels is the only information encoded in the data, but we can extract a lot more information from the data. For example we can check the relative height and width of the digit, whether or not it has closed loops, etc. 
+
+## Perceptrons 
+
+- A perceptron is an error driven classifier. That means that it is trained  by computing the classificatino of specific training examples and uses the error between the classification and the correct answer to affect the model parameters.
+- Naive bayes models can incorporate a variety of features, but tend to do best in homogeneous case (eg all vectors are the same type). 
+- A perceptron is a linear classifier that draws inspiration from the neuron. 
+
+$$activation_{w}(x) = sign(\sum_{i}w_{i}f_{i}(x)) = sign(w \dot f(x))$$
+
+- The training algorithm of a perceptron tunes the value of $w$ which defines the decision boundary between the classes. 
+- The general training algorithm for a binary perceptron
+
+```Pytohon
+def train(X, Y, k, alpha):
+	for iters in range(k):
+		for x in X:
+			y_hat = calssify(x)
+			if y_hat != y:
+				w -= alpha * x
+
+def classify(x):
+	return sign(w.dot(x))
+```
+
+- If the data is linearly separable, a perceptron is guaranteed to be able to converge to a solution. 
+- For multiple classes, we keep a weight vector $w_y$ for each class. Then to classify a sample $x$ we use
+
+$$y = arg max_{y} w_y \dot f(x)$$
+
+- After we classify a training example we must lower the score of the wrong answer and rais the score ofthe correct answer
+
+```Python
+def train(X, Y, k, alpha):
+	for iters in range(k):
+		for x in X:
+			y_hat = classify(x)
+			if y_hat != y:
+				w[y_hat] += alpha * x
+				w[y] -= alpha * x
+
+def classify(x):
+	return argmax(w.dot(x))
+```
+
+- On a linearly separable dataset we want o iterate until we make no changes to w, but usually we run for a limited number of iterations because most datasets aren't linearly separable. 
+- Perceptrons are mistake bound. This means that the maximum number of mistakes a binary perceptron can make is $\frac{k}{\delta^2}$ where $k$ is the number of features and $\delta$ is the margin (space between posative and negative class). 
+- There are a few problems with the perceptron
+	- If the data isn't separable, the weights will thrash around during training. We usually average weight vectors over time to allevviate this problem. 
+	- The decision boundary isn't the one with the best margin. 
+	- The perceptron can easily overtrain. 
+- MIRA (Margin Infused Relaxed Algorithm) is a linear classifier that tries to pick a decision boundary with a better boundary. MIRA updates $w_y$ and $w_{y'}$ using the rule:
+
+```Python
+if y != y_hat:
+	w[y] -= tau * x 
+	w[y_hat] += tau * x
+```
+
+- MIRA calculates $\tau$ by minimizing the sum of squares error: $min_{w} \frac{1}{2}\sum_{y}||w_y - w'_{y}||$ for each update where $w_{y}$ is the new value of the weight vector for y. 
+
+$$min_{w} \frac{1}{2}\sum_{y}||w_y - w'_{y}||$$
+$$w_{y'} * x \geq w_y * x + 1$$
+which is the same as minimizing
+$$min_{\tau} || \tau * x ||^2$$
+subject to the constraint 
+$$w_{y'} * x \geq w_y * x + 1$$
+which means
+$$(w'_ {y'} + \tau x) * x = (w'_{y} - \tau x) * x + 1$$
+$$\tau = \frac{(w'_{y} - w'_{y'}) * x + 1}{2 x * x}$$
+
+- This is very similar to the support vector machine which tries to maximize the margin of the decision boundary. However, MIRA maximizes the margin of individual examples whereas SVM maximizes the margin of the entire dataset. 
+
+## Kernels and Clustering
+
+- Clustering is a means of classifying data based on how similar it is to examples you've already seen. 
+- 1 Nearest Neighbor is the easiest example. For a new example, assign it the label of the nearest classified data point. 
+- K Nearest Neighbors is similar to the 1 nearest neighbor example above, but we utake amajority vote of the k nearest neighbor classification. This KNN algorithm is an extremely simple, but powerful machine learning algorithm. 
+- This is an example of a Non-parametric model
+	- Parametric : fixed set of parameters, more data means better settings
+	- Non-parametric : complexity of the classifier increases with data, better in the limit, often worse in the non-limit. 
+- KNN is based on a similarity function which defines who close together two samples are. 
+	- An easy similarity function is to simply take the dot product of two features (after normalization). 
+	- Invariant metrics are metrics whose similarities shouldn't change under certain transformations (for example rotation, scaling, translation, stroke thickness, etc). 
+		- A way of encoding invariant metrics is to create a second dataset that contains a bunch of transformaed samples. Then we run the similarity function and return the pair with the highest similarity. 
+		- Another way of encoding invariant metrics is to just increase the size of our training data. 
+	- Template deformations is the process of creating an ideal version of each category and finding the best fit to the image with minimum variance. 
+
+- The dual representation of the perceptron is an alternate way of mathematically representing a perceptron. As defined a perceptron is defined as:
+
+$$score(y, x) = w_{y} \dot x$$
+
+but 
+$$w_{y}  = \sum_{i}a_{i,y}x_i$$
+where $a_i$ is the update factor associated with sample $x_1$. 
+
+Then:
+
+$$score(y, x) = \sum_{i}a_{i,y}(x_i \dot x)$$
+$$score(y, x) = \sum_{i}a_{i,y} K(x_i, x)$$
+
+- This allows you to compute the score without the weight. The function $K$ is a kernel function which is essentially a similarity function. 
+- We can use non-linear kernel functions to create non-linear decision boundaries. 
+	- A non-linear kernel can add features to the data space creating a higher dimensional space that can be linearly separated. The separator is linear in the higher dimensional space but non-linear in the original dimensionality. 
+- The dual perceptron is also called a kernel perceptron. 
+- Clustering is the process of inferring similarity between data. The point isn't to assign labels to data, but to group data together by similarity. 
+- K Means clustering
+	- Pick K random points ass cluster centers (means)
+	- Alternate
+		- Assign data instances to closest mean
+		- Assign a new mean as the average of the assigned points
+	- Stop when no assignments change. 
+- Agglomerative clustering
+	- All data points are there own clusters, then "agglomerate" two closest points. Repeat for a defined ammount of imes. 
 
