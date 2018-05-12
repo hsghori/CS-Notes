@@ -678,7 +678,7 @@ __Parallel Reduction__
 	}
 	```
 
-	![](cuda-reduction-1.png){width=400px}
+	![](src/cuda-reduction-1.png){width=400px}
 
 		- This introduces a problem of __thread divergence__. This occurs when threads in a single warp need to do different things (ie they diverge). This can lead to a large loss in performance. We want to avoid conditioning on `tid`. 
 
@@ -708,7 +708,7 @@ __Parallel Reduction__
 	}
 	```
 
-	![](cuda-reduction-2.png){width=400px}
+	![](src/cuda-reduction-2.png){width=400px}
 
 		- This reduction is conflict free but leaves a lot of idle threads which isn't particularly efficient. 
 	- Other reductions include unrolling the loop, computing the first add when loading the data, and invoking multiple adds / threads. 

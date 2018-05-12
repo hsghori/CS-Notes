@@ -1,5 +1,5 @@
 ---
-title: Computer Networks Notees
+title: Computer Networks Notes
 author: Haroon Ghori
 geometry: margin=1in
 ---
