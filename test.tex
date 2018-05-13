@@ -1,0 +1,4415 @@
+\hypertarget{basic-internet-organization}{%
+\subsubsection{Basic Internet
+Organization}\label{basic-internet-organization}}
+
+\begin{itemize}
+\tightlist
+\item
+  The Internet is essentially a network or subnetworks. End-of-systems
+  and networks are connected to the network by switches instead of being
+  directly connected to the network.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This is done to reduce the number of edges between nodes in the
+    network.
+  \item
+    The Internet ties all the switches together using an IP protocol. In
+    this way, different hardwares and devices can communicate on the
+    same network.
+  \end{itemize}
+\item
+  When nodes need to send information they may have to share switches /
+  edges between swtiches. They can do this in three major ways
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Circuit switching: Switches are reserved for the entire transfer.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Source sends a reservation request to the destination. Each
+      intermediate switch checks it's resources to see if it can handle
+      the request. If all the switches have enough resources, the
+      resources will be reserved and the circuit will be established.
+      Once the data transfer is done, the resources on the switch will
+      be freed.
+    \item
+      This works well for really large ``one and done'' data transfers
+      because the circuit is reserved for the entirety of the
+      connection. However, it doesn't work as well for ``bursty''
+      traffic (ie sending a few small messages over time) since
+      bandwidth is reserved for the entirety of the connection.
+    \item
+      Pros:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Uninterrupted bandwidth (esp good for large/consistent/real-time
+        transfers). AKA predictable performance.
+      \item
+        Simple, fast switching.
+      \end{itemize}
+    \item
+      Cons:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Wasted bandwidth.
+      \item
+        Connection may be rejected if a resource is used up.
+      \item
+        Circuit set-up and teardown has a lot of overhead for short
+        connections.
+      \item
+        Many points of failure (if a switch fails, the circuit fails).
+      \end{itemize}
+    \end{itemize}
+  \item
+    Packet switching: Each source sends it's message in packets with the
+    destination encoded. Each packet is treated independently and
+    forwarded to its destination.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The switch needs to have a buffer to deal with transient overload
+      (ie saving packets in transit). If the buffer overloads, packets
+      are dropped.
+    \item
+      Pros:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Efficient use of bandwidth (no wasted bandwidth)
+      \item
+        Robust against single switch failure (can re-rout around dead
+        switch).\\
+      \item
+        Lower latency (no overhead for setup and teardown)
+      \end{itemize}
+    \item
+      Cons:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Unpredictable performance (all packets are treated the same and
+        packets can be dropped and network cannot guarantee bandwidth)
+      \item
+        Requires buffer management and congestion control.
+      \end{itemize}
+    \end{itemize}
+  \item
+    Hybrid connection
+  \end{itemize}
+\item
+  A switch internally can divide it's connections using ``multiplexing''
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Time multiplexing: establishes chooses different connection at a
+    specific time interval. Ex: time 1 connection 1 time 2 connection 2
+    time 3 FREE time 4 FREE (switch has 4 time intervals)
+  \item
+    Frequency multiplexing: Sends each message at a specific
+    frequency.\\
+  \item
+    Statistical multiplexing: The communication channel is divided into
+    an arbitrary number of variable bitrate digital channels or data
+    streams. The link sharing is adapted to the instantaneous traffic
+    demands of the data streams that are transferred over each channel.
+  \end{itemize}
+\item
+  Network Metrics
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Network Link
+  \item
+    Delay
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Transmission Delay: How long does it take to push all bits from a
+      packet into a link?
+
+      \begin{itemize}
+      \tightlist
+      \item
+        \(transmission_delay = packet_size / transmission_rate_of_link\)
+      \end{itemize}
+    \item
+      Propagation Delay: How long does it take to move one bit from one
+      end of a link to the other?
+
+      \begin{itemize}
+      \tightlist
+      \item
+        \(propagation_delay = link_length / propogation_time\)
+      \end{itemize}
+    \item
+      Queuing Delay: How long does a packet spend in a buffer before
+      it's processed?
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Depends on arrival rate in the queue, type of arriving traffic
+        (bursty or constatn), and the probability the delay exceeds some
+        threshold (after which the packet will be dropped)
+      \item
+        \(queue_length = long_term_average_arrival_rate * waiting_time\)
+        (Little's Law)
+      \end{itemize}
+    \item
+      Processing Delay: Overall end to end delay.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{sockets-and-socket-programming}{%
+\subsubsection{Sockets and Socket
+Programming}\label{sockets-and-socket-programming}}
+
+\begin{itemize}
+\tightlist
+\item
+  In a Unix OS, all IO happens through ``file descriptors''.
+\item
+  File Descriptor - an integer associated with a file.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The file can be a terminal, pipe, network connection, etc.
+  \end{itemize}
+\item
+  A socket is the file descriptor for a network connection.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    We can use socket to communicate over a network connection usinng
+    the send() and recv() calls.
+  \item
+    We can also use read() and write(), but send() and recv() offer more
+    control.
+  \end{itemize}
+\item
+  There are two major types of sockets
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Stream Sockets
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Reliable two way connections - we expect messages to remain intact
+      when sent through this socket.
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Note we must maintain a connection.
+      \end{itemize}
+    \item
+      This reliability is achieved using the Transmission Control
+      Protocol (TCP)
+    \end{itemize}
+  \item
+    Datagram Sockets
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Unreliable and connectionless. A message is sent in packets - some
+      packet may be dropped or be received out of order. The packets
+      that arrive will arrive error-free.
+    \item
+      Datagram sockets use a User Datagram Protocol (UDP). Applications
+      and protocols built on top of datagram sockets will usually
+      implement some kind of packet acknowledgment to make sure that no
+      data is lost over the connection.
+    \end{itemize}
+  \end{itemize}
+\item
+  Socket Programming in C/C++
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\PreprocessorTok{#include }\ImportTok{<iostream>}
+\PreprocessorTok{#include }\ImportTok{<sys/socket.h>}
+\PreprocessorTok{#include }\ImportTok{<sys/types.h>}
+\PreprocessorTok{#include }\ImportTok{<netdb.h>}
+\PreprocessorTok{#include }\ImportTok{<string>}
+\PreprocessorTok{#include }\ImportTok{<cstring>}
+\PreprocessorTok{#include }\ImportTok{<stdlib.h>}
+\PreprocessorTok{#include }\ImportTok{<netinet/in.h>}
+\PreprocessorTok{#include }\ImportTok{<arpa/inet.h>}
+\PreprocessorTok{#include }\ImportTok{<stdio.h>}
+\PreprocessorTok{#include }\ImportTok{<unistd.h>}
+\PreprocessorTok{#include }\ImportTok{<algorithm>}
+
+\DataTypeTok{int}\NormalTok{ connect_server(}\BuiltInTok{std::}\NormalTok{string port) \{}
+    \DataTypeTok{char}\NormalTok{ buffer[BUFFER_SIZE];}
+    \DataTypeTok{int}\NormalTok{ socket_fd;}
+    \KeywordTok{struct}\NormalTok{ addrinfo hints, *res, *p;}
+    \KeywordTok{struct}\NormalTok{ sockaddr_storage conn;}
+    \DataTypeTok{int}\NormalTok{ one = }\DecValTok{1}\NormalTok{;}
+\NormalTok{    memset(&hints, }\DecValTok{0}\NormalTok{, }\KeywordTok{sizeof}\NormalTok{ hints); }\CommentTok{// clears the hints struct}
+\NormalTok{    hints.ai_family = AF_UNSPEC;}
+\NormalTok{    hints.ai_socktype = SOCK_STREAM;}
+\NormalTok{    hints.ai_flags = AI_PASSIVE;}
+    \ControlFlowTok{if}\NormalTok{ (getaddrinfo(NULL, port.c_str(), &hints, &res) > }\DecValTok{0}\NormalTok{) \{}
+        \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Couldn't get address info.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+\NormalTok{        exit(}\DecValTok{1}\NormalTok{);}
+\NormalTok{    \}}
+    \ControlFlowTok{for}\NormalTok{ (p = res; p != NULL; p = p->ai_next) \{}
+        \ControlFlowTok{if}\NormalTok{ ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < }\DecValTok{0}\NormalTok{) \{}
+            \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to get socket.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+        \ControlFlowTok{if}\NormalTok{ (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &one, }\KeywordTok{sizeof}\NormalTok{(}\DataTypeTok{int}\NormalTok{)) == }\DecValTok{-1}\NormalTok{) \{}
+            \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: setupsocket.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+        \ControlFlowTok{if}\NormalTok{ (bind(socket_fd, p->ai_addr, p->ai_addrlen) < }\DecValTok{0}\NormalTok{) \{}
+            \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to bind to port "}\NormalTok{ << port << }\StringTok{".}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+        \ControlFlowTok{break}\NormalTok{;}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{ (p == NULL) \{}
+\NormalTok{        exit(}\DecValTok{1}\NormalTok{);}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{ (listen(socket_fd, }\DecValTok{10}\NormalTok{) < }\DecValTok{0}\NormalTok{) \{}
+        \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to listen to remote host.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+\NormalTok{        exit(}\DecValTok{1}\NormalTok{);}
+\NormalTok{    \}}
+    \DataTypeTok{char}\NormalTok{ conn_ip[INET6_ADDRSTRLEN];}
+    \DataTypeTok{long}\NormalTok{ bytes = }\DecValTok{0}\NormalTok{;}
+    \DataTypeTok{int}\NormalTok{ bytes_rec;}
+    \DataTypeTok{int}\NormalTok{ conn_fd;}
+    \DataTypeTok{double}\NormalTok{ start_secs, end_secs, dur;}
+    \ControlFlowTok{while}\NormalTok{(}\KeywordTok{true}\NormalTok{) \{}
+        \DataTypeTok{socklen_t}\NormalTok{ conn_len = }\KeywordTok{sizeof}\NormalTok{(conn);}
+        \ControlFlowTok{if}\NormalTok{ ((conn_fd = accept(socket_fd, (}\KeywordTok{struct}\NormalTok{ sockaddr*) &conn, &conn_len)) < }\DecValTok{0}\NormalTok{) \{}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+\NormalTok{        inet_ntop(conn.ss_family, &conn, conn_ip, }\KeywordTok{sizeof}\NormalTok{ conn_ip);}
+\NormalTok{        printf(}\StringTok{"Connected to client }\SpecialCharTok{%s}\StringTok{ through port }\SpecialCharTok{%s}\StringTok{.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, (}\AttributeTok{const} \DataTypeTok{char}\NormalTok{*)conn_ip, (}\DataTypeTok{char}\NormalTok{*)port.c_str());     }
+        \ControlFlowTok{return}\NormalTok{ conn_fd;}
+\NormalTok{    \}}
+\NormalTok{\}}
+
+
+\DataTypeTok{int}\NormalTok{ connect_client(}\BuiltInTok{std::}\NormalTok{string port, }\BuiltInTok{std::}\NormalTok{string hostname, }\DataTypeTok{int}\NormalTok{ time) \{}
+    \DataTypeTok{char}\NormalTok{ buffer[BUFFER_SIZE];}
+    \KeywordTok{struct}\NormalTok{ addrinfo hints, *res, *p;}
+    \DataTypeTok{int}\NormalTok{ socket_fd;}
+\NormalTok{    memset(&hints, }\DecValTok{0}\NormalTok{, }\KeywordTok{sizeof}\NormalTok{ hints);}
+\NormalTok{    hints.ai_family = AF_UNSPEC;}
+\NormalTok{    hints.ai_socktype = SOCK_STREAM;}
+    \ControlFlowTok{if}\NormalTok{ (time == }\DecValTok{-1}\NormalTok{ || hostname.empty()) \{}
+        \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Invalid arguments}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{ (getaddrinfo(hostname.c_str(), port.c_str(), &hints, &res) != }\DecValTok{0}\NormalTok{) \{}
+        \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to get address"}\NormalTok{;}
+\NormalTok{        exit(}\DecValTok{1}\NormalTok{);}
+\NormalTok{    \}}
+    \ControlFlowTok{for}\NormalTok{(p = res; p != NULL; p = p->ai_next) \{}
+        \ControlFlowTok{if}\NormalTok{ ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == }\DecValTok{-1}\NormalTok{) \{}
+            \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to get socket.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+        \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{connect}\NormalTok{(socket_fd, p->ai_addr, p->ai_addrlen) == }\DecValTok{-1}\NormalTok{) \{}
+            \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROF: failed to connect to socket.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+\NormalTok{            close(socket_fd);}
+            \ControlFlowTok{continue}\NormalTok{;}
+\NormalTok{        \}}
+        \ControlFlowTok{break}\NormalTok{;}
+\NormalTok{    \}}
+    \ControlFlowTok{if}\NormalTok{ (p == NULL) \{}
+        \BuiltInTok{std::}\NormalTok{cerr << }\StringTok{"ERROR: Failed to connect.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{;}
+\NormalTok{        exit(}\DecValTok{1}\NormalTok{);}
+\NormalTok{    \}}
+    \DataTypeTok{char}\NormalTok{ server_ip[INET6_ADDRSTRLEN];}
+\NormalTok{    inet_ntop(p->ai_family, p->ai_addr, server_ip, }\KeywordTok{sizeof}\NormalTok{ server_ip);}
+\NormalTok{    printf(}\StringTok{"Connected to server at host }\SpecialCharTok{%s}\StringTok{ at port }\SpecialCharTok{%s}\StringTok{.}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{, (}\AttributeTok{const} \DataTypeTok{char}\NormalTok{*)server_ip, (}\DataTypeTok{char}\NormalTok{*)port.c_str());}
+\NormalTok{    freeaddrinfo(res);}
+    \ControlFlowTok{return}\NormalTok{ socket_fd;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{protocol-layering}{%
+\subsubsection{Protocol Layering}\label{protocol-layering}}
+
+\begin{itemize}
+\tightlist
+\item
+  Applications communicate is handled by a stack such that the high
+  level communication is built on top of those in the lower layers:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Application
+  \item
+    Presentation (OSI)
+  \item
+    Session (OSI)
+  \item
+    Reliable or unreliable transport (Transport)
+  \item
+    Best effort global packet delivery (Network)
+  \item
+    Best effor local packet delivery (Data Link)
+  \item
+    Physical transfer of bits (Physical)
+  \end{itemize}
+\item
+  OSI Layers (Open Systems Interconnection) are often implemented as
+  part of the application layer.
+\item
+  A layer is a part of a systems with well defined interfaces to other
+  parts of the system (to other layers).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    One layer only needs to interact with one layer above and one layer
+    below.
+  \item
+    Two layers can only interact through he interface between them.
+  \item
+    Communication between peer layers on different systems is defined by
+    a protocol.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Ex: two applications may communicate with each other using the
+      HTTP protocol, but that protocol is built off of protocols in the
+      lower layers of the communication stack.
+    \end{itemize}
+  \end{itemize}
+\item
+  A protocol is an agreement between parties (in the same layer) on how
+  to communicate. It defines the syntax and semantics of communication.
+\end{itemize}
+
+\begin{verbatim}
+[    Payload     | Header ]
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Syntax
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Each protocol has a specific header format which gives instructions
+    on how to process the payload.
+  \end{itemize}
+\item
+  Semantics
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Each protocol defines how communication is carried out.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Ex: First an acknowledgment (``hello''), then a request
+    \end{itemize}
+  \end{itemize}
+\item
+  Common Protocols for each layer:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Application: SMTP, HTTP, DNS, NTP
+  \item
+    Transport: TCP, UDP
+  \item
+    Network: IP
+  \item
+    Data Link: Ethernet, FODI, PPP
+  \item
+    Physical: Optical, Copper, Radio, PSTN
+  \end{itemize}
+\item
+  Layer Encapsulation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Application wraps data in HTTP Layer
+  \end{itemize}
+
+\begin{verbatim}
+[HTTP Header | HTTP Payload]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Transport Layer wraps HTTP request in TCP Payload
+  \end{itemize}
+
+\begin{verbatim}
+[TCP Header | [HTTP Header | HTTP Payload]]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Network layer wraps TCP request in IP Payload
+  \end{itemize}
+
+\begin{verbatim}
+[IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Data link layer wraps IP request in Ethernet payload.
+  \end{itemize}
+
+\begin{verbatim}
+[Ethernet Header | [IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This data is sent over the physical link and reversed up the stack.
+  \end{itemize}
+\item
+  Switches only implement the physical and datalink layers.
+\item
+  Routers implement the network layer as well as the physical and
+  datalink layers.
+\item
+  Hosts implement all layers.
+\item
+  Note: Switches and routers are very similar but switches only support
+  local delivery whereas routers support global delivery.
+\end{itemize}
+
+\begin{verbatim}
+Host 1                    Host 2      
+HTTP                      HTTP
+TCP          Router       TCP
+IP           IP           IP
+Ethernet <-> Ethernet <-> Ethernet
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Pros
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Reduces complexity
+  \item
+    Improves flexibility and modularity
+  \end{itemize}
+\item
+  Cons
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Higher overhead
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Each layer needs to add and remove headers from the payload
+    \end{itemize}
+  \item
+    Cross layer information is often useful
+  \end{itemize}
+\item
+  IP is the only network protocol - so it is a bottleneck.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Pros
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Allows arbitrary networks to interpolate (anything that supports
+      IP can exchange packets)
+    \item
+      Separates applications from low level networking technologies.
+    \item
+      Supports simultaneous innovations above and below IP.
+    \end{itemize}
+  \item
+    Con:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Changing IP itself is difficult.
+    \end{itemize}
+  \end{itemize}
+\item
+  End to end argument
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Networks should be dumb, end systems should be smart.
+  \item
+    Functions that can be completely and correctly implemented only with
+    the knowledge of application end host should not be pushed into the
+    network.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      This may be broken for performance / policy optimization.
+    \end{itemize}
+  \item
+    Fate sharing: Fail together or don't fail at all.
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{the-http-protocol}{%
+\subsubsection{The HTTP Protocol}\label{the-http-protocol}}
+
+\begin{itemize}
+\item
+  The ``world wide web'' is a distributed database of pages linked
+  through the Hypertext Transport Protocol (HTTP).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    HTTP was first implemented in 1990 and has been subsequently
+    updated.
+  \end{itemize}
+\item
+  Content on the web has a
+
+  \begin{itemize}
+  \tightlist
+  \item
+    URL: naming content
+  \item
+    HTML: formatting content
+  \end{itemize}
+\item
+  URL - Uniform Record Locater
+
+  \begin{itemize}
+  \tightlist
+  \item
+    protocol://hostname{[}:port{]}/directory-path/resources
+
+    \begin{itemize}
+    \tightlist
+    \item
+      protocol: http, tfp, https, smtp, rtsp,\ldots{}
+    \item
+      hostname: DNS name or IP address
+    \item
+      port: defaults to protocol's standard port.
+    \item
+      directory path: reflects file system
+    \item
+      resource: identifies the desired resource
+    \end{itemize}
+  \item
+    This extends the idea of hierarchal hostnames to include anything in
+    a file system.
+  \item
+    A URL can also include server side processing and program execution.
+  \end{itemize}
+\item
+  Principles
+
+  \begin{itemize}
+  \tightlist
+  \item
+    An HTTP server is always on and well known.
+  \item
+    The client must initiate contact with the server.
+  \item
+    Request / reply is synchronous (running over TCP: port 80)
+  \end{itemize}
+\item
+  Request Types:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    GET
+  \item
+    POST: send information (web forms)
+  \item
+    PUT: updates a file in entity body in the path specified by the URL
+    field.
+  \item
+    DELETE: deletes file specified in the URL field.
+  \end{itemize}
+\item
+  Request / Response Steps
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    Client sends TCP sync message (establish connection)
+  \item
+    Server sends acknowledgment
+  \item
+    Client sends requests
+  \item
+    Server sends response
+  \item
+    Client closes connection.
+  \end{enumerate}
+\item
+  HTTP Request
+
+\begin{verbatim}
+    [method] [resource] [protocol version]
+    <HEADER LINES >
+
+    [Body (optional)]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The first line is the request line.
+  \item
+    The next few lines are the header lines
+  \item
+    The blank line indicates the separation of the header and the body
+  \item
+    The body is the data being sent (for a PUT or POST)
+  \end{itemize}
+\item
+  HTTP Response
+
+\begin{verbatim}
+    [protocol version] [status code] [status phase]
+    < HEADER LINES >
+
+    [data]
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The first line is the status line.
+  \item
+    The next few lines are the header lines
+  \item
+    The blank line indicates the separation of the header and the data
+  \item
+    The body is the data being sent (for a GET)
+  \end{itemize}
+\item
+  HTTP is stateless
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A stateless protocol is a communications protocol in which no
+    information is retained by either sender or receiver, meaning that
+    they are agnostic of the state of one another.
+  \item
+    Each request/response is treated independently and the server is not
+    required to retain a state.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      ie the server doesn't need to remember the clients that were
+      communicating with it and vice versa. Each request / response must
+      have enough information to be handled on its own with remembering
+      connection information.
+    \end{itemize}
+  \item
+    Pros:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Improves scalability on the server-side
+    \end{itemize}
+  \item
+    Cons:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Some applications need a persistent state.
+    \end{itemize}
+  \end{itemize}
+\item
+  Cookies
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Some applications require some state fullness (ie authentication
+    services). So we use cookies to maintain some state.
+  \item
+    A cookie represents a small state stored by the client.
+  \item
+    Cookies Process:
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \tightlist
+    \item
+      Client sends a request
+    \item
+      Server sends response paired with a cookie
+    \item
+      Client sends cookie with all future responses to the server.
+    \end{enumerate}
+  \item
+    Cookies are often abused
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Sites can store information about users and advertising companies
+      can track preferences and viewing history across sites.
+    \end{itemize}
+  \end{itemize}
+\item
+  Performance goals
+
+  \begin{itemize}
+  \tightlist
+  \item
+    User
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Fast downloads
+    \item
+      High availability
+    \item
+      Solution:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Improve networking protocols (ie HTTP, TCP)
+      \item
+        Caching and replication
+      \end{itemize}
+    \end{itemize}
+  \item
+    Content provider
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Cost effective infrastructure
+    \item
+      Solutions:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Caching and replication
+      \item
+        Exploit economies of sale
+      \end{itemize}
+    \end{itemize}
+  \item
+    Network
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Avoid overhead Solutions:
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Caching and Replication
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\item
+  Performance in practice
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Most webpages have multiple objects (HTML, JS, embedded images, etc)
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Original solution was to retrieve one object at a time over a new
+      TCP connection.
+
+      \begin{itemize}
+      \tightlist
+      \item
+        One TCP connection requires 1 RTT for setup, 1 TT for HTTP
+        request and first two bytes.
+      \item
+        RTT: time for small packet to travel from client to server and
+        back.
+      \end{itemize}
+    \item
+      This requires 2 * RTT + transmission time for each object.
+
+      \begin{itemize}
+      \tightlist
+      \item
+        This is inefficient for lots of objects.
+      \end{itemize}
+    \item
+      Pipelining - sending N requests back to back without waiting for
+      response. Then wait for N responses.
+    \item
+      Parallel Connections: Send multiple requests in parallel
+      (concurrently)
+    \item
+      Persistent Connection: Maintain persistent TCP connections between
+      client and server.
+    \item
+      Time
+
+      \begin{itemize}
+      \tightlist
+      \item
+        \(one\ at\ a\ time = 2 * n * RTT\)
+      \item
+        \(concurrent\ = 2 * \frac{n}{m} * RTT\)
+      \item
+        \$persistent~= (n+1) * RTT \$
+      \item
+        \(pipelined\ = 2 * RTT\)
+      \item
+        \(pipelined_persistent = 2 * RTT\) (first time), \(= RTT\)
+        later.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\item
+  Caching
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Hosts also uses caching to improve performance.
+  \item
+    Caching - saving recently accessed resources in an easy to accesss
+    location.
+  \item
+    Essentially, a host will request a resource and add an
+    \texttt{if\_modified\_since\ \textless{}datetime\textgreater{}} tag
+    to the request.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The server returns \texttt{not\_modified} if the resource hasn't
+      been modified and the resource otherwise.
+    \end{itemize}
+  \item
+    The response will include an \texttt{expires} tag which says how
+    long we can safely cache the resource, or a \texttt{no\_cache} tag
+    which will ignore the cache.
+  \item
+    Content provider caching
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Typically cache content close to server.
+    \item
+      Decreases server load
+    \end{itemize}
+  \item
+    ISP / enterprise
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Typically cache content close to client.
+    \item
+      Reduces network traffic and reduces latency.
+    \end{itemize}
+  \end{itemize}
+\item
+  Replication
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Replicate popular content across many machines.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Spreads load across servers
+    \item
+      Places content closer to client
+    \item
+      Helpful when content isn't cache-able.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{cdn-and-dns}{%
+\section{CDN and DNS}\label{cdn-and-dns}}
+
+\begin{itemize}
+\tightlist
+\item
+  Content Distribution Networks (CDN) essentially provide caching and
+  replication as a service.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Multiple sites are hosted on one shared physical infrastructure.
+  \end{itemize}
+\item
+  A CDN company will create a new domain name for each client.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The client content provider modifies content so that embedded URL
+    references CDN domains.
+  \item
+    Requests are then sent to the CDN infrastructure.
+  \end{itemize}
+\item
+  Problem is to figure out how to balance load across replicas and pair
+  clients with nearby servers to decrease latency and bandwidth.
+\end{itemize}
+
+\hypertarget{dns}{%
+\subsubsection{DNS}\label{dns}}
+
+\begin{itemize}
+\tightlist
+\item
+  DNS is how we map machine addresses (142.2122.113.143) with human
+  readable hostnames (cs.jhu.edu).
+\item
+  Design Goals
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Uniqueness - no naming conflicts
+  \item
+    Scalable - many names and frequent updates
+  \item
+    Distributed / autonomous administration
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Ability to update my own machine(s) name(s)
+    \item
+      Don't need to track everyone's updates
+    \end{itemize}
+  \item
+    Highly available
+  \item
+    Fast lookup
+  \end{itemize}
+\item
+  Strategy
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Partition the namespace and distribute administration of each
+    partition.
+  \item
+    Distribute name resolution for each partition.
+  \item
+    This was implemented in a hierarchy as a tree.
+  \end{itemize}
+
+\begin{verbatim}
+                       root
+   /        /       /    |       \      \     \     \
+ .edu    .com    .gov   .mil   .org   .net   .uk   .fr ...
+    \
+     jhu.edu 
+      \
+       cs.jhu.edu
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The domain name is a leaf to root path in the tree. Each domain is
+    responsible for managing collisions. (.edu must make sure there are
+    no collisions of it's direct children, jhu.edu must maintain
+    everything under it, etc).
+  \item
+    A zone corresponds to an administrative authority that is
+    responsible for that portion of the hierarchy.
+  \end{itemize}
+\item
+  Hierarchy implementation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The top of the hierarchy is the root servers
+  \item
+    Next level: top level domain (TLD0 servers)
+  \item
+    Authoritative DNS servers (actually store name -\textgreater{}
+    address mappings)
+  \item
+    Each server stores a small subset of the total DNS database.
+  \item
+    An authoritative DNS server stores resource records for all DNS
+    names in the domain that it has authority for.
+  \item
+    Each server needs to know other servers that are responsible for the
+    other portions of the hierarchy.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Every server knows the root
+    \item
+      Root knows all top level domains.
+    \end{itemize}
+  \item
+    The DNS root is located in Virginia.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      There are 13 root servers (A-M)
+    \item
+      The servers are replicated via anycast.
+    \item
+      Anycast
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Routing finds shortest paths to destination.
+      \item
+        If several locations are given the same address then the network
+        will deliver the packet to the closest location with that
+        address.
+      \item
+        Requires no modification to the routing algorithms.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\item
+  DNS Records
+
+  \begin{itemize}
+  \tightlist
+  \item
+    DNS servers store resource records (RRs).
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Type = A (Address): name = hostname, value = IP address
+    \item
+      Type = (NS) (Name Server): name = domain, value = name of DNS
+      server for domain
+    \item
+      Type CNAME (Canonical Name): name: alias name, value: real
+      (canonical name)
+    \item
+      Type = MX (Mail Exchange): name = domain in email address, value =
+      name of mail server
+    \end{itemize}
+  \item
+    Inserting Resource Records Into DNS
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Register foobar.com at registrar (GoDaddy)
+
+      \begin{itemize}
+      \tightlist
+      \item
+        provide registrar with name and IP addresses of your
+        authoritative name servers
+      \item
+        Register inserts RR parts into the .com TLD server
+      \end{itemize}
+    \item
+      Store resource records in your server
+    \end{itemize}
+  \item
+    Using DNS
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Apps use DNS by way of a local DNS server. The app sends a request
+      to the local server who will send a request to the root server.
+    \item
+      Recursive: Local DNS asks root to find entire domain and passes
+      work to the root.
+    \item
+      Iterative: Local DNS asks root to find IP address for server to
+      ask next.
+    \end{itemize}
+  \end{itemize}
+\item
+  DNS Protocol
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Query and reply messages both have the same message format
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Header: identifier, flags, etc
+    \item
+      Resource records
+    \end{itemize}
+  \item
+    Client-server interactions on UDP Port 53.
+  \end{itemize}
+\item
+  High availability
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Replicated DNS servers
+  \item
+    Usually UDP used for queries.
+  \item
+    Try alternative servers on timeout
+  \item
+    Same identifier for all queries (we don't care which server
+    responds)
+  \end{itemize}
+\item
+  Fast lookups - DNS Caching
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Performing a lot of queries takes time.
+  \item
+    Caching can greatly reduce overhead - top level servers rarely
+    change and popular sites are visited often.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Local DNS servers often have information cached.
+    \end{itemize}
+  \item
+    DNS servers cache responses to queries.
+  \item
+    responses include a ``time to live'' (TTL) field.
+  \item
+    Server deletes cached entry after TTL expires.
+  \item
+    Negative caching
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Negative caching remembers things that don't work - failing can
+      take a long time. It's good to remember that they don't work so
+      the failure takes less time the next time.
+    \item
+      Not widely implemented.
+    \end{itemize}
+  \end{itemize}
+\item
+  Properties of DNS
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Easy unique naming
+  \item
+    Fate sharing for network failures
+  \item
+    Reasonable trust model
+  \item
+    Caching increases scalability and performance
+  \end{itemize}
+\item
+  DNS provides indirection
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Address can change underneath - ie we can move a domain to a
+    different IP address
+  \item
+    Name could map to multiple IP addresses
+
+    \begin{itemize}
+    \tightlist
+    \item
+      CDN is used for load balancing
+    \item
+      CDN is used to reduce latency by picking nearby servers
+    \end{itemize}
+  \item
+    Multiple names can map to the same address
+
+    \begin{itemize}
+    \tightlist
+    \item
+      mailing service and web serves can map to the same machine
+    \item
+      aliases
+    \end{itemize}
+  \item
+    This flexibility only applies within a domain.
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{wireless}{%
+\section{Wireless}\label{wireless}}
+
+\begin{itemize}
+\tightlist
+\item
+  Point to point connections
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Dedicated pairwise communication between two points
+  \item
+    Ex: long distance fiber link , link between Ethernet switch and
+    host.
+  \end{itemize}
+\item
+  Broadcasst connections
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A bunch of nodes can communicate over some shared wire(s) or medium
+  \item
+    Ex: 802.11 wireless LAN, traditional Ethernet (pre 2000)
+  \item
+    Broadcast channels must use some kind of multiple access algorithm
+    to avoid multiple nodes speaking at once. Otherwise collisions can
+    lead to garbled data.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Channel Partitioning: Divide channel into pieces
+    \item
+      Taking turns: Scheme for deciding who transmits when
+    \item
+      Random access: allow collisions, then recover.
+    \end{itemize}
+  \item
+    Random Access MAC protocol.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      When a node has to send a packet it transmits at the full channel
+      data rate without coordination.
+    \item
+      IF two or more nodes are transmitting there is a collision.
+    \item
+      The Random access MAC protocol specifies how to detect and recover
+      from collisions.
+    \end{itemize}
+  \end{itemize}
+\item
+  Wireless networks deal with communication over wireless links.
+\item
+  Mobility: handling mobile users that change point of attachment to
+  network (eg laptop moving between routers).
+\item
+  Base station: Typically connected to a wired network. A relay is
+  responsible for sending packets between a wired network and wireless
+  hosts in its area.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Ex: Cell tower, 802.11 access points (AP).
+  \end{itemize}
+\item
+  Wireless link: Typically used to connect mobile devices to base
+  station.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Multiple access protocols are used to coordinate link access.
+  \item
+    Various data rates, transmission distance.
+  \end{itemize}
+\item
+  Infrastructure Mode: Base station connects mobile devices to wired
+  network.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Ex: WIFI, cellular
+  \item
+    For a single hop, the host connects to a base connection which
+    connects to the larger internet.
+  \item
+    For multiple hops the host may have to relay through several
+    wireless routes to connect to larger internet.
+  \end{itemize}
+\item
+  Ad Hoc mode: No base station, nodes can transmit only to other nodes
+  within the link coverage.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Nodes organize themselves into a network and route among themselves.
+  \item
+    Ex: Bluetooth
+  \item
+    No base station, no connections to larger Internet.
+  \end{itemize}
+\item
+  Wireless link characteristics
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Decreased signal strength.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Radio signal attenuates as it propagates through matter.
+    \item
+      AKA path loss
+    \item
+      \(FSPL = (\frac{4 \pi d f}{c})^2\)
+
+      \begin{itemize}
+      \tightlist
+      \item
+        \(d\) distance, \(\lambda = c/f\) wavelength, \(f\) frequency,
+        and \(c\) speed of light.
+      \end{itemize}
+    \end{itemize}
+  \item
+    Multipath propagation
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Radio signals reflect off objects and ground and arrive at
+      destination at slightly different times.
+    \end{itemize}
+  \item
+    Interference from other sources.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      SNR: Signal to noise ratio
+    \item
+      BER: Bit error rate
+    \item
+      Larger SNR makes it easier to extract signal from noise, but SNR
+      may change with mobility. We must choose a physical layer that can
+      meet the BER given the SNR.
+    \item
+      To overcome bit errors
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Sender could increase transmission power.
+
+        \begin{itemize}
+        \tightlist
+        \item
+          Bad for battery powered devices
+        \item
+          Creates interference for other senders.\\
+        \end{itemize}
+      \item
+        Stronger error detection or recovery
+      \item
+        Many TCP alternatives for wireless
+      \end{itemize}
+    \end{itemize}
+  \item
+    Broadcast medium: anyone in proximity can hear and interfere with
+    signal
+  \item
+    Cannot receive while transmitting
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Nearby transmissions could deafen the receiver
+    \end{itemize}
+  \item
+    Signals sent do not always end up at the receiver intact.
+  \end{itemize}
+\item
+  Multiple wireless senders and receivers create problems
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Multiple access issues
+  \item
+    Hidden terminal problem
+  \end{itemize}
+\item
+  802.11 Wireless LAN (WIFI)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Wireless host communicates with base station.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Base station -\textgreater{} access point
+    \end{itemize}
+  \item
+    Basic Service Set (BSS) is a single cell in infrastructure mode
+    which contains some wireless hosts and an AP.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      In ad hoc mode a BSS just contains some hosts.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{transport-protocols}{%
+\section{Transport Protocols}\label{transport-protocols}}
+
+\begin{itemize}
+\tightlist
+\item
+  The transport layer is between the application and network layer.
+  While the network layer is used to send the communication to the right
+  host, the transport layer determines which packets are sent to which
+  applications. This is called multiplexing / demultiplexing.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Multiplexing (Mux): gather and combine data chunks at the source
+    host form different applications and deliver to the network layer.
+  \item
+    Demultiplexing. Delivering the correct data to corresponding sockets
+    for a multiplexed stream (sending multiplexed packets to the correct
+    application).
+  \item
+    This is difficult to implement on the network layer alone.
+  \end{itemize}
+\item
+  We use a separate transport layer because the IP provides a weak
+  service model (the model itself is called the best-effort). Just using
+  the IP protocol, packets can be corrupted, delayed, dropped,
+  reordered, and duplicated. IP also doesn't provide any guidance on how
+  much traffic to send and when. Dealing with all of these problems on
+  the application side would be tedious.
+\item
+  The transport layer exists to provide:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Communication between processes - eg mux and demux from / to
+    applications. This is implemented using ports
+  \item
+    Provide common end-to-end services for app layer. For example,
+    reliable, in-order data delivery and well paced data delivery. This
+    is not the primary purpose of the transport layer though.
+  \end{itemize}
+\item
+  TCP and UDP are the most common transport protocols.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    UDP is a minimalist transport protocol - eg it only provides
+    mux/demux.
+  \item
+    TCP provides reliable, in-order, byte stream abstraction with
+    congestion control.
+  \end{itemize}
+\item
+  Sockets
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sockets are a common software abstraction to exchange network
+    messages with the transport layer (which is in the operating
+    system).
+  \item
+    A UDP socket is of type \texttt{SOCK\_DGRAM}
+  \item
+    A TCP socket is of type \texttt{SOCK\_STREAM}
+  \item
+    See the socket programming section for specifics on implementation.
+  \end{itemize}
+\item
+  Ports
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A port is a 16 bit integer that helps disstinguish applications.
+  \item
+    A packet carries the source and destination port number in its
+    transport header.
+  \item
+    The OS stores a mapping between sockets and ports.
+  \item
+    For a UDP port, the OS stores (local port, local IP address)
+    \textless{}-\textgreater{} socket.
+  \item
+    For a TCP port, the OS stores (local port, local IP, remote port,
+    remote IP) \textless{}-\textgreater{} socket.
+  \end{itemize}
+\item
+  UDP (User Datagram Protocol)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    UDP is a lightweight communication between applications. It avoids a
+    lot of overhead and delays of maintaining order and reliability (by
+    not enforcing order or reliability).
+  \item
+    UDP basically just contains the destination IP address and port to
+    support multiplexing.
+  \item
+    UDP can have optional error checking on the packet contents and
+    could contain the source port - which can be useful when responding
+    back to the sender.
+  \end{itemize}
+\item
+  As mentioned above, the best-effort model of IP can have a lot of
+  downsides. Packets can be lost, corrupted, delayed, reordered,
+  destroyed, or duplicated. Transport layers exist to provide reliable
+  transport which overcomes the issues in the best-effort model.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Checksums (detect bit errors)
+
+    \begin{itemize}
+    \tightlist
+    \item
+      A checksum is a small piece of data which is used to validate data
+      integrity (but not authenticity). A checksum function (like a
+      hash) is performed on the checksum which should produce some
+      expected result. If that result is not found we know the data is
+      corrupted.
+    \end{itemize}
+  \item
+    Timers (detect loss)
+  \item
+    Acknowledgments (detect loss)
+  \item
+    Sequence numbers (detect duplicates)
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{reliable-transport-solutions}{%
+\subsubsection{Reliable Transport
+Solutions}\label{reliable-transport-solutions}}
+
+\begin{itemize}
+\tightlist
+\item
+  Stop and Wait
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A correct, but extremely inefficient reliable transport protocol.
+  \end{itemize}
+
+\begin{verbatim}
+// @ Server
+do {
+    Server send packet(packet_num)
+    reset timer
+    if (receives ACK) {
+        num++
+    }
+} while(have packets)
+
+// @ Receiver 
+while (packets left to receive) {
+    Receiver waits for packet 
+    if (packet is ok) {
+        send ACK 
+    }
+    else {
+        send INACK
+    }
+}
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    If transmission time (TRANS) is significantly less than RTT, then
+    \$throughput \textasciitilde{} \frac{DATA}{RTT}
+  \item
+    RTT = TRANS + time\_in\_network + time\_to\_ack
+
+    \begin{itemize}
+    \tightlist
+    \item
+      time\_in\_network is the time the data spends traveling through
+      the network
+    \item
+      time to ack is the time it takes for the acknowledgment to reach
+      the sender.
+    \item
+      TRANS is the amount of time it takes the server to physically send
+      the transmission.
+    \end{itemize}
+  \end{itemize}
+\item
+  With reliable transport protocols we can make three major design
+  decisions which we can use to improve on stop and wait:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Which packets can the sender send?
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Sliding window
+    \end{itemize}
+  \item
+    How does the receiver acknowledge packets?
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Cumulative
+    \item
+      Selective
+    \end{itemize}
+  \item
+    Which packets does the sender resend?
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Go-back-N (GBN)
+    \item
+      Selective repeat (SR)
+    \end{itemize}
+  \end{itemize}
+\item
+  Sliding Windows
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Here we define a window as a set of adjacent sequence numbers. The
+    size of the set is the window size. Here we let window size be n.
+  \item
+    The general idea is to send up to n packets at a time using
+    pipelining.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The sender can send packets in its window and the receiver can
+      accept packets in its window.
+    \item
+      The window of acceptable packets slides on successful
+      acknowledgment.
+    \item
+      The window contains all packets that might still be in transit.
+    \item
+      This is also called ``packets in flight''.
+    \end{itemize}
+  \item
+    If A is the last ack'd packet of the sender without a gap, then the
+    sender's window is \{A+1, A+2, \ldots{}, A+n\}. If B is the last
+    received packet without gap (by the receiver) then the receiver's
+    window is \{B+1, B+2,\ldots{},B+n\}.
+  \item
+    If window size is \(n\), then
+    \(throughput = min(\frac{n * DATA}{RTT},  link_bandwidth)\).
+  \item
+    This is higher throughput than Stop and Wait.
+  \end{itemize}
+\item
+  Cumulative ACK
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ACK carries the next in-order sequence number that the receiver
+    expects.
+  \end{itemize}
+\item
+  Selective ACK
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ACK individually acknowledges correctly received packets. So the
+    application can keep track of which packets remain to be sent.
+  \item
+    Selective ACKs offer more precise information but require more
+    complicated book keeping than cumulative ACK.
+  \end{itemize}
+\item
+  Go-Back-N (GBN)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sender transmits up to n unacknowledged packets.
+  \item
+    Receiver only accepts packets in order. The receiver discards out of
+    order packets. Note that the receiver uses cumulative
+    acknowledgement.
+  \item
+    Sender sets timer for the 1st outstanding ack.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      outstanding ack meaning the ACK we expect given the order we've
+      sent the requests.
+    \end{itemize}
+  \item
+    If there is a timeout, retransmit the entire window
+    (A+1,\ldots{},A+n).
+  \end{itemize}
+\item
+  Selective Repeat (SR)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sender transmits up to n unacknowledged packets.
+  \item
+    If packet k is lost but k+1 is not
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Receiver indicates packet k+1 is correctly received
+    \item
+      Sender retransmits only packet k once the ACK times out.
+    \end{itemize}
+  \item
+    This is more efficient than GBN wrt retransmissions, but require
+    much more complex book keeping.
+  \end{itemize}
+\item
+  GBN is better when error rate is low - otherwise we waste a lot of
+  bandwidth repeating requests.
+\item
+  SR is better when the error rate is high - otherwise it's too complex
+  to be feasible.
+\item
+  Notes:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    With the sliding window it's possible to fully utilize a link
+    provided the window size is large enough.
+  \item
+    The sender will have to buffer all unacknowledged packets in case
+    they require retransmission.
+  \item
+    Receiver may be able to accept out of order packets but only up to
+    its buffer limit.
+  \item
+    Implementation complexity depends on protocol details (mainly GBN vs
+    SR) .
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{tcp}{%
+\subsubsection{TCP}\label{tcp}}
+
+\begin{itemize}
+\tightlist
+\item
+  TCP delivers a reliable, in-order, byte-stream.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    TCP resends lost packets recursively
+  \item
+    TCP only hands consecutive chunks of data to applications
+  \item
+    TCP assumes there's an incoming stream of data and attempts to
+    deliver it to the application.
+  \end{itemize}
+\item
+  TCP uses checkshums, sequence numbers, sliding windows, cumulative
+  acknowledgment (like GBN), and buffers out-of-sequence packets (like
+  SR).
+\item
+  A TCP header contains the source port, destination port, sequence
+  number, acknowledgment, checksum, and advertised window. The checksum
+  is computed of pseudo-header and data.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The sequence numbers are really byte offsets.
+  \end{itemize}
+\item
+  TCP Header
+\end{itemize}
+
+\begin{verbatim}
+Source Port       Destination Port 
+        Sequence Num
+Hot Len | 0 | Flags | Advertised Window 
+Checksum    | Urgent Pointer 
+         Options
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  A TCP stream of bytes is provided using TCP segments. A TCP segment
+  contains a TCP header, We generally use the term TCP packet and
+  segment interchangeably . A segment contains a TCP header (as defined
+  above) and some data. The segment itself will be wrapped in an IP
+  header when it's sent to the network layer.
+\item
+  TCP Ack:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sender sends packet of N bytes. The data starts at sequence number X
+    so the packet consists of bytes {[}X, X+1, .. , X+N-1{]}.
+  \item
+    Upon receiving the packet, the receiver sends an ACK of X+N since
+    that's the next expected byte (cumulative acknowledgement).
+  \end{itemize}
+\item
+  Packet Loss
+
+  \begin{itemize}
+  \tightlist
+  \item
+    If the highest in-order byte received is Y such that Y+1 \textless{}
+    X, ACK acknowledges Y+1 even if this has been ACKed before.
+  \item
+    So if we have some TCP data broken up into 100 byte chunks the
+    sequence numbers will be:
+  \end{itemize}
+
+\begin{verbatim}
+100 200 300 400 500 600 700 800 900 
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    If the 5th packet is lost or corrupted we will see
+  \end{itemize}
+
+\begin{verbatim}
+Request : seqNum 100   Response : seqNum 200 
+Request : seqNum 200   Response : seqNum 300 
+Request : seqNum 300   Response : seqNum 400
+Request : seqNum 400   Response : seqNum 500 
+Request : seqNum 500   Response : seqNum 500 
+Request : seqNum 600   Response : seqNum 500 
+Request : seqNum 700   Response : seqNum 500 
+...  
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Note these requests are pipelined so we can't just wait for the ACK
+    to know which seqNum to request next. The seqNum 600, 700, \ldots{}
+    requests execute correctly.
+  \item
+    The lack of ACK progress means seqNum 500 hasn't been delivered.
+  \item
+    TCP introduces ``fast retransmit'' which means the duplicate ACKs
+    trigger early retransmission. In this case retransmission is
+    triggered upon receiving k duplicate ACKs.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      TCP uses k = 3.
+    \item
+      This is much faster than waiting for timeout.
+    \end{itemize}
+  \item
+    After we've detected a packet loss we have two options:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Request the missing packet and move the sliding window by the
+      number duplicate ACKs. This speeds up transmission but may be
+      wrong.
+    \item
+      Send missing packet and wait for ACK to move the sliding window.
+      This strategy slows down transmission because of a single dropped
+      packet.
+    \end{itemize}
+  \item
+    In TCP the sender also maintains a single retransmission timer (like
+    GBN) if the sender hasn't received an ACK by timeout he retransmits
+    the first packet in the window.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      If the timeout is too long the connection could have low
+      throughput.
+    \item
+      If the timeout is too short we may retransmit packets that were
+      just delayed.
+    \item
+      The timeout is set to be proportional to RTT. This is done by
+      taking a weighted average of RTT using exponential weighted
+      average.
+      \[RTT_{est} = (1-\alpha) RTT_{est} + \alpha RTT_{sample}\]
+    \item
+      \(\alpha\) is a weighting constant. Usually we use
+      \(\alpha = 0.125\).
+    \item
+      We don't use \(RTT_{sample}\) from retransmission.
+      \[RTO = 2 \times RTT_{est}\]
+    \end{itemize}
+  \item
+    Jacobson/Karels algorithm
+
+    \begin{itemize}
+    \tightlist
+    \item
+      This method for determining RTO tries to better caputre
+      variability in RTT by directly measuring deviation.
+      \[dev_{sample} = | RTT_{sample} - RTT_{est} |\]
+      \[dev_{est} =  (1-\alpha)dev_{est} + \alpha dev_{sample}\]
+      \[RT) = RTT_{est} + $ dev_{est}\]
+    \end{itemize}
+  \end{itemize}
+\item
+  Establishing a TCP connection requires some overhead.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    We need to know the sequence number for the first byte (Initial
+    Sequence Number == ISN).
+  \item
+    We can't use ISN = 0 because the ISN could be used to define a
+    unique connection if ports are reused.
+  \item
+    The hosts exchange ISN when establishing the connection.
+  \end{itemize}
+\item
+  The hosts go through a three-way handshake to establish the
+  connection.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Host A sends SN (open synchronize sequence number) to host B.
+  \item
+    Host B returns and SYN acknowledgment (SYN ACK).
+  \item
+    Host A sends and ACK to acknowledge the SYN ACK.
+  \end{itemize}
+\item
+  Note SYN, ACK, etc are flags in the TCP header.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    SYN 's header contains A's port, B's port, A's ISN, and the SYN flag
+  \item
+    SYN ACK's header contains A's port, B's port, B's ISN (in the ACK
+    field) and the SYN \textbar{} ACK flag.
+  \item
+    ACK's header contains A's port, B's port, A's ISN, B's ISN+1 (in the
+    ACK field), and the ACK flag.
+  \end{itemize}
+\item
+  If the SYN packet gets lost, no SYN-ACK is returned. In this case we
+  want to resend. TCP uses a timeout of 3sec (sometimes 6sec) for the
+  initial timout.
+\item
+  Tearing down a TCP connection also requires some overhead.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The teardown can happen one side at a time
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Host A a FIN message to close the connection and receive remaining
+      bytes.
+    \item
+      Host B ACKs the byte to confirm.
+    \item
+      This closed A's side of the connection, but not B's.
+    \item
+      B needs to send a FIN which A needs to ACK for B's connection to
+      close.
+    \end{itemize}
+  \item
+    Or the teardown could happen simultaneously.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Host A sends a FIN message to close the connection and receive
+      remaining bytes.
+    \item
+      B sends FIN along with their ACK of A's FIN.
+    \item
+      A ACK's B's FIN.
+    \end{itemize}
+  \item
+    Or the shutdown could happen abruptly
+
+    \begin{itemize}
+    \tightlist
+    \item
+      A sends a RST (reset) to B.
+    \item
+      B doesn't need to ACK - which means the RST could be lost.
+    \item
+      But if B sends anything to A the RST will be re-triggered.
+    \end{itemize}
+  \item
+    Note when we say ``receive remaining bytes'' we main any data still
+    in flight from A to B (or vice versa).
+  \end{itemize}
+\item
+  TCP Flow Control
+
+  \begin{itemize}
+  \tightlist
+  \item
+    IN TCP we need to maintain some control on the flow of data -
+    otherwise we could overflow the receiver buffer.
+  \item
+    Recall that in the sliding window model:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Sender left edge - beginning of unacknowledged data
+    \item
+      Receiver right edge - beginning of undelivered data
+    \item
+      Right edge = left edge + constant.
+    \end{itemize}
+  \item
+    The sender could request a byte that outside the receiver's window (
+    outside his buffer).
+  \item
+    The Receiver uses an Advertised Window (RWND) to prevent the sender
+    from overflowing it's window. Receiver indicates the value of RWND
+    in ACKs.
+  \item
+    The sender ensures that hte total number of bytes in flight
+    \textless{}= RWND. This way the sender ensures that they don't
+    request bytes that they receiver hasn't reached yet.
+  \item
+    With this model:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Sender's window advances when new data is ACK'd
+    \item
+      Receiver's window advances as the receiving process consumes data.
+    \item
+      Receiver advertises to the sender when the receiver window ends
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Sender agrees not to exceed this amount.
+      \end{itemize}
+    \end{itemize}
+  \item
+    UDP doesn't have flow control - data can be lost to buffer overflow
+    in UDP.
+  \item
+    Because of the advertised window, the sender can send data no faster
+    than \(\frac{RWND}{RTT}\ bytes/sec\).
+  \item
+    If RWND = 0 the sender keeps probing with one data bytes.
+  \end{itemize}
+\item
+  TCP Congestion Control
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Congestion is defined by multiple packets arriving at the router at
+    the same time.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      If the collision is small (ie 2 packets) the router can just
+      transmit one and buffer (or drop) the other.
+    \end{itemize}
+  \item
+    Internet traffic is bursty and many packets can arrive close in
+    time. This can cause packet delays and rops which are non-ideal.
+  \item
+    This is overall caused by statistical multiplexing.
+  \item
+    The general solution to the congestion problem is to change the
+    window size in response to congestion.
+  \item
+    The major issues to consider are:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Discovering the available bandwidth
+    \item
+      Adjusting to variations in bandwidth
+    \item
+      Sharing bandwidth between floors
+    \end{itemize}
+  \item
+    Solution:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Model the router as a single queue for a particular input-output
+      pair.
+    \item
+      To discover available bandwidth pick a sending rate to match
+      bottleneck bandwidth.
+    \item
+      To share bandwidth between flows - we have two problems: how to
+      adjust total sending rate to match bandwidth and how to allocate
+      bandwidth between flows.
+    \end{itemize}
+  \item
+    Possible approaches to sharing bandwidth between flows:
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \tightlist
+    \item
+      Send without care. This leads to many packet drops.
+    \item
+      Reservations - prearrange bandwidth allocations. This requires
+      registration before sending packets and is not very well utilized.
+    \item
+      Pricing - don't drop packets for higher bidders. This requires a
+      payment model.
+    \item
+      Dynamic adjustment - hosts infer level of congestion and adjust or
+      the network reports congestion level to hosts which adjust (or a
+      combination of the two). This is simple to implement but
+      suboptimal and messy.
+    \end{enumerate}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The genrality of dynamic adjustment is very powerful.
+    \end{itemize}
+  \item
+    Each TCP connection has a window which controls the number of
+    packets in flight
+
+    \begin{itemize}
+    \tightlist
+    \item
+      the sending rate is \(\frac{window_size}{RTT}\) .
+    \item
+      We vary the window size to control the sending rate.
+    \item
+      Congestion Window: CWND
+    \item
+      Flow control window: RWND
+    \item
+      Sender-side window == min{[}CWND, RWND{]}
+    \end{itemize}
+  \item
+    TCP can detect congestion by:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      detecting packet delays - but this is tricky and noisy
+    \item
+      listening to routers (routers can tell hosts when they're
+      congested)
+    \item
+      Packet loss - TCP already has to detect this, but this is not
+      always due to congestion.
+    \item
+      Not all packet losses are the same. Duplicate ACKs come from an
+      isolated loss whereas timeouts are much more serious.
+    \end{itemize}
+  \item
+    Rate control
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Upon receiving an ACK or new data: increase rate
+    \item
+      Upon detecting a loss: decrease rate
+    \end{itemize}
+  \item
+    We start out with a ``slow start'' - eg assume a very small
+    bandwidth and ramp up quickly for efficiency.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Initially CWND = 1 (sending rate is MSS / RTT) where MSS is the
+      maximum TCP segment size.
+    \item
+      Increase the CWND by one for each ACK.
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Since the CWND increases, this effectively doubles CWND per RTT.
+      \end{itemize}
+    \item
+      Slow start gives an estimate of available bandwidth but at some
+      point there will be loss. We introduce a slow start threshold (
+      ssthresh) which is initialized to a large value. If CWND
+      \textgreater{} ssthresh, stop the Slow Start procedure.
+    \end{itemize}
+  \item
+    When CWND \textgreater{} ssthresh we stop rapid growth and focus on
+    maintenance. We want to track variations in the available bandwidth,
+    oscilating around the current value.
+  \item
+    Additive Increase Multiplicative Decrease (AIMD)
+
+    \begin{itemize}
+    \tightlist
+    \item
+      For each ACK, \$CWND = CWND + 1 / CWND \$
+    \item
+      For each loss, \(ssthresh /= 2\) and do slow start from \(CWND=1\)
+    \end{itemize}
+  \end{itemize}
+
+\begin{verbatim}
+do {
+    node detects throughput
+    if (noPacketLoss) {
+        if (CWND < ssthresh) {
+            CWWND ++
+        }
+        else {
+            CWND += 1/CWND
+        }
+    } 
+    else if (timeout)
+        ssThresh = CWND / 2 
+        CWND = 1 
+    }
+    else if (duplicate ACK) {
+        dupACKcount ++ 
+        if (dupAckCount == 3 ) {
+            // fast retransmit 
+            ssthres = CWND / 2 
+            CWND /= 2
+        }
+    }
+} while (connectionExists);
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Congestion avoidance is still too slow in recovering from an
+    isolated loss.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Grant the sender temporary credit for each DupACK to kep packets
+      in flight. This is called fast recovery.
+    \item
+      If dupACKCount == 3: ssthresh = CWND / 2; CWND = ssthresh + 3
+    \item
+      While in fast recovery, CWND++ for each additional dupAck
+    \item
+      Exit fast recovery after receiving new ACK.\\
+    \end{itemize}
+  \item
+    There are a few different flavors of TCP: TCP-Tahoe, TCP-Reno,
+    TCP-newReno, and TCP-SACK.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      These all have different strategies for dealing with CWND window
+      changes but they can coexist because they follow the same
+      principle. Increase CWND on good news, decrease CWND on bad news.
+    \end{itemize}
+  \end{itemize}
+\item
+  TCP Throughput
+
+  \begin{itemize}
+  \tightlist
+  \item
+    We can calculate TCP throughput as
+    \[throughput = \sqrt{\frac{3}{2}}\frac{1}{RTT \sqrt{p}}\]
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Flows get throughput inversely proportional to RTT (low RTT
+      -\textgreater{} high throughput).
+    \item
+      TCP unfair in the face of heterogeneous RTTs (lower RTT leads to
+      more bandwidth).
+    \item
+      We can use that equation to calculate p, throughput, RTT depending
+      on our givens.
+    \end{itemize}
+  \item
+    Once past some threshold speed we can increase CWND faster.
+  \item
+    TCP throughput swings between W/2 and W. Applications may prefer
+    steady rates.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Equation based congestion control - ignore TCP's increase /
+      decrease rules and just follow the equation. Measure drop in
+      percentage p and set rate accordingly.
+    \item
+      Following the TCP equation ensures TCP compatability.
+    \end{itemize}
+  \item
+    TCP may confuse corruption with congestion
+  \item
+    Short flows cannot ramp up
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Short flows never leave slow start they never attain their fair
+      share.
+    \item
+      Too few packets to trigger dupACKs.
+    \end{itemize}
+  \item
+    Short flows share long delays
+
+    \begin{itemize}
+    \tightlist
+    \item
+      A flow deliberately overshoots capacity until it experiences a
+      drop. This means that delays are large and they're large for
+      everyone.
+    \end{itemize}
+  \item
+    Cheating
+
+    \begin{itemize}
+    \tightlist
+    \item
+      There are easy ways to cheat
+    \item
+      Increasing CWNDs faster than 1 MSS per RTT
+    \item
+      Using large initial CWND
+    \item
+      Opening many connections
+
+      \begin{itemize}
+      \tightlist
+      \item
+        A can open 10 connections to B whereas D opens 1 connection to
+      \end{itemize}
+
+      \begin{enumerate}
+      \def\labelenumi{\Alph{enumi}.}
+      \setcounter{enumi}{3}
+      \item
+      \end{enumerate}
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Each connection gets about the same throughput so A get's 10
+        times more throughput than D.
+      \end{itemize}
+    \end{itemize}
+  \item
+    Congestion control is intertwined with reliability.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      CWND is adjusted based on ACKs and timeouts.
+    \item
+      This makes it difficult to change between cumulative and selective
+      ACK.
+    \item
+      Sometimes we may want congestion control but not reliability (or
+      vice versa).
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{ip}{%
+\section{IP}\label{ip}}
+
+\begin{itemize}
+\tightlist
+\item
+  The network layer performs addressing, forwarding, and routing.
+\item
+  Forwarding - directing a packet to the correct interface so that it
+  progresses to its destination.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    It does this by reading the address from the packet header and
+    searching the forwarding tables.
+  \item
+    THis is done on the ``data plane''. This directs individual packets
+    and is handled by each router using the local routing state.
+  \end{itemize}
+\item
+  Routing - Setting up network-wide forwarding tables to enable
+  end-to-end communication
+
+  \begin{itemize}
+  \tightlist
+  \item
+    It does this by using routing protocols
+  \item
+    This is done on the ``control plane'' and is accomplished by routers
+    using some kind of distributed algorithm.
+  \end{itemize}
+\item
+  The IP Packet contains an IP header and some payload. The payload is
+  just some data - we can ignore that. The header is an interface that
+  the source and destination systems can use to handle the packet. The
+  interface needs to give the systems information to:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    parse the packet
+
+    \begin{itemize}
+    \tightlist
+    \item
+      IP version number - 4 bit
+    \item
+      packet length - 16 bit
+    \end{itemize}
+  \item
+    carry packet to the destination
+
+    \begin{itemize}
+    \tightlist
+    \item
+      destination IP address - 16 bit
+    \end{itemize}
+  \item
+    deal with problems - loops, corruption, overflow
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Loops: TTL - 8 bit
+    \item
+      Correction: checksum - 16 bit
+    \item
+      Packet too large: fragmentation field (32 bit)
+    \end{itemize}
+  \item
+    accommodate evolution
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Version number
+    \end{itemize}
+  \item
+    specify special handling
+  \end{itemize}
+\item
+  Preventing Loops (TTL)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    It is possible to keep forwarding a packet around in a loop. This
+    can cause packets to cycle for a long time and (if left unckecked)
+    would consume all capacity.
+  \item
+    TTL (time to live) field is an 8 bit field that is decrimented at
+    each step. Once the field is zero, a ``time exceeded'' message is
+    sent to the sender.
+  \end{itemize}
+\item
+  Header Corruption (Checksum)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A 16 bit value computed over the packet header. Each router
+    recalculates the checksum - if it's not the expected value the
+    packet is discarded.
+  \end{itemize}
+\item
+  Fragmentation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Every link has a Maximum Transmission Unit (MTU) which is the
+    largest number of bits it can carry as one unit. A router can split
+    the packet into multiple fragments if the packet size exceeds the
+    link's MTU. However this must be reassembled to recover the original
+    packet.
+  \end{itemize}
+\item
+  Special handling
+
+  \begin{itemize}
+  \tightlist
+  \item
+    There is a type of service flag that allows packets to be treated
+    differently based on needs (eg indicate priority or congestion).
+  \item
+    Also called the differential service code point.\\
+  \item
+    this is supposed to test whether or not word wrapping works the way
+    I w
+  \item
+    Options
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Optional directives to the network. These aren't used that often,
+      but can include record route, strict source route, loose source
+      routes, or timestamps.
+    \end{itemize}
+  \end{itemize}
+\item
+  The header also contains the information about which transport
+  protocol (TCP\textless{} UDP, etc) is used and where responses should
+  be sent (source IP address).
+\item
+  Fragmentation pt 2
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Fragmentation is not a trivial problem to deal with. We have to
+    consider a few problems
+  \item
+    Where to reassemble the fragments?
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Reassembly is done at the destination since fragments may take
+      different paths to traverse the network. and the reassembly
+      algorithm would impose a burden on the network.
+    \item
+      We need to be able to identify fragments of the specific packet
+      and identify if any packets are lost.
+    \item
+      The fragmentation fields are used to identify which fragments
+      belong together and which offset they are (ie which fragment).
+    \item
+      Flags
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Reserved: ignore
+      \item
+        DF: don't fragment
+      \item
+        MF: more fragments coming
+      \end{itemize}
+    \item
+      The fragment without the MF set is the last fragment - this tells
+      the host which are the last bits in the original payload.
+    \item
+      All other fragments can be used to fill in holes - we can use the
+      fragment field for that.
+    \item
+      We use byte offset instead of fragment numbers so we can further
+      fragment.
+    \end{itemize}
+  \end{itemize}
+\item
+  IPv6
+
+  \begin{itemize}
+  \tightlist
+  \item
+    IPv6 was developed by address exhaustion - allows for 128-bit
+    addresses.
+  \item
+    Focused on simplifying the IP protocol
+  \item
+    Eliminated fragmentation, checksum, options, header length.
+  \item
+    Exanded addresses
+  \item
+    Added flow label
+  \item
+    The major philosophy with IPv6 was to leave dealing with errors up
+    to the end users.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Fragmentation and checksum can be handled by transport layer.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{routers}{%
+\section{Routers}\label{routers}}
+
+\begin{itemize}
+\tightlist
+\item
+  IP routers are the core building block of the Internet infrastructure.
+\item
+  A router has a router capacity \(Cap_R = N \times R\). where \(N\) is
+  the number of external router ports and \(R\) is the speed (or line
+  rate) of a port.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Router capacities range from 100 Gb/s to 10 Mbps depending on their
+    use cases.
+  \item
+    Core routers are routers that serve the ``core'' of the internet
+    infrastructure (ie are in the middle of a hub and have a lot of
+    connections). Core routers have the largest router capacities
+    (\(O(100)\ Tbps\)).
+  \item
+    Edge routers serve the edge of large hubs and have medium router
+    capacities (\(O(100)\ GBPS\)).
+  \item
+    Home routers serve individual networks and have small router
+    capacities (\(O(10)\ Gbps\)).
+  \end{itemize}
+\item
+  A router is composed of a control pane and a data plane.
+\end{itemize}
+
+\begin{verbatim}
+control  |   [Route/Control Processor]
+plane    |
+         |
+data     |  Input Linecards                       Output Linecards
+plane    |
+         | ->   [in 1]      | Interconnect    |      [out 1] ->
+         | ->   [in 2]   -> | Switching Fabric| ->   [out 2] ->
+         |       ...                                  ...
+         | ->   [in N]                               [out N] ->
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Data Plane
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Input linecards process packets on their way in
+  \item
+    Output linecards process packets on their way out
+  \item
+    Input and output for the same port are on the same physical lineard.
+  \item
+    The interconnect / switching fabric transfers packets from the input
+    to the output port.
+  \end{itemize}
+\item
+  Input Linecards
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Receives incoming packets from the physical layer (L1)
+  \item
+    Updates IP header (TTL, checksum, options, and fragments as
+    necessary).
+  \item
+    Looks up the output port based on the destination IP address.
+  \item
+    Queues the packet at the switch fabric.
+  \item
+    The biggest challenge when implementing an input linecard is speed.
+    A core router should handle a speed of 40Gbps where each packet is
+    \textasciitilde{}100 bytes. Therefore the linecard needs to handle
+    one packet every 20 nanoseconds.
+  \item
+    The bottleneck is looking up the output port of the packet. There
+    are \(2^32 \to \ > 4 * 10^9\) possible IP addresses. Creating a
+    standard lookup table would not be efficient.
+  \item
+    For scalability the lookup tables use aggregated addresses.
+  \end{itemize}
+\item
+  Longest Prefix Matching
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Longest prefix matching is a technique used in IP routers to
+    efficiently match destination IP addresses with ports. Specifically,
+    we match specific prefixes to ports.
+  \item
+    Consider a four port router with the following IP bitstring.
+  \end{itemize}
+
+\begin{verbatim}
+11 00 00 00 : 11 00 00 11 -> Port 1
+11 00 01 00 : 11 00 01 11 -> Port 2
+11 00 10 00 : 11 00 11 11 -> Port 3
+11 01 00 00 : 11 01 11 11  -> Port 4
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Storing this data in a look up table is not efficient - searching
+    the table is still an O(N) operation. We can use a tree structure to
+    efficiently match on the longest prefix in the destination IP.
+  \end{itemize}
+
+\begin{verbatim}
+                                 (***)
+                           /                 \
+                         0                    1
+                        /                       \
+                      (O**)                    (1**)
+                     /     \                 /        \
+                (00*)      (01*)         (10*)        (11*)
+               /    \       /   \        /    \      /     \
+            (000)  (001)  (010) (011) (100)  (101)  (110) (111)
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Based on the structure of the IP addresses we know that all IPs will
+    start will the prefix \texttt{11\ 0*}. We can start parsing the
+    binary tree from the fourth character in the bitstring. We then want
+    to match on the ``longest prefix that designates a port''. Starting
+    from \texttt{ip{[}4{]}}, a prefix of \texttt{1*} indicates port 4. A
+    prefix of \texttt{0*} indicates port 3, a prefix of \texttt{001*}
+    indicates port 2 and a prefix of \texttt{000*} indicates port 1. We
+    can then set up the binary tree with marked nodes:
+  \end{itemize}
+
+\begin{verbatim}
+                                 (***)
+                           /                 \
+                         0                    1
+                        /                       \
+                      (O**)                    (1**)
+                      * (3)                     * (4)
+                     /     \                 /        \
+                (00*)      (01*)         (10*)        (11*)
+               /    \       /   \        /    \      /     \
+            (000)  (001)  (010) (011) (100)  (101)  (110) (111)
+            * (1)  * (2)
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    As we parse the prefix starting from \texttt{ip{[}4{]}}, the
+    destination port corresponds to the deepest marked node we reach in
+    the binary search. Thus the destination matching algorithm is
+    \(O(logN)\). This process is usually implemented with specialized
+    hardware.
+  \end{itemize}
+\item
+  Output Linecards
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Output linecards are responsible for:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Packet Classification: mapping packets to flows
+    \item
+      Buffer management: deciding when / which packets to drop
+    \item
+      Scheduling: deciding when and which packets to transmit.
+    \end{itemize}
+  \item
+    FIFO Router (Simplest Router)
+
+    \begin{itemize}
+    \tightlist
+    \item
+      No classification
+    \item
+      Drop tail buffer management: When the buffer is full, drop the
+      incoming packet.
+    \item
+      FIFO Scheduling: packets leave in the order they arrived.
+    \end{itemize}
+  \item
+    Packet Classification - classifying an IP packet based on packet
+    header
+
+    \begin{itemize}
+    \tightlist
+    \item
+      IP Source / destination 32 bits
+    \item
+      TCP source / destination 16 bits
+    \item
+      Type of service (TOS) 8 bits
+    \item
+      Type of protocol 8 bits
+    \item
+      Fields are specified by a range
+    \end{itemize}
+  \item
+    Scheduler - decides which queue to send packets from and when to
+    send them.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      There is one queue per ``flow''.
+    \item
+      Scheduling algorithms depend on the policy implemented.
+    \end{itemize}
+  \end{itemize}
+\item
+  Scheduling Policies
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Priority Scheduler - queues are assigned a priority. Packets in
+    higher priority queues are always served before those in lower
+    priority queues.
+  \item
+    Round Robin Scheduler - packets are served from each queue in turn.
+  \item
+    Fair Queuing (FQ) - round robin for packets of different size (give
+    equal weight to each flow).
+  \item
+    Weighted Fair Queuing (WFQ) -- serve proportional to weight.
+  \end{itemize}
+\item
+  Switching Fabric
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The switching fabric is itself a mini-network. There are three main
+    ways to switch.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Switching via shared memory
+    \item
+      Switching via a bus
+    \item
+      Switching via an inter-connection network.
+    \end{itemize}
+  \item
+    Scheduling switching is akin to finding a matching on a bipartite
+    graph.
+  \end{itemize}
+\item
+  Routers can be used to improve congestion control (from TCP0). Routers
+  classify packets into flows (TCP connections) each of which has it's
+  own FIFO queue in the router. The router services flows ``fairly''.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Max-min fairness - given a set of bandwidth demands \(r_i\) and
+    total bandwidth \(C\), max-min bandwidth allocations are:
+    \(a_i = min(f, r_i)\) where \(f\) is the unique value such that
+    \(sum(a_c) = C\).
+  \end{itemize}
+
+\begin{verbatim}
+C = 10, r_1 = 8, r_2 = 6, r_3 = 2, N = 3
+
+C / N = 3.33...
+    r_1 = 2 -> r_1 can be completely served
+
+remove r_2 from the set
+
+C = 8, r_1 = 8, r_2 = 6, N = 2
+
+C / N = 4
+r_1, r_2 > C / N
+so 
+a_1 = min(C / N, 8) = 4
+a_2 = min(C / N, 6) = 4
+a_3 = min(C / N, 2) = 2
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Max-min fairness works such that if you don't get full demand of the
+    router, no one gets more than you.
+  \item
+    This is essentially a round robin service if all packets are the
+    same size.
+  \end{itemize}
+\item
+  Fair Queuing
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The ``fairest'' way of serving packets would be to serve round-robin
+    bit by bit. However, this is not practical. Fair queuing attempts to
+    approximate this system.
+  \item
+    For each packet, compute the time at which the last bit of a packet
+    would have left the router if flows are served bit-by-bit. Serve
+    packets in the increasing order of their deadlines.
+  \end{itemize}
+
+\begin{verbatim}
+arrival a:              [a1]  [a2]  [a3]  [a4]  [a5]  [a6]
+arrival b:  [ b1 ][ b2 ][ b3 ][ b4 ][ b5 ]
+
+service 
+in fluid                [a1] [a2][a3] [a4] [a5][a6]
+flow time   [ b1 ][ b2 ][  b3   ][  b4   ][  b5   ]
+
+FQ
+Packet      [ b1 ][ b2 ][a1][ b3 ][a2][a3][ b4 ][a4][a5][ b5 ][a6]
+System
+\end{verbatim}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Weighted Fair Queuing (WFQ) works similarly except it assigns
+    different flows different shares (weights). WFQ is implemented
+    accross most modern routers.
+  \item
+    FQ does not eliminate congestion - it just manages it.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      It is robust against cheating, variations in RTT, delay,
+      reordering, retransmission, etc. However, congestion and packet
+      drops still can occur.
+    \end{itemize}
+  \end{itemize}
+\item
+  FQ vs FIFO
+
+  \begin{itemize}
+  \tightlist
+  \item
+    FQ pros
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Isolation: cheating flows don't benefit
+    \item
+      Bandwidth share does not depend on RTT
+    \item
+      Flows can pick any rate adjustment scheme they want
+    \end{itemize}
+  \item
+    FQ cons
+
+    \begin{itemize}
+    \tightlist
+    \item
+      More complex than FIFO.
+    \end{itemize}
+  \end{itemize}
+\item
+  FQ is designed to optimize ``fairness'' - however that is not
+  neccesarily the ideal goal. Routers can also control congestion using
+  rate adjustment and by detecting congestion.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Rate Control Protocol
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Packets carry ``rate field''
+    \item
+      Routers insert ``fair share'' f in packet headers
+    \item
+      End hosts set sending rate (window size) to f.
+    \end{itemize}
+  \item
+    Explicit Congestion Notification (ECN)
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Single bit in packet headers, set by congested routers. If the
+      data packet has that bit set, then ACK has the ECN bit set.
+    \item
+      Routers can set that bit at different points in the processing
+      phase.
+    \item
+      Congestion semantics can be exactly like a drop.
+    \item
+      ECN is useful because it can serve as an early indicator of
+      congestion to avoid delays.
+    \item
+      ECN can be used to charge people for congesting the network.
+    \end{itemize}
+  \end{itemize}
+\item
+  Autonomous System (AS) / Domain - region of a network under a single
+  administrative entity.
+\item
+  A router forwards packets through the network so they can progress
+  towards their end destination. They do this by reading the address
+  from the packet header and searching through a forwarding table. This
+  is handled by the data plane of the router.
+\item
+  A router routes packets by constructing forwarding tables - this is
+  handled by the control plane of the router.
+\item
+  The goal of routing is to find a path to a given destination.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A router has a local routing state which is the forwarding table in
+    the single router. By itself, this state cannot be evaluated -
+    rather we need to evaluate local states in terms of the global
+    state.
+  \item
+    The global state refers to the collection of forwarding tables in
+    each of the routers.
+  \item
+    A global state is valid if it produces forwarding decisions that
+    always deliver packets to their destination. Therefore, the goal of
+    routing protocols is to compute valid routing states.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      We need some easy, correctness condition for routing.
+    \end{itemize}
+  \end{itemize}
+\item
+  A Global state is valid if and only if:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    There are no dead ends apart from the destination
+  \item
+    There are no loops
+  \end{itemize}
+\item
+  Dead end : no outgoing link
+\item
+  Loop : packet cycles around the same set of nodes forever.
+\item
+  Checking the validity of a state is relatively easy:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    Pick some destination \(d\)
+  \item
+    For all vertices \(v\), mark the outgoing edge on the path towards
+    destination \(d\) (as computed by \(v\)'s forwarding table) with an
+    arrow.
+  \item
+    Check to see if the resulting graph is a spanning tree.
+  \end{enumerate}
+\end{itemize}
+
+\href{src/routing1.png}{}
+
+\href{src/routing2.png}{}
+
+\href{src/routing3.png}{}
+
+\href{src/routing4.png}{}
+
+\href{src/routing5.png}{}
+
+\begin{itemize}
+\tightlist
+\item
+  Checking validity is a relatively easy task. However, routing
+  algorithms don't just want to find a path to a destination but rather
+  they want to find the least cost path to the destination.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This is easily computed using Djikstra's algorithm.
+  \end{itemize}
+\item
+  Djikstra's algorithm:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Assume link costs are known to all nodes.
+  \item
+    \(c(x,y)\) cost from x to y
+  \end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ djikstra(src, graph):}
+\NormalTok{    pQueue }\OperatorTok{=}\NormalTok{ PriorityQueue()}
+\NormalTok{    visited }\OperatorTok{=} \BuiltInTok{set}\NormalTok{()}
+\NormalTok{    pQueue.push(src, }\VariableTok{None}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{    D }\OperatorTok{=} \BuiltInTok{dict}\NormalTok{()}
+\NormalTok{    P }\OperatorTok{=} \BuiltInTok{dict}\NormalTok{()}
+    \ControlFlowTok{while} \KeywordTok{not}\NormalTok{ pQueue.isEmpty():}
+\NormalTok{        curr, parent, dist }\OperatorTok{=}\NormalTok{ pQueue.pop()}
+        \ControlFlowTok{if}\NormalTok{ curr }\KeywordTok{not} \KeywordTok{in}\NormalTok{ visited:}
+\NormalTok{            D[curr] }\OperatorTok{=}\NormalTok{ dist}
+\NormalTok{            P[curr] }\OperatorTok{=}\NormalTok{ parent}
+\NormalTok{            visited.add(curr)}
+            \ControlFlowTok{for}\NormalTok{ v }\KeywordTok{in}\NormalTok{ curr.neighbors:}
+                \ControlFlowTok{if}\NormalTok{ v }\KeywordTok{not} \KeywordTok{in}\NormalTok{ visited:}
+\NormalTok{                    pQueue.push(v, curr, dist }\OperatorTok{+}\NormalTok{ c(curr, v))}
+    \ControlFlowTok{return}\NormalTok{  D, P}
+\end{Highlighting}
+\end{Shaded}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    THis algorithm can be written in many different ways. Here we use a
+    priority queue to keep track of the paths and return a dictionary of
+    shortest paths from the source to each destination as well as the
+    parents of each node on the path.
+  \end{itemize}
+\item
+  The Internet uses ``link-state routing'' which means that every router
+  knows its local link state (its edges and weights) and sends its local
+  state to all other router (floods its local state to all other
+  routers) in the network. Thus every router learns the total state of
+  the network and can compute Djikstra's algorithm to determine the
+  optimal routing.
+\item
+  Flooding means to send a message to the entire network.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    When a a router floods its link state, the next node forwards the
+    info to all of its links except the one the information arrived
+    from.
+  \item
+    Flooding is initiated on any topology or configuration change (if a
+    link fails or recovers from a failure or if a link cost charges).
+  \item
+    Flooding also occurs periodically to refresh link state information.
+  \end{itemize}
+\item
+  Routers flood the network to ensure that all nodes converge to the
+  updated topology. However, there is some convergence delay where
+  routers may have inconsistent state data. This convergence delay can
+  come from latencies in detecting failures, time to flood the link
+  state information, and time to re-compute the forwarding tables.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Convergence delays can cause looping packets, dropped packets, or
+    packets arriving out of order.
+  \end{itemize}
+\item
+  There are two major link state routing protocols: open shortest path
+  first, and intermediate system to intermediate system. Both
+  essentially work by maintaining a topology map at each node and
+  computing shortest paths using Djikstra's algorithm at each node.
+\item
+  Link State Routing Scalability:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(O(NE)\) messages (N nodes, E links)
+  \item
+    \(O(N^2)\) computation time
+  \item
+    \(O(Network \ diameter)\) convergence delay
+  \item
+    \(O(N)\) entries in forwarding table
+  \end{itemize}
+\item
+  A distance vector protocol is the opposite of link state routing. A
+  distance vector routing protocol has each node tell its neighbors
+  about its global view. These algorithms rely on the Bellman-Ford
+  equation: \(d_x[y] = min_v(c(x, v] + d_v[y]))\).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(D_x[y]\) is the estimate of the least cost from x to y.
+  \item
+    Node x knows the cost to each neighbor \(v\) and maintains its
+    neighbors distance vectors.
+  \item
+    Periodically, each node sends its distance vector estimates to its
+    neighbors.
+  \item
+    When \(x\) receives new distance vector estimates from its neighbor,
+    it updates its own distance vector using the Bellman-Ford equation.
+  \item
+    Eventually, the estimate \(D_x[y]\) should converge to the actual
+    least cost \(d_x[y]\).
+  \end{itemize}
+\item
+  THe general algorithm is:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    Each node x: waits for change in local link cost or message from
+    neighbor
+  \item
+    Recompute local estimates
+  \item
+    Notify neighbors if DV to any destination has changed.
+  \end{enumerate}
+\item
+  This algorithm has some problems with routing loops - if z routes
+  through y and y routes through x and y loses connectivity to x, y may
+  decide to route through z. This causes a loop and could take a long
+  time to resolve. This is called a count to infinity scenario.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    We prevent these scenarios using a heuristic. If z routes to x
+    through y, z advertises to y that its cost to x is infinite.
+  \item
+    y would then never route through z.
+  \end{itemize}
+\item
+  Distance vector routing scalability
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(O(N)\) update time on arrival of new DV from neighbor
+  \item
+    \(O(network \ diameter)\) convergence time
+  \item
+    \(O(N)\) entries in forwarding table
+  \end{itemize}
+\item
+  Intra-domain routing is the process of routing within an AS. The
+  primary focus is finding least cost paths and fast convergence.
+  Inter-domain routing is routing between ASes. The key challenges here
+  are scaling and administrative structures.
+\item
+  Scaling: a router must be able to reach any destination given a
+  packet's destination address.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    the naive approach to this would be to maintain an entry for every
+    destination.
+  \item
+    we can overcome this using longest prefix matching.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      this only works if we carefully assign addresses.
+    \end{itemize}
+  \end{itemize}
+\item
+  Administrative structure is important because ASes want freedom in
+  picking routes, autonomy, and privacy . Link state algorithms have no
+  privacy and limited autonomy. Distance vector have more autonomy and
+  privacy but weren't designed for this use case. They're also more
+  vulnerable to loops.
+\item
+  IP Addressing
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The goal of IP addressing is to keep small forwarding tables at the
+    routers with limited churm (change in routing tables). The ability
+    to aggregate addresses is crucial for both of these properties.
+  \item
+    Aggregation works if
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Groups of destinations are reached via the same path
+    \item
+      Groups are assigned contiguous addresses
+    \item
+      Groups are relatively stable
+    \item
+      Few enough groups to make forwarding easy
+    \end{itemize}
+  \item
+    IP Addressing is hierarchical in that address structure and
+    allocation are hierarchal.
+  \item
+    IP Addresses are 32 bit numbers. These bits are partitioned into a
+    prefix and suffix component. The prefix is the network component and
+    the suffix is the host component.
+  \end{itemize}
+\item
+  Classless inter-domain routing (CIDR)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Flexible division between network and host addresses. Offers a
+    better tradeoff between size of the routing table and efficient use
+    of the IP address space.
+  \item
+    If a network has 50 computers, allocate 6 bits for host address
+    (2\^{}5 \textless{} 50 \textless{} 2\^{}6) and the remaining 26 bits
+    as the prefix. We can then use an OR mask where the 26 prefix bits
+    are 1 and the 6 suffix bits are 0 (subnet mask) to refer to the
+    network hosts.
+  \item
+    An IP address can be written X.X.X.X / Y where Y is the number of
+    bits of the prefix max.
+  \end{itemize}
+\item
+  Allocation of IP address blocks is done in hierarchies.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Large blocks are given to regional Internet registries. These
+    registries give blocks to large institutions (ISPs like Comcast,
+    At\&t, etc). These organizations give addresses to individuals and
+    smaller institutions.
+  \item
+    Examples of this hierarchy are:
+    \texttt{ICANN\ -\textgreater{}\ ARIN\ -\textgreater{}\ AT\&T\ -\textgreater{}\ JHU\ -\textgreater{}\ JHU-CS}.
+  \item
+    Addresses are allocated in contiguous prefix chunks.
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \tightlist
+    \item
+      CIANN gives ARIN several /8s
+    \item
+      ARIN gives AT\&T one /8, 12.0x/8
+    \item
+      AT\&T gives JHU one /16, 12.34x/16
+    \item
+      JHU gives JHUCS one /24, 12.34.56/24
+    \item
+      JHUCS gives specific user an address, 12.34.56.78
+    \end{enumerate}
+  \end{itemize}
+\item
+  Hierarchical address allocation only helps routing scalability if
+  allocation matches the topological hierarchy.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    If we add end hosts to a specific domain, the upstream routers don't
+    need to change their routing tables.
+  \item
+    ``Multi-homed'' networks are networks that are connected to more
+    than one domain. This can be done for fault tolerance, load
+    balancing, etc. Aggregating addresses is not always possible for
+    multi homed networks.
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{border-gateway-protocol}{%
+\section{Border Gateway Protocol}\label{border-gateway-protocol}}
+
+\begin{itemize}
+\tightlist
+\item
+  As mentioned before, domains want freedom to pick their own routes
+  based on policy. Additionally they want privacy and autonomy. The
+  topology and policy of the Internet is, in many ways, shaped by the
+  inter-domain business relationship.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Domain A could be Domain B's customer, provider, or peer.
+  \end{itemize}
+\item
+  The Border Gateway Protocol (BGP) is the inter-domain routing protocol
+  that is implemented by domain border routers. The main idea of a BGP
+  is that a domain advertises (exports) its best routes to one or more
+  IP prefixes and each domain selects the best rout it hears advertised
+  for a prefix.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This algorithm is very similar to the distance vector algorithm. The
+    domains can advertise routes per-destination, don't have to share
+    intradomain network topology information globally, and the network
+    will eventually converge on paths.
+  \item
+    Differences between BGP and distance vector:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      BGP picks the best route based on policy (as opposed to shortest
+      distance0.
+    \item
+      BGP uses path vector routing to avoid loops.
+
+      \begin{itemize}
+      \tightlist
+      \item
+        Path vector routing: advertise the entire path (as opposed to
+        just a distance). So we can avoid loops by discarding paths with
+        loops.
+      \end{itemize}
+    \item
+      For scalability, BGP may aggregate routes for different prefixes.
+    \end{itemize}
+  \item
+    Because of policy, a domain may choose not to advertise a route to a
+    destination. Therefore, reachability is not guaranteed even if a
+    graph is physically connected.
+  \end{itemize}
+\item
+  BGP Policies dictate how routes are selected and exported.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Selection refers to which path to use
+  \item
+    Exporting refers to which paths to advertise
+  \end{itemize}
+\item
+  Typical selection policies include:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Making / saving money
+  \item
+    Maximizing performance
+  \item
+    Minimize use of bandwidth
+  \end{itemize}
+\item
+  Typical export policies
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Customers export routes to everyone else
+  \item
+    Peers and Providers only export routes to customers.
+  \end{itemize}
+\item
+  Valley Free Routing
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Valley-free routing is a way of annotating paths with respect to BGP
+    policy. We number links as +1, 0, -1 for customer-to-provider,
+    peer-to-peer, and provider-to-customer.
+  \item
+    In any path you should only see a sequence of +1s, followed by at
+    most one 0, followed by a sequence of -1s.
+  \end{itemize}
+\item
+  Border routers of a domain are the only routers that implement that
+  BGP protocol standard. They specify what messages to exchange with
+  other BGP ``speakers'' and how to process these messages.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    eBGP : BGP sessions between border routers in different domains.
+  \item
+    iBGP : BRP sessions between border routers and other routers within
+    the same domain.
+  \item
+    IGP : ``Interior Gateway Protocol'', the intra-domain routing
+    protocol.
+  \item
+    We use eBGP to learn routes to external destinations, iBGP to
+    distribute externally learned routes throughout the domain, and IGP
+    to compute the shortest path to egress from teh domain.
+  \end{itemize}
+\item
+  BGP has some basic messages
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Open : establishes BGP session
+  \item
+    Notification : report unusual condition
+  \item
+    Update : inform neighbor of new routes or of old routes that are
+    inactive
+  \item
+    Keep-alive : inform neighbor that a connection is still viable.
+  \end{itemize}
+\item
+  Route Updates
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Format is \textless{}IP Prefix : Route Attributes \textgreater{}.
+    These attributes describe properties of the route.
+  \item
+    Updates can be announcements (of new routes or changes to existing
+    routes) or withdrawal (of routes that no longer exist).
+  \item
+    The attributes are used to describe the routes. Some attributes are
+    local and others are propagated with eBGP route announcements.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      ASPATH (carried in route announcement) : Vector that lists all the
+      domains a route advertisement has traveled.
+    \item
+      LOCAL PREF : local preference in choosing between different domain
+      path. The higher the value, the more preferred.
+    \item
+      MED : multi exit discriminator is used when domains are
+      interconnected via multiple links. This specifies how close a
+      prefix is to the link it is announced on.
+    \item
+      IGP cost : each router selects the closest egress port based on
+      the path cost in the intra-domain protocol (hot potato routing).
+    \end{itemize}
+  \item
+    attributes are used to help select routes.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      LOCAL\_PREF \textgreater{} ASPATH \textgreater{} MED
+      \textgreater{} ``eBGGP \textgreater{} iBGP'' \textgreater{} iBGP
+      path \textgreater{} Router ID. priority to chosen path.
+    \end{itemize}
+  \end{itemize}
+\item
+  BGP has a few issues in practice
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Reachability : because of policy, reachability is not guaranteed for
+    the network.
+  \item
+    Security : a domain can claim to serve a prefix that they do not
+    have a route to. A domain can also forward packets along a route
+    different than what it advertised.
+  \item
+    Convergence : since all domains do not follow the same policies, BGP
+    is not guaranteed to converge.
+  \item
+    Domains typically use hot potatoe routing - each router selects the
+    closest egress port based on the path cost in the intra-domain
+    protocol. This is not optimal but is good economically.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Policy is not always about performance - policy driven paths are
+      not the shortest.
+    \item
+      Domain path lengths can be misleading and are often inflated.
+    \end{itemize}
+  \end{itemize}
+\item
+  BGP outages are the biggest source of Internet problems. While the
+  most popular paths are very stable, outages are very common.
+\item
+  The BGP protocol is also bloated and underspecified. There are a lot
+  of attributes and leeway in how to set up and interpret attributes.
+  This is necessary to allow autonomy and diversity in policies, but
+  requires taht configuration of BGP is ad-hoc and done manually.
+\end{itemize}
+
+\hypertarget{the-data-link-layer-and-local-area-networks}{%
+\section{The Data Link Layer and Local Area
+Networks}\label{the-data-link-layer-and-local-area-networks}}
+
+\begin{itemize}
+\tightlist
+\item
+  The data link layer (L2) is present on all systems (hosts, routers,
+  switches). It is used to transfer data between nodes on the same local
+  area network. L2 provides four primary services:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Framing : encapsulates network layer data
+  \item
+    Link access : defines when to transmit frames
+  \item
+    Reliable delivery : for mediums with high error rates
+  \item
+    Error detection and correction.
+  \end{itemize}
+\item
+  In L2 packets are converted to frames which encapsulate the network
+  layer packets.
+\item
+  Point to point : dedicated pairwise communication
+\item
+  Broadcast : shared wire or medium
+\item
+  Multiple access algorithms are used on a shared broadcast channel to
+  coordinate between nodes speaking in a LAN. There are three classes of
+  techniques:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Channel partitioning
+  \item
+    Taking turns
+  \item
+    Random access
+  \end{itemize}
+\item
+  Random Access
+
+  \begin{itemize}
+  \tightlist
+  \item
+    When a node has a packet to send, transmit at full channel data rate
+    without coordination
+  \item
+    If there are multiple nodes transmitting at once there is some
+    collision.
+  \item
+    A random access MAC protocol specifies how to detect and recover
+    from collisions.
+  \end{itemize}
+\item
+  Ethernet was invented as a broadcast technology. Hosts share a channel
+  adn each packet is received by all attached hosts.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Modern Ethernet is switched such that there is point to point
+    communication between switches and between a host and a switch.
+  \end{itemize}
+\item
+  CSMA (Carrier Sense Multiple Access) is an algorithm that follows the
+  ``listen before transmit'' model. If the channel is idle, transmit the
+  entire frame. If the channel is busy, defer the transmisino. This is
+  not foolproof - two nodes may not hear each other before sending their
+  frames.
+\item
+  CSMA / CD adds collision detection to standard CSMA. Follows standard
+  collision detection but detects collisions and aborts colliding
+  transmissions.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Collision detection is easy in wired LANs but difficult in wireless
+    LANs.
+  \item
+    For collision detection we need to restrict the minimum frame size
+    and maximum distance.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Latency depends on the physical length of the link. If the link is
+      too long, collision detection will happen too late to be useful.
+    \end{itemize}
+  \item
+    If we detect a collision, don't start talking right away - wait for
+    a random time before trying again.
+  \item
+    The efficiency of CSMA/CD is defined by the long run fraction of
+    time during which frames are being transmitted without collision.
+    \(d_prop\) is the maximum propagation time between two adapters and
+    \(d_trans\) is the time to transmit a max sized frame. Then:
+  \end{itemize}
+
+  \[eff = \frac{1}{1 + \frac{5 d_{prop}}{d_{trans}}}\]
+
+  \begin{itemize}
+  \tightlist
+  \item
+    as \(d_{prop} \to 0\), efficiency approaches 1.
+  \item
+    as \(d_{trans} \to \infty\), efficiency approaches 1.
+  \end{itemize}
+\item
+  Switched Ethernet is the modern form of Ethernet which uses point to
+  point links between switches and between a host and switch. It does
+  not need CSMA/CD and enables concurrent communication.
+\item
+  Ethernet frames encapsulate the IP packet.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Preamble: 7 btes for clock synchronization and 1 byte to indicate
+    the start of the frame
+  \item
+    Addresses: 6 bytes
+  \item
+    Types: 2 bytes, (higher level protocol - IP)
+  \item
+    Data payload: max 1500 bytes, min 46 bytes
+  \item
+    CRC: 4 bytes for error detection.
+  \end{itemize}
+\item
+  The physical layer puts bits on a link, but two hosts connected on the
+  same physical medium needs to be able to exchange frames. The framing
+  problem is figuring out how the link layer determines where each frame
+  begins and ends.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The easiest approach is to count the number of bytes. The sender
+    includes the number of bytes in the header. The retriever extracts
+    this number. However, the count field may be corrupted. This could
+    cause desynchronization which requires some resynchronizing method.
+  \end{itemize}
+\item
+  We can solve this problem using sentinel bits. We delineate frames
+  with a sentinel bit pattern. The sender always inserts a 0 after five
+  1s in the frame context. The receiver always removes a 0 appearing
+  after five 1s.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    When the receiver sees five 1s
+
+    \begin{itemize}
+    \tightlist
+    \item
+      if the next bit is 0, remove it and begin counting again.
+    \item
+      if the next bit is 1 and the following bit is 0 this is the start
+      of a frame
+    \item
+      if the next bit is 1 and the following bit is 1 this is the end of
+      the frame.
+    \end{itemize}
+  \end{itemize}
+\item
+  The MAC (Medium Access Control) address is a numerical address
+  associated with a network adapter. The MAC address is unique to the
+  adapter and assigned hierarchically (similarly to IP addresses).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    MAC Address
+
+    \begin{itemize}
+    \tightlist
+    \item
+      hard coded when the adapter is built
+    \item
+      Flat name space of 48 bits
+    \item
+      Like a social security number
+    \item
+      Portable and can stay the same as the host moves
+    \item
+      Used to get packet between interfaces on the same network
+    \end{itemize}
+  \item
+    IP address
+
+    \begin{itemize}
+    \tightlist
+    \item
+      configured or learned dynamically
+    \item
+      hierarchical name space of 32 bits
+    \item
+      Like a postal mailing address
+    \item
+      Not portable - depends on where the host is attached
+    \item
+      Used to get a packet to destination IP.
+    \end{itemize}
+  \end{itemize}
+\item
+  Ethernet does not use link state routing or distance vectors because
+  MAC addresses cannot be aggregate like IP addresses.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sender transmits frame onto broadcast link
+  \item
+    Each receiver's link layer passes the frame to the network layer
+
+    \begin{itemize}
+    \tightlist
+    \item
+      if the destination's address matches the receiver's MAC address or
+      if the destination is the broaadcast MAC address
+    \end{itemize}
+  \end{itemize}
+\item
+  Ethernet is plug and play in that a new host can plug into the
+  Ethernet and be good to go.
+\item
+  Ethernet on its own doesn't have any loop avoidance. Perlman developed
+  a spanning tree protocol which creates spanning trees out of arbitrary
+  topologies. This does not require any configuration by operators or
+  users but eliminates loops from LAN routing.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    select node with smallest MAC address as root. Find shortest path to
+    other nodes which constructs a spannign tree.
+  \item
+    this algorithm reacts to failures by sending periodic root
+    announcement messages and detecting failures through timeouts.
+  \end{itemize}
+\item
+  In switched Ethernet, switches flood by ignoring all ports not in the
+  spanning tree adn having the originating switch send packets to all
+  ports. When a packet arrives on one incoming port, send it to all
+  ports other than the incoming port.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Flooding can be helpful for nodes to learn routes. If node A sees a
+    packet from node B come in on a particular port, it knows what port
+    to use to reach B.
+  \item
+    The general approach to finding a pat to a node is to flood first
+    packet to the node you're trying to reach. All switches learn where
+    you are and when the destination responds, some switches learn where
+    it is.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      only some switches because the packet back to you follows the
+      shortest path and is not flooded.
+    \end{itemize}
+  \end{itemize}
+\item
+  When a packet arrives, inspect source MAC address and associate it
+  with the incoming port. The mappings are stored in a switch table
+  which is managed by the TTL field. If a packet arrives with an
+  unfamiliar destination, forward packet to all other ports, and wait
+  for the response to teach the switch about the destination.
+\item
+  Ehternet is a good approach because it requires zero configuration, is
+  simple, and is cheap. However, it does not fully utilize network
+  bandwidth, there is a delay in re-establishing the spanning tree, slow
+  to react to host management, and hard to predict.
+\item
+  A L2 host is created knowing only its MAC address. It must discover a
+  ;pt of information before it can communicate with remote hosts.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    IP address, remote s IP address, remote's MAC address, hop router's
+    addresses.
+  \end{itemize}
+\item
+  ARP (Address Resolution Protocol), DHCP (Dynamic Host Configuration
+  Protocol) are L2 discovery protocols that are confined to a single LAN
+  and rely on broadcast capability. They discover local end hosts and
+  bootstrap communication with remote hosts.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    DHCP is used to discover own IP address, netmark, DNS name servers'
+    IP addresses, IP addresses for first hop routers.
+  \item
+    One or more DHCP servers maintain information for clients.
+  \item
+    Clients broadcast a DHCP discovery message.
+  \item
+    One or more DHCP servers responds with a DHCP offer message.
+  \item
+    Client responds with a DHCP request message which specifies which
+    information the client wants.
+  \item
+    DHCP responds with an ACK.
+  \item
+    DHCP relay agents are used when the DDHCP server is not on the same
+    broadcast domain.
+  \end{itemize}
+\item
+  DHCP uses soft state meaning that states are forgotten if not
+  refreshed. Address allocations have a lease period and the server sets
+  a timer for each allocation. THe client must request a refresh before
+  the lease expires.
+\item
+  ARP (Address Resolution Protocol): Every host maintains an ARP table
+  and consults the table when sending a packet.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ARP table maps IP -\textgreater{} MAC address
+  \item
+    If an IP address is not in the table, the sender requests the MAC
+    address of the receiver.
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{software-defined-networking}{%
+\section{Software Defined
+Networking}\label{software-defined-networking}}
+
+\begin{itemize}
+\tightlist
+\item
+  As mentioned above, the data plane in a router is responsible for
+  forwarding packets whereas the control plane is responsible for
+  computing that forwarding state.
+\item
+  The goals for the control plane are
+
+  \begin{itemize}
+  \tightlist
+  \item
+    basic connectivity : route packets to destinations
+  \item
+    finding paths compliant with inter domain policy
+  \item
+    Network management
+  \end{itemize}
+\item
+  Traffic engineering is the process of choosing routes to spread
+  traffic across links to avoid persistent overloads.
+\item
+  Overall network management has many goals which must be achieved by
+  the control plane. And there are many different control plane
+  mechanisms each of which is designed from scratch. The conglomeration
+  of these systems is a mess.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    We want there to be some kind of open interface which allows us to
+    interact with the control plane irrespective of the hardware.
+  \end{itemize}
+\item
+  A control plane abstraction must be:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    consistent with low level hardware and software
+  \item
+    based on the entire network topology
+  \item
+    work for all routers/switches in the network
+  \end{itemize}
+\item
+  Forwarding abstraction - expresses the forwarding intent independent
+  of the implementation.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    OpenFlow is a current standardized interface for forwarding.
+    Openflow switches accept external control messages and standardize
+    flow entry format. This makes switches interchangeable.
+  \end{itemize}
+\item
+  To make decisions based on the entire network we need a network state
+  abstraction. This abstraction should abstract away the distributed
+  mechanisms and provide a global network view. This creates a logically
+  centralized view of the network where information can flow into and
+  out of routers.
+\item
+  Network Operating System is a centralized link state algorithm where
+  switches send connectivity information to the controller. The
+  controller computes the forwarding state, sends forwarding state to
+  switches, and is replicated for resilience. This abstracts a log of
+  complicated protocols into a simple graph algorithm.
+\item
+  To compute the configurations on each physical device we need an
+  abstraction that simplifies the configuration.
+\item
+  The specification abstraction is an abstract view of the network which
+  models only enough detail to specify the goals. It is not responsible
+  for implementing the network behavior or physical network
+  infrastructure.
+\item
+  These abstractions allow us to create custom routing protocols, load
+  balancing algorithms, and access control policies. Since the network
+  state abstraction makes the network a simple graph we can verify
+  whether our algorithms work and will work with other protocols.
+\item
+  A logically centralized control plane is composed of a distinct
+  (remote) controller that interacts with local control agents. Each
+  router contains a flow table and each entry of the flow table defines
+  a match action rule. Entries of the flow table are compute and
+  distributed by the controller.
+\item
+  In the OpenFlow abstraction, the flow is defined by the header fields.
+  There are simple packet handling rules that control the forwarding
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Patters : match values in packet header fields
+  \item
+    Actions : for matched packet are drop, forward, modify or send to
+    controller
+  \item
+    Priority : disambiguate overlapping patterns
+  \item
+    Counters : counts the number of bytes and the number of packets
+  \end{itemize}
+\item
+  This match / action can unify different types of devices with a simple
+  abstraction. Routers can match longest destination IP addresses,
+  switches can match destination MAC addresses, etc.
+\item
+  The controller can query the switch for features, configuration
+  parameters, to modify the state, and to send a packet out of the
+  specific switch port.
+\item
+  The switch can query to controller to transfer a packet to the
+  controller, to notify the controller about aflow table entry deleted
+  at the switch, and to inform the controller of a change on a port.
+\end{itemize}
+
+\hypertarget{security}{%
+\section{Security}\label{security}}
+
+\begin{itemize}
+\tightlist
+\item
+  A goal of network communication is to maintain security over the
+  network. Specifically we want:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Confidentiality : no one can read our communications
+  \item
+    Message Integrity : no one can modify our communications without
+    detection
+  \item
+    Availability and Authentication : only we can access oru data and
+    communicate on our behalf.
+  \end{itemize}
+\item
+  These security goals are intended to be enforced through the network
+  layers.
+\item
+  TCP
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Recall that TCP uses 3 way handshaking to initialize a connection.
+    Client sends SYN to server who sends a SYN ACK back to the client
+    who finally sends an ACK adn the actual data.
+  \item
+    Also recall that packet sequence numbers are stored in the header.
+  \item
+    However, if A sends a RST (reset) to B, B does not ACK the RSt.
+    Therefore, RST is not delivered reliably.
+  \item
+    If an attacker knows port and sequence numbers they can disrupt any
+    TCP connection. Essentially the attacker blocks the RST connection
+    causing the client to remove the connection and ignore all future
+    communication with the server.
+  \item
+    An adversary could also take over an already established connection
+    by figuring out the port and sequence numbers and send the client
+    data that looks like it came from the server. This is called a
+    packet injection attack.
+  \item
+    The root cause of these attacks is that the attacker can see packet
+    contents and knows port/IP addresses and sequence numbers.
+  \end{itemize}
+\item
+  Secure Sockets Layer provides transport layer security for TCP based
+  applications. It is used between web browsers and servers to provide
+  security services. SSL provides
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Server authentication
+  \item
+    Data encryption
+  \item
+    Client authentication.
+  \end{itemize}
+\item
+  SSL can handle data injection but not RST injection .
+\item
+  IP
+
+  \begin{itemize}
+  \tightlist
+  \item
+    IP addresses are also a source of insecurity. The source address in
+    the IP header should eb that of the sending host, but it cold really
+    be from any host.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      An adversary would use a fake source address to launch a DDOS
+      attack or evade detection by spoofing.
+    \end{itemize}
+  \item
+    IP options can also be used to let the sender control their path and
+    sidestep security monitoring. IP options are often processed in
+    routers slow path so attackers can use them to overload routers.
+    Firewalls often are configured to drop packets with options.
+  \item
+    Attackers can also set ToS (type of service) priority for their
+    traffic - if regular traffic does not set ToS, the network prefers
+    the attack traffic. However, this doesn't really work today since
+    ToS is redefined for differentiated services.
+  \item
+    Packets can also be fragmented which allows evasion of network
+    monitoring and enforcement since hte monitor must be able to
+    remember previous fragments - that also costs state which is another
+    means of attack.
+  \item
+    The TTL flag can be used to detect spoofed packets - provides a hint
+    that a packet may be spoofed.
+  \item
+    However, TTL is also distinctive to OS so an attacker can use the
+    TTL field to infer a users' OS and infer vulnerabilities.
+  \end{itemize}
+\item
+  The network layer has security protocols which are transparent to end
+  user sand help secure routing architectures.
+\item
+  PISec is a network layer security that provides network layer
+  authentication, confidentiality, and integrity. It uses two protocols:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Authentication header protocol (AH)
+  \item
+    Encapsulation security payload protocol (ESP)
+  \item
+    These are mandatory in IPv6 but not IPv4.
+  \end{itemize}
+\item
+  Virtual Private Network (VPN)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    VPN makes separated IP sites look like on private IP network
+  \item
+    They provide security via IPsec tunnels and simplify network
+    operations.
+  \end{itemize}
+\item
+  End to end VPNs solve the problem of connecting remote hosts to a
+  firewalled network - they are commonly used for roaming and provide
+  benefit in the form of security and private addresses only.
+\item
+  BGP
+
+  \begin{itemize}
+  \tightlist
+  \item
+    By its construction, BGP also has security issues. A domain can
+    claim to serve a prefix that they don't actually have a route to and
+    may forward packets along a different route than what is advertised.
+  \item
+    The security goals for BGP are to secure message exchange between
+    neighbors and maintain validity of the routing information and
+    forwarding path.
+  \item
+    Prefix hijacking is when a domain claims to serve a prefix that htey
+    do not. For affected domsins, their data may be discarded,
+    inspected, or sent to bogus destinations. And legitamate origin
+    domains may not see the problem.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      We can only diagnose prefix hijacking through many access points
+      accross the internet.
+    \end{itemize}
+  \end{itemize}
+\item
+  Physical and Link layers
+
+  \begin{itemize}
+  \tightlist
+  \item
+    There are also security problems at teh physical and link layers. It
+    is easy for any technology to capture data on broadcast technology.
+    This is called packet sniffing.
+  \item
+    It is also easy to overload the network (DOS).
+  \item
+    You can also introduce forged frames / packets which is extremely
+    powerful when combined with sniffing.
+  \item
+    Attackers can also slisten to DHCP requests that new hosts
+    broadcasts adn respond with forged offers before the actual DHCP
+    server.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      this allows htem to insert themselves as the main in the middle as
+      they take over a lot of core information.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}

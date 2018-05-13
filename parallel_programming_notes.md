@@ -6,7 +6,7 @@ geometry: margin=1in
 
 # Laws of Parallel Programming 
 
-### Measuring Parallelism
+## Measuring Parallelism
 - Moore's Law 
 	- The number of transistors that can be inexpensively placed on an integrated
 	circuit doubles approximately every two years. 
@@ -41,27 +41,24 @@ resources.
 - Gustafson's Law: Improving a portion $P$ of a computation by factor $s$
 results in an overall speedup of 
 $$S_{latency}(s) = (1-P) + sP$$
-	- Weak scaling is really a measure of the overhead needed to 
 - Strong scaling: how the solution time varies with the number of processors 
 for a fixed total problem size. 
 	- Designing a strong scaling experiment: Run a program on a fixed problem 
 	size and vary the number of threads. 
 	- Strong scaling attempts to answer: how much faster can we solve this 
-	problem with parallelism? 
-	- Addressed by Amdahl's law
+	problem with parallelism? This is answered by Amdahl's law
 - Weak scaling: how the solution time varies with the number of processors for 
 a fixed problem size per processor. 
 	- Designing a weak scaling experiment: Run a program with a fixed number of
 	iterations per thread and vary the number of threads. 
 	- Weak scaling attempts to answer: can we solve bigger problems with more
-	parallelism? 
-	- Addressed by Gustafosan's law.
+	parallelism? This can be answered by Gustafosan's law.
 	- Weak scaling is becoming less feasible as processor growth is 
 	outstripping memory growth. Since weak scaling involves solving bigger 
 	problems, more memory is key. 
 	- Weak scaling is difficult to express in algorithms.  
 
-### Factors Against Parallelism
+## Factors Against Parallelism
 - There are three major factors against parallelism. 
 	1. Startup costs associated with initiating processes. 
 		- May overshadow actual processing time. 
@@ -89,30 +86,29 @@ then exchange the data with other processes.
 	phases, compute, communicate, and barrier. This allows for no overlap.  
 	- Communication and barrier are sequential (unoptimized). 
 
-# Serial to Parallel / OpenMP
+# Serial to Parallel - Loop Parallelism and OpenMP
 - The easiest way to write parallel code is to convert some serial code to
-parallel execution. The idea
-behind this process is to write some serial code, profile it to find the
-slowest parts, and use a framework like OpenMP to parallelize (and therefore
+parallel execution. The idea behind this process is to write some serial code, 
+profile it to find the slowest parts, and use a framework to parallelize (and therefore
 increase the speed of) the code.
 - This is not the best way to create parallel programs, just the easiest. 
 - OpenMP is a parallel programming environment for master/slave and/or fork/
 join execution model, loop parallelism, and shared memory architectures. It
-allows us to write serial programs in C++ or fortran, add parallel
+allows us to write serial programs in C/C++ or fortran, add parallel
 directives, and get a parallel program that computes the exact same result. 
 	- OpenMP is not fundamentally a serial to parallel environment, but it is 
 	most often used in that way. 
 - OpenMP works with a shared memory architecture.
-	- A shared memory architecture is hardware that provides the abstraction
-	of coherent read/write to common memory from multiple resources
-		- Coherent - repeatable reads 
-		- Abstraction that there is a single memory for all processes 
-		- Data can be shared between process by reading and writing to memory. 
+- A shared memory architecture is hardware that provides the abstraction
+of coherent read/write to common memory from multiple resources
+	- Coherent - repeatable reads 
+	- Abstraction that there is a single memory for all processes 
+	- Data can be shared between process by reading and writing to memory. 
 	- This abstraction holds even if there are different physical memories. 
 - To run a a block in parallel using OpenMP we need to include omp.h and call 
 the directive `#pragma omp parallel <options>`{.c++}. 
 	- We can easily parallelize for loops using the directive `#pragma omp 
-	parallel for <scheduling opeions>`.{c++}. 
+	parallel for <scheduling opeions>`{.c++}. 
 	- The scheduling options define how to schedule the threads (how many
 	iterations to run before switching, etc). 
 	- `<scheduling options> = kind [,chunk size]`.
@@ -124,12 +120,59 @@ the directive `#pragma omp parallel <options>`{.c++}.
 		- chunk size = number of iterations per thread. 
 - Technically speaking, OpenMP is master/worker. There is some entry thread 
 that runs the serial content and creates other threads. 
-- OpenMP can be thought of as "loop parallelism" - ie running a loop in
+- We usually use OpenMP for "loop parallelism" - ie running a loop in
 parallel. This is a pretty easy concept to think about and work with when 
 coming from serial programming. However we need to be careful about how our
 loops access memory - especially nested loops. 
+- Loops are relatively simple constructs to parallelize, but we need to take a
+few factors into account. Specifically, loop carried dependencies: when one 
+iteration of a loop depends on the computations from other iterations. These
+issues can be addressed by loop rewriting, removable dependencies, and separable
+dependencies. 
+- Loop optimizations: changing loops so they can run faster. 
+	- Fusion: Merge loops to create larger tasks. This amortizes startup costs. 
+	- Coalesce: Coalesce loops to get more UEs and thus more parallelism. 
+	- Unrolling: Decrease the number of iterations in a loop (and do more work in the body). 
+	This works best for loops that do little work and therefore have a high 
+	startup costs relative to runtime. 
+	- Memory Access Pattern: consider how loops iterate over memory and 
+	optimize to access sequential memory. 2D array is stored in rows - better 
+	to access the entire row in one loop. 
+	- Loop tiling: Localizes memory twice (in cache lines and in cache 
+	registers).
+- OpenMP reductions - in OpenMP we sometimes need to share a value between
+threads while avoiding race conditions. We can do this by marking a block as
+critical, but that can be inefficient. We use reduction functions to more
+efficiently handle these cases without interference. 
+
+```C++
+#pragma omp parallel for shared(max_val)
+for (int i = 0; i < 10; i++) {
+	#pragma omp critical 
+	{
+		if (att[i] > max_val) {
+			max_val = arr[i];
+		}
+	}
+}
+```
+
+we can reduce this code to
+
+```C++
+#pragma omp parallel for reduction(max : max_val)
+for (int i = 0; i < 10; i++) {
+	if (arr[i] > max_val) {
+		max_val = arr[i];
+	}
+}
+```
+
+This essentially tells the compiler to use the max function to update max_val.
 
 # System Architectures
+
+## Classifications
 - Flynn's Taxonomy - characterizes machines by the number of instruction 
 streams and data streams. 
 	- SISD - single instruction, single data 
@@ -174,6 +217,8 @@ architectures in existence.
 	portions. This is a better abstraction of hardware and more restrictive. 
 - Hybrid Architectures 
 	- A message passing machine has SMP at each of its nodes. 
+
+## Memory Abstractions and Caching
 - Just as there are different models for processor architecture there are
 different architectures for memory and cache architectures. 
 - Memory itself is an abstraction - it is really a steep hierarchy of caches. 
@@ -191,9 +236,9 @@ different architectures for memory and cache architectures.
 	- SSDs
 		- 10x slower, 100x bigger, 20x cheaper than memory 
 	- disk dirves 
-		- 10 x slower, 5x bigger, 5x cheaper than RAM 
+		- 10x slower, 5x bigger, 5x cheaper than RAM 
 - Caching concepts 
-	- Cache line - fundamental unit of cachine (line size is a power of 2)
+	- Cache line - fundamental unit of cache (line size is a power of 2)
 	- Inclusive / exclusive: 
 		- Strictly inclusive - all data in L1 must be in L2
 		- Exclusive - data in L1 cannot be in L2 
@@ -209,55 +254,7 @@ referencing the data in the cache more than once.
 	- Sequential - a continuous range of bytes 
 	- Coalesced - uses all associated regions of memory. 
 
-### Loop Parallelism and OpenMP
-- Loops are relatively simple constructs to parallelize, but we need to take a
-few factors into account. 
-- Loop carried dependencies: when one iteration of a loop depends on the
-computations from other iterations. 
-	- Addressed by loop rewriting, removable dependencies, and seperable
-	dependencies. 
-- Loop optimizations: changing loops so they can run faster. 
-	- Fusion: Merge loops to create larger tasks - amortize startup. 
-	- Coalesce - coalesce loops to get more UEs and thus more parallelism. 
-	- Unrolling - loops that do little work have high startup costs, unroll 
-	loops
-	by hand to reduce startup cost. 
-	- Memory Access Pattern - consider how loops iterate over memory and 
-	optimize to access sequential memory. 2D array is stored in rows - better 
-	to access the entire row in one loop. 
-	- Loop tiling - localizes memory twice (in cache lines and in cache 
-	registers).
-- OpenMP reductions - in OpenMP we sometimes need to share a value between
-threads while avoiding race conditions. We can do this by marking a block as
-critical, but that can be inefficient. We use reduction functions to more
-efficiently handle these cases without interference. 
-
-```C++
-#pragma omp parallel for shared(max_val)
-for (int i = 0; i < 10; i++) {
-	#pragma omp critical 
-	{
-		if (att[i] > max_val) {
-			max_val = arr[i];
-		}
-	}
-}
-```
-
-we can reduce this code to
-
-```C++
-#pragma omp parallel for reduction(max : max_val)
-for (int i = 0; i < 10; i++) {
-	if (arr[i] > max_val) {
-		max_val = arr[i];
-	}
-}
-```
-
-This essentially tells the compiler to use the max function to update max_val.
-
-### OS Abstractions 
+## OS Abstractions
 - A task is a sequence of instructions that operate as a group. 
 - Unit of Execution (UE) is the execution context for a task
 - Preprocessing element (PE): the hardware element that runs the UE
@@ -322,7 +319,7 @@ each core. Other benefits are more incremental
 		- volatile - a variable that is guaranteed to have memory synchronized 
 		on each access. 
 
-### Synchronization 
+## Synchronization 
 - Synchronization is the process of preventing multiple UEs from accessing the 
 same resources at once - ie preventing race conditions. 
 - Synchronization properties:
@@ -334,13 +331,13 @@ same resources at once - ie preventing race conditions.
 	- Starvation freedom - the property that a UE won't be forever locked out
 	from using the resource. Ie if a UE wants to use a resource it will 
 	eventually be able to use the resource. 
-- Transient communication - a form of communication thhat requires both parties
+- Transient communication - a form of communication that requires both parties
 to communicate at the same time. Ex: talking on the phone, shouting from a 
 distance, etc. 
 - Persistent communication - a form of communication that allows both parties 
 to communicate at different times. Ex: writing notes, raising flags, etc.
 - We can characterize concurrency with two properties
-	- Safety (correctness) - what are the symantic garuntees expressed by a 
+	- Safety (correctness) - what are the semantic guarantees expressed by a 
 	locking protocol under concurrent execution. 
 	- Liveness - how can the execution of one thread by delayed by other threads 
 - Locks - A lock is a "lock" or hold on a resource. There are a few ways a 
@@ -456,7 +453,7 @@ up(s)
 - Barrier - a software implementation to synchronize processes on 
 asynchronous hardware. 
 
-### Multiprocessing and Message Passing
+## Multiprocessing and Message Passing
 - Clusters and multi-process programs with no shared state sometimes need to 
 communicate with each other. 
 	- SPMD model (single program, multiple data), master / slave, loop 
@@ -477,7 +474,7 @@ deadlocks.
 	- we can also create a barrier explicitly in MPI to synchronize actions but
 	that creates global stalls. 
 
-__IO and Checkpointing__
+### IO and Checkpointing
 
 - In large scale programs, failures are inevitable. When writing MPI programs we 
 often want to write some method for recovering from failure (since otherwise a failure 
@@ -490,6 +487,8 @@ it can restart from that point in case of failure.
 better than writing fewer large files. 
 
 # Map / Reduce
+
+## Fundamentals of Map Reduce
 - The MapReduce framework is a parallel programming model based off of Lisp
 (a functional programming language). 
 - In Lisp A map takes an input function and some values and applies the
@@ -499,7 +498,7 @@ using a binary operator.
 intermediate key / value pairs. The reduce function takes an input key (from
 the map function) and a set of values for that key and merges them into some
 smaller solution space. 
-- For example we can count the number of occurences of a word in a string 
+- For example we can count the number of occurrences of a word in a string 
 using MapReduce
 
 ```
@@ -521,6 +520,8 @@ essentially parallelizes the map phase.
 shards and processing those on different machiens. 
 - This process is overseen by a master thread which manages the partitioning 
 of tasks. 
+
+## Applications of Map Reduce
 
 ### Hadoop
 - Hadoop is a map-reduce implementation maintained by Apache. It handles the 
@@ -570,7 +571,7 @@ receives the data from the chunkserver directly.
 - Unlike most other file systems, GFS is not implemented in the kernel of 
 an operating system, but is instead provided as a userspace library.
 
-### Resilient Distributed Datasets and Spark
+### Spark - Resilient Distributed Datasets
 - A resilient Distributed Dataset (RDD) is a data abstraction used to performm 
 in-memory computations on large clusters. Specifically, the RDD abstarction is 
 an immutable, distribution of data that can be stored on memory or in a cluster
@@ -585,6 +586,11 @@ or user.
 maintains the pipeline of transformations that can be used to reconstruct the
 RDD from stable data storage. We can make an RDD persist in memory by calling 
 the `persist()` function. 
+	- For this reason, RDDs are described as "lazily initialized" in that they 
+	only store the information required to compute them from data stored in memory
+	instead of being computed directly. 
+	- This is also seen as a pipeline processing as computing the RDD from stored
+	lineage can be seen as processing a pipeline of transformations. 
 - Transformations include:
 	- map(f: T -> U)
 	- filter(f: T -> bool)
@@ -599,11 +605,22 @@ the `persist()` function.
 	- reduce(f: (T, T) -> T)
 	- lookup(k : K)
 	- save(path : String)
-- RDDs store a lineage of how they were computed from base data. So On failure, 
+- RDDs are stored in a distributed way - the RDD is split and each section (or
+partition) is stored on a specific node in the cluster. Spark has two major 
+partitioning schemes:
+	- Range partitioning: partition RDD by key value. Assign specific range of
+	key values to partition and split RDD by key. Fetching c contiguous items from
+	a range partitioned RDD takes $O(log N)$ time. 
+	- Hash partitioning: partition RDD by hash value. For key k with N partitions
+	assign k to $H(k) % N$. Fetching c contiguous items from a hash partitioned RDD
+	takes $O(c)$ time. 
+	- Hash partitioning is better for load balancing and is the default partitioning
+	scheme. 
+- RDDs store a lineage of how they were computed from base data. So on failure, 
 we identify partitions of the RDD that have failed, and recompute the failed 
 partitions in parallel using Spark. This does not require more costly measures
 seen in other memory models
-	- Checkpoint: save required memory in persistent stoarge sufficient to 
+	- Checkpoint: save required memory in persistent storage sufficient to 
 	restart the computation 
 	- Restart: restart computation from a checkpoint
 	- Rollback: undo changes made to memory associated with computations that
@@ -630,34 +647,184 @@ access.
 - A Graphics Processing Unit (GPU) is a specialized peive of hardware for rendering 3D graphics. GPUs are essentially an extremely parallel proceser which is designed to render vertices and pixels in parallel. GPUs are programmable and aren't limited to graphical applications. Recently GPUs have been used in bitcoin mining rigs and machine learning applications. 
 - GPUs are designed for math intensive parallel problems so they have more transistors dedicated to ALU (arithmetic logic units) than flow control and data cache. This means that GPUs can be extremely efficient for parallelization but the programs must be more predictable in regards to data access coherency and program flow. 
 
-### CUDA
+## CUDA
 - Compute Unified Device Architecture (CUDA) is a way to perform computations on the GPU. It has specification for a computer architecture, a language, and an API. 
 - A CUDA device is a highly parallel processor which can execute many hunderds of threads in parallel. (Thread to stream ration > 1). When writing CUDA software we think in terms of threads instead of processes. The startup and context switching costs per thread are very low. 
 - The CUDA programming model uses a data decomposition approach. The grid is the data domain (1D, 2D, or 3D) and is decomposed into thread blocks. A thread block is decomposed into threads. Thread blocks and threads are given unique identifiers which are used by the kernel to identify which part of a problem to work on. 
+	- Grids and thread blocks are abstracted as 1, 2, or 3D groupings. A grid may be a 2D representation of thread blocks and each thread block may be a 1D group of threads. 
+
+![](src/cuda-memory.png){width=400px}
+
 - A kernel is a program that processes a single data element. A thread runs the kernel on a data element. 
-- A thread block may have up to 512 threads and all threads in a thread block time are run on the same multi-processor. this allows threads in a thread block to communicate via shared meemory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. 
+- A thread block contains a multiple of 32 threads and may have up to 512 threads. All threads in a thread block time are run on the same multi-processor. This allows threads in a thread block to communicate via shared memory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. 
 - Warps are the fundamental scheduling unit of the processor. They are groups  or 32 threads that are dispatched two at a time to 16 processors each. Each warp forms a SIMD group. 
-- All parts of tthe processor has read access to constant memory and texture memory and read/write access to global memory. Individual multiprocessors have read/write access to shared memory, and individual threads have private read/write access to local memory and registers. 
+- All parts of the processor has read access to constant memory and texture memory and read/write access to global memory. Individual multiprocessors have read/write access to shared memory, and individual threads have private read/write access to local memory and registers. 
 
-__CUDA Language__
+### CUDA Language
 
-- The CUDA language is similar to C/C__. 
-
-- CUDA cannot use C/C++ runtime library functions. Rather there are device specific functions in CUDA. 
-- There is no stack on CUDA. All function calls are inlined and all local variables and function calls are stored in registers. There is no recursion or function pointers. 
-- Declspecs - declaration specifier / declaration qualifier are modifiers applied to declarations of variables and functions (const, extern, static).  CUDA has custom dualspecs (`__device__`, `__host__`, `__global__`) for functions
-	- `__device__` delcares s function that is compiled to and executes on the device. 
-	- `__host__` declares a function that is compiled to and executes on the host. 
-	- `__global__` declares that a function is compiled to and executes on the device. 
-CUDA has dualspecs `__device__`, `__shared__`, and `__constant__` for variables.
+- The CUDA language is similar to C/C++, however CUDA cannot use C/C++ runtime library functions. Rather there are device specific functions in CUDA. 
+- There is no stack on CUDA. All function calls are inlined and all local variables and function calls are stored in registers. Therefore, there is no recursion or function pointers. 
+- Declspecs (declaration specifier / declaration qualifier) are modifiers applied to declarations of variables and functions (`const`{.c}, `extern`{.c}, `static`{.c} are examples in C).  CUDA has custom dualspecs for functions and variables. Note that here "device" refers to the GPU and host refers to the GPU. So a `__global__` function is called from the host and executed on the device. 
+	- `__device__` declares s function that is compiled to and executes on the device and can only be called from the device. 
+	- `__host__` declares a function that is compiled to and executes on the host and can only be called from the host. 
+	- `__global__` declares that a function is compiled to and executes on the device and are callable from the host. Global functions are the main entry point between the host and device. 
+- CUDA dualspecs for variables.
 	- `__device__` declares that a global variable is stored on the device. The data resides in global mamory. 
 	- `__shared__` declares that a global variable is stored on the device. if not declared as volatile, reads from different threads are not visible unless a synchronization barrier is used. The data resides in shared memory. 
-	- `__constant__` declares that a global variable is stored on the device. The ata resides in constant memory and has lifetime of entire application. 
-- We can construct vector types with a function `make_{typename}(...)`. A vector type is a char, short, int, long, longlong, float, and double. 
-- CUDA has no malloc or free functions that can be called from the device code - instead we use cudaMalloca dn copy data from the host to initialize. 
+	- `__constant__` declares that a global variable is stored on the device. The data resides in constant memory and has lifetime of entire application. 
+- We can construct vector types with a function `make_{typename}(...)`. A vector type is a three dimensional tuple of `char`{.c}, `short`{.c}, `int`{.c}, `long`{.c}, `longlong`{.c}, `float`{.c}, or `double`{.c}s. We can access specific dimensions of a vector using `vec.x`, `vec.y`, or `vec.z` for the 0th, 1st, and 2nd dimension respectively. 
+	- The `dim3` type (aka the `uint3` type) is a special vector used to declare dimensions for grids and thread blocks. We declare a `dim3` type using the syntax `dim3 var(dim1, [dim2], [dim3])`. 
+- CUDA has its own functions to allocate and free memory, `cudaMallocManaged` and `cudaFree`. 
+- CUDA has four global built-in variables. These are three dimensional vectors and can only be accessed from the device (ie inside a kernel or device function). 
+	- `threadIdx` is the thread ID within a thread block (in the indexed direction). 
+	- `blockIdx` is the thread block ID (in the indexed direction). 
+	- `blockDim` is the number of threads per thread block (in the indexed direction). 
+	- `gridDim` is the number of thread blocks per grid (in the indexed direction). 
+- A kernel is a C function defined with the `__global__` dualspec. We can call a kernel using `func<<< numBlocks, threadsPerBlock >>>(args)` syntax. The `numBlocks` and `threadsPerBlock` variables can be integer types or special `dim3` types which define vectors. 
+- If threads in a thread block need to access shared memory we can call the `__syncthreads()` function. This function acts as a barrier and forces all threads to wait until every thread in the block has reached the `__syncthreads()` call.  
 
-__Parallel Reduction__
+__Example__
 
+```C++
+#include <iostream>
+#include <math.h>
+
+// function to add the elements of two arrays
+void add(int n, float *x, float *y) {
+  for (int i = 0; i < n; i++)
+	  y[i] = x[i] + y[i];
+}
+
+int main() {
+  int N = 1<<20; // 1M elements
+
+  float *x = new float[N];
+  float *y = new float[N];
+
+  // initialize x and y arrays on the host
+  for (int i = 0; i < N; i++) {
+	x[i] = 1.0f;
+	y[i] = 2.0f;
+  }
+
+  // Run kernel on 1M elements on the CPU
+  add(N, x, y);
+
+  // Check for errors (all values should be 3.0f)
+  float maxError = 0.0f;
+  for (int i = 0; i < N; i++)
+	maxError = fmax(maxError, fabs(y[i]-3.0f));
+  std::cout << "Max error: " << maxError << std::endl;
+
+  // Free memory
+  delete [] x;
+  delete [] y;
+
+  return 0;
+}
+```
+
+- We can use CUDA to greatly speed up this process. 
+- Modifications
+	- We need to convert the `add` function into a CUDA kernel by adding the `__global__` dualspec. 
+
+	```C++
+	__global__
+	void add(int n, float *x, float *y)  { // body }
+	```
+
+	- We need to allocate the `x` and `y` arrays on CUDA
+
+	```C++
+	float* x, y;
+	cudaMallocManaged(&x, N*sizeof(float));
+  	cudaMallocManaged(&y, N*sizeof(float));
+
+  	// ... 
+
+  	cudaFree(x);
+  	cudaFree(y);
+	```
+
+	- We need to use `<<<numBlocks, blockSize>>>` syntax to set the number of blocks and threads to run the kernel on.
+
+	```C++
+	int blockSize = 256;
+	int numBlocks = (N + blockSize - 1) / blockSize;
+	add<<<numBlocks, blockSize>>>(x, y);
+	```
+
+	- We need to block the CPU code until the calls to the kernel finishes
+
+	```C++
+	cudaDeviceSynchronize();
+	```
+
+	- As written right now, the `add` kernel will do the same computation on each thread / thread block. We need ot modify the kernel to compute a different section per thread. 
+
+	```C++
+	__global__
+	void add(int n, float *x, float *y) {
+		int index = blockIdx.x * blockDim.x + threadIdx.x;
+		int stride = blockDim.x * gridDim.x;
+		for (int i = index; i < n; i += stride)
+			y[i] = x[i] + y[i];
+	}
+	```
+
+- The program below is a CUDA parallelized version of the program to add two float arrays. 
+
+```C++
+#include <iostream>
+#include <math.h>
+
+// function to add the elements of two arrays
+__global__
+void add(int n, float *x, float *y) {
+	// pick starting index based on number of previous threads
+	int index = blockIdx.x * blockDim.x + threadIdx.x; 
+	// 
+    int stride = blockDim.x * gridDim.x;
+    for (int i = index; i < n; i += stride) {
+    	  y[i] = x[i] + y[i];
+    }
+}
+
+int main() {
+	int N = 1<<20; // 1M elements
+
+	float *x = new float[N];
+	float *y = new float[N];
+
+	// initialize x and y arrays on the host
+	for (int i = 0; i < N; i++) {
+		x[i] = 1.0f;
+		y[i] = 2.0f;
+	}
+
+	// Run kernel on 1M elements on the CPU
+	int blockSize = 256;
+	int numBlocks = (N + blockSize - 1) / blockSize;
+	add<<<numBlocks, blockSize>>>(N, x, y);
+
+	// wait for the kernel to finish
+	cudaDeviceSynchronize();
+
+	// Check for errors (all values should be 3.0f)
+	float maxError = 0.0f;
+	for (int i = 0; i < N; i++)
+	maxError = fmax(maxError, fabs(y[i]-3.0f));
+	std::cout << "Max error: " << maxError << std::endl;
+
+	// Free memory
+	cudaFree(x);
+  	cudaFree(y);
+
+	return 0;
+}
+```
+
+### Parallel Reduction
 - Parallel reduction is a means of reducing a problem into smaller problems that can be executed in parallel. This is done using a tree-based approach used within each thread block or for multiple thread blocks. 
 - Parallel reduction must also be able to use multiple thread blocks to process very large arrays. Each of the thread blocks would reduce a portion of the array. The issue here is figuring out how to communicate partial results between the thread blocks. 
 - Global synchronization would a trivial way of solving this problem. This process is essentially syncing global memory after every block produces its result. Once all blocks reach the synchronization point, continue recursively. 
@@ -674,7 +841,7 @@ __Parallel Reduction__
 		if (tid % (2*s) == 0) {
 			sdata[tid] += sdata[tid + s]
 		}
-		__sunchtreads();
+		__synchtreads();
 	}
 	```
 

@@ -4,7 +4,7 @@ author: Haroon Ghori
 geometry: margin=1in
 ---
 
-### Basic Internet Organization 
+# Basic Internet Organization 
 - The Internet is essentially a network or subnetworks. End-of-systems and networks are connected to the network by switches instead of being directly connected to the network. 
 	- This is done to reduce the number of edges between nodes in the network. 
 	- The Internet ties all the switches together using an IP protocol. In this way, different hardwares and devices can communicate on the same network. 
@@ -264,7 +264,7 @@ Ethernet <-> Ethernet <-> Ethernet
 		- This may be broken for performance / policy optimization. 
 	- Fate sharing: Fail together or don't fail at all. 
 
-### The HTTP Protocol 
+# The HTTP Protocol 
 - The "world wide web" is a distributed database of pages linked through the Hypertext Transport Protocol (HTTP). 
 	- HTTP was first implemented in 1990 and has been subsequently updated.
 - Content on the web has a 
@@ -364,14 +364,14 @@ Ethernet <-> Ethernet <-> Ethernet
 		- Parallel Connections: Send multiple requests in parallel (concurrently)
 		- Persistent Connection: Maintain persistent TCP connections between client and server. 
 		- Time 
-			- $one_at_a_time = 2 * n * RTT$
-			- $concurrent\ = 2 * \frac{n}{m} * RTT%
+			- $one\ at\ a\ time = 2 * n * RTT$
+			- $concurrent\ = 2 * \frac{n}{m} * RTT$
 			- $persistent\ = (n+1) * RTT $
 			- $pipelined\ = 2 * RTT$ 
 			- $pipelined_persistent = 2 * RTT$ (first time), $= RTT$ later. 
 - Caching
 	- Hosts also uses caching to improve performance. 
-	- Caching - saving recently accessed resources in an easy to accesss location. 
+	- Caching - saving recently accessed resources in an easy to access location. 
 	- Essentially, a host will request a resource and add an `if_modified_since <datetime>` tag to the request. 
 		- The server returns `not_modified` if the resource hasn't been modified and the resource otherwise. 
 	- The response will include an `expires` tag which says how long we can safely cache the resource, or a `no_cache` tag which will ignore the cache. 
@@ -394,115 +394,108 @@ Ethernet <-> Ethernet <-> Ethernet
 	- The client content provider modifies content so that embedded URL references CDN domains. 
 	- Requests are then sent to the CDN infrastructure. 
 - Problem is to figure out how to balance load across replicas and pair clients with nearby servers to decrease latency and bandwidth. 
-- Domain Name System (DNS)
-	- DNS is how we map machine addresses (142.2122.113.143) with human readable hostnames (cs.jhu.edu). 
-	- Design Goals 
-		- Uniqueness - no naming conflicts
-		- Scalable - many names and frequent updates
-		- Distributed / autonomous administration 
-			- Ability to update my own machine(s) name(s)
-			- Don't need to track everyone's updates 
-		- Highly available 
-		- Fast lookup 
-	- Strategy 
-		- Partition the namespace and distribute administration of each partition. 
-		- Distribute name resolution for each partition. 
-		- This was implemented in a hierarchy as a tree. 
 
-		```
-							   root
-		   /		/		/	 |		 \		\	  \		\
-		 .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...
-			\
-			 jhu.edu 
-			  \
-			   cs.jhu.edu
+### DNS
+- DNS is how we map machine addresses (142.2122.113.143) with human readable hostnames (cs.jhu.edu). 
+- Design Goals 
+	- Uniqueness - no naming conflicts
+	- Scalable - many names and frequent updates
+	- Distributed / autonomous administration 
+		- Ability to update my own machine(s) name(s)
+		- Don't need to track everyone's updates 
+	- Highly available 
+	- Fast lookup 
+- Strategy 
+	- Partition the namespace and distribute administration of each partition. 
+	- Distribute name resolution for each partition. 
+	- This was implemented in a hierarchy as a tree. 
 
-		```
+	```
+						   root
+	   /		/		/	 |		 \		\	  \		\
+	 .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...
+		\
+		 jhu.edu 
+		  \
+		   cs.jhu.edu
 
-		- The domain name is a leaf to root path in the tree. Each domain is responsible for managing collisions. (.edu must make sure there are no collisions of it's direct children, jhu.edu must maintain everything under it, etc). 
-		- A zone corresponds to an administrative authority that is responsible for that portion of the hierarchy. 
-	- Hierarchy implementation 
-		- The top of the hierarchy is the root servers 
-		- Next level: top level domain (TLD0 servers) 
-		- Authoritative DNS servers (actually store name -> address mappings)
-		- Each server stores a small subset of the total DNS database. 
-		- An authoritative DNS server stores resource records for all DNS names in the domain that it has authority for. 
-		- Each server needs to know other servers that are responsible for the other portions of the hierarchy. 
-			- Every server knows the root 
-			- Root knows all top level domains. 
-		- The DNS root is located in Virginia.
-			- There are 13 root servers (A-M)
-			- The servers are replicated via anycast. 
-			- Anycast 
-				- Routing finds shortest paths to destination. 
-				- If several locations are given the same address then the network will deliver the packet to the closest location with that address. 
-				- Requires no modification to the routing algorithms. 
-	- DNS Records 
-		- DNS servers store resource records (RRs). 
-			- Type = A (Address)
-				- name = hostname 
-				- value = IP address 
-			- Type = (NS) (Name Server) 
-				- name = domain 
-				- value = name of DNS server for domain
-			- Type CNAME (Canonical Name) 
-				- name: alias name 
-				- value: real (canonical name) 
-			- Type = MX (Mail Exchange) 
-				- name = domain in email address 
-				- value = name of mail server 
-		- Inserting Resource Records Into DNS 
-			- Register foobar.com at registrar (GoDaddy)
-				- provide registrar with name and IP addresses of your authoritative name servers 
-				- Register inserts RR parts into the .com TLD server 
-			- Store resource records in your server 
-		- Using DNS 
-			- Apps use DNS by way of a local DNS server. The app sends a request to the local server who will send a request to the root server.
-				- Recursive: Local DNS asks root to find entire domain and passes work to the root.
-				- Iterative: Local DNS asks root to find IP address for server to ask next. 
-	- DNS Protocol 
-		- Query and reply messages both have the same message format 
-			- Header: identifier, flags, etc 
-			- Resource records 
-		- Client-server interactions on UDP Port 53. 
-	- High availability
-		- Replicated DNS servers 
-		- Usually UDP used for queries. 
-		- Try alternative servers on timeout 
-		- Same identifier for all queries (we don't care which server responds) 
-	- Fast lookups - DNS Caching 
-		- Performing a lot of queries takes time. 
-		- Caching can greatly reduce overhead - top level servers rarely change and popular sites are visited often. 
-			- Local DNS servers often have information cached. 
-		- DNS servers cache responses to queries. 
-		- responses include a "time to live" (TTL) field. 
-		- Server deletes cached entry after TTL expires. 
-		- Negative caching 
-			- Negative caching remembers things that don't work - failing can take a long time. It's good to remember that they don't work so the failure takes less time the next time. 
-			- Not widely implemented. 
-	- Properties of DNS 
-		- Easy unique naming 
-		- Fate sharing for network failures 
-		- Reasonable trust model 
-		- Caching increases scalability and performance 
-	- DNS provides indirection 
-		- Address can change underneath - ie we can move a domain to a different IP address 
-		- Name could map to multiple IP addresses 
-			- CDN is used for load balancing 
-			- CDN is used to reduce latency by picking nearby servers 
-		- Multiple names can map to the same address 
-			- mailing service and web serves can map to the same machine 
-			- aliases 
-		- This flexibility only applies within a domain.
+	```
+
+	- The domain name is a leaf to root path in the tree. Each domain is responsible for managing collisions. (.edu must make sure there are no collisions of it's direct children, jhu.edu must maintain everything under it, etc). 
+	- A zone corresponds to an administrative authority that is responsible for that portion of the hierarchy. 
+- Hierarchy implementation 
+	- The top of the hierarchy is the root servers 
+	- Next level: top level domain (TLD0 servers) 
+	- Authoritative DNS servers (actually store name -> address mappings)
+	- Each server stores a small subset of the total DNS database. 
+	- An authoritative DNS server stores resource records for all DNS names in the domain that it has authority for. 
+	- Each server needs to know other servers that are responsible for the other portions of the hierarchy. 
+		- Every server knows the root 
+		- Root knows all top level domains. 
+	- The DNS root is located in Virginia.
+		- There are 13 root servers (A-M)
+		- The servers are replicated via anycast. 
+		- Anycast 
+			- Routing finds shortest paths to destination. 
+			- If several locations are given the same address then the network will deliver the packet to the closest location with that address. 
+			- Requires no modification to the routing algorithms. 
+- DNS Records 
+	- DNS servers store resource records (RRs). 
+		- Type = A (Address): name = hostname, value = IP address 
+		- Type = (NS) (Name Server): name = domain, value = name of DNS server for domain
+		- Type CNAME (Canonical Name): name: alias name, value: real (canonical name) 
+		- Type = MX (Mail Exchange): name = domain in email address, value = name of mail server 
+	- Inserting Resource Records Into DNS 
+		- Register foobar.com at registrar (GoDaddy)
+			- provide registrar with name and IP addresses of your authoritative name servers 
+			- Register inserts RR parts into the .com TLD server 
+		- Store resource records in your server 
+	- Using DNS 
+		- Apps use DNS by way of a local DNS server. The app sends a request to the local server who will send a request to the root server.
+		- Recursive: Local DNS asks root to find entire domain and passes work to the root.
+		- Iterative: Local DNS asks root to find IP address for server to ask next. 
+- DNS Protocol 
+	- Query and reply messages both have the same message format 
+		- Header: identifier, flags, etc 
+		- Resource records 
+	- Client-server interactions on UDP Port 53. 
+- High availability
+	- Replicated DNS servers 
+	- Usually UDP used for queries. 
+	- Try alternative servers on timeout 
+	- Same identifier for all queries (we don't care which server responds) 
+- Fast lookups - DNS Caching 
+	- Performing a lot of queries takes time. 
+	- Caching can greatly reduce overhead - top level servers rarely change and popular sites are visited often. 
+		- Local DNS servers often have information cached. 
+	- DNS servers cache responses to queries. 
+	- responses include a "time to live" (TTL) field. 
+	- Server deletes cached entry after TTL expires. 
+	- Negative caching 
+		- Negative caching remembers things that don't work - failing can take a long time. It's good to remember that they don't work so the failure takes less time the next time. 
+		- Not widely implemented. 
+- Properties of DNS 
+	- Easy unique naming 
+	- Fate sharing for network failures 
+	- Reasonable trust model 
+	- Caching increases scalability and performance 
+- DNS provides indirection 
+	- Address can change underneath - ie we can move a domain to a different IP address 
+	- Name could map to multiple IP addresses 
+		- CDN is used for load balancing 
+		- CDN is used to reduce latency by picking nearby servers 
+	- Multiple names can map to the same address 
+		- mailing service and web serves can map to the same machine 
+		- aliases 
+	- This flexibility only applies within a domain.
 
 # Wireless 
 - Point to point connections 
 	- Dedicated pairwise communication between two points
-	- Ex: long distance fiber link , link between ethernet switch and host. 
+	- Ex: long distance fiber link , link between Ethernet switch and host. 
 - Broadcasst connections
 	- A bunch of nodes can communicate over some shared wire(s) or medium 
-	- Ex: 802.11 wireless LAN, traditional ethernet (pre 2000)
+	- Ex: 802.11 wireless LAN, traditional Ethernet (pre 2000)
 	- Broadcast channels must use some kind of multiple access algorithm to avoid multiple nodes speaking at once. Otherwise collisions can lead to garbled data. 
 		- Channel Partitioning: Divide channel into pieces 
 		- Taking turns: Scheme for deciding who transmits when 
@@ -531,17 +524,15 @@ Ethernet <-> Ethernet <-> Ethernet
 		- Radio signal attenuates as it propagates through matter. 
 		- AKA path loss
 		- $FSPL = (\frac{4 \pi d f}{c})^2$
-			- $d$ distance, $\lamda = c/f$ wavelength, $f$ frequency, and $c$ speed of light. 
+			- $d$ distance, $\lambda = c/f$ wavelength, $f$ frequency, and $c$ speed of light. 
 	- Multipath propagation 
-		- Radio signals reflect off objects and ground adn arrive at destination at slightly different times. 
+		- Radio signals reflect off objects and ground and arrive at destination at slightly different times. 
 	- Interference from other sources. 
 		- SNR: Signal to noise ratio
 		- BER: Bit error rate 
 		- Larger SNR makes it easier to extract signal from noise, but SNR may change with mobility. We must choose a physical layer that can meet the BER given the SNR. 
 		- To overcome bit errors 
-			- Sender could increase transmission power.
-				- Bad for battery powered devices
-				- Creates interference for other senders.  
+			- Sender could increase transmission power. This is bad for battery powered devices and creates interference for other senders.  
 			- Stronger error detection or recovery 
 			- Many TCP alternatives for wireless 
 	- Broadcast medium: anyone in proximity can hear and interfere with signal
@@ -558,7 +549,7 @@ Ethernet <-> Ethernet <-> Ethernet
 		- In ad hoc mode a BSS just contains some hosts. 
 
 # Video Streaming 
-- Video is often loo large to send in one GET request 
+- Video is often too large to send in one GET request 
 	- Users may also move forward / backwards
 	- Users connection quality may change
 - Video is a sequence of images/frames displayed at a constant rate.
@@ -566,17 +557,17 @@ Ethernet <-> Ethernet <-> Ethernet
 - Videos must be compressed to store efficiently. 
 	- The same video can be compressed to multiple quality levels (eg 480p, 720p, 1080p, 4k, etc)
 - We serve videos using video streaming. 
-- HTTP Streaming
-	- Video is stored at an HTTP server with a URL
-	- Client sends a GET request for the URL
-	- Server sends the video in a stream 
-	- Client first buffers for a while to minimize interruptions in the data stream. 
-	- Once the video buffers enough (eg passes a threshold) the video plays in the foreground. 
-		- more buffering occurs in the background. 
 - Video streaming presents challenges
 	- Absorbing network delay variation 
 	- Handle user interactions (skip forward, back, pause, etc)
 	- Handle packet loss, retransmission, etc. 
+- HTTP Streaming
+	1. Video is stored at an HTTP server with a URL
+	2. Client sends a GET request for the URL
+	3. Server sends the video in a stream 
+	4. Client first buffers for a while to minimize interruptions in the data stream. 
+	5. Once the video buffers enough (eg passes a threshold) the video plays in the foreground. 
+	6. More buffering occurs in the background. 
 - The biggest issue with HTTP streaming is that not all clients have the same bitrate. 
 	- Client can have different network connections and their network connections can change over time. 
 	- So the client must dynamically adapt to the network conditions. 
@@ -588,10 +579,10 @@ Ethernet <-> Ethernet <-> Ethernet
 		- Low bandwidth -> switch to lower bitrate / lower resolution 
 		- High bandwidth -> switch to higher bitrate / higher resolution. 
 - Video Streaming is served by datacenters
-	- A Datacenter consists of `ToR switches -> racks -> aggregation switches -> Core switches -> internet`
-	- A larger datacenter may have more layers. 
-	- An HTTP get request will be sent to the top level core switches, which will send the request down through the aggregation switches. The single request is decomposed into multiple components which are each handled by a specific switch / set of switches. 
-		- The responses from the switches are recomposed and sent out to the client via the core switch. 
+- A Datacenter consists of `ToR switches -> racks -> aggregation switches -> Core switches -> internet`
+- A larger datacenter may have more layers. 
+- An HTTP get request will be sent to the top level core switches, which will send the request down through the aggregation switches. The single request is decomposed into multiple components which are each handled by a specific switch / set of switches. 
+	- The responses from the switches are recomposed and sent out to the client via the core switch. 
 
 # Transport Protocols
 - The transport layer is between the application and network layer. While the
@@ -645,7 +636,7 @@ tedious.
 - As mentioned above, the best-effort model of IP can have a lot of downsides.
 Packets can be lost, corrupted, delayed, reordered, destroyed, or duplicated.
 Transport layers exist to provide reliable transport which overcomes the issues
-in eht ebest-effort model. 
+in the best-effort model. 
 	- Checksums (detect bit errors)
 		- A checksum is a small piece of data which is used to validate data 
 		integrity (but not authenticity). A checksum function (like a hash) 
@@ -683,13 +674,13 @@ in eht ebest-effort model.
 	```
 
 	- If transmission time (TRANS) is significantly less than RTT, then 
-	$throughput ~ \frac{DATA}{RTT}
-	- RTT = TRANS + time_in_network + time_to_ack
-		- time_in_network is the time the data spends traveling through the 
+	$throughput ~ \frac{DATA}{RTT}$
+	- $RTT = TRANS + time\_in\_network + time\_to\_ack$
+		- $time\_in\_network$ is the time the data spends traveling through the 
 		network 
-		- time to ack is the time it takes for the acknowledgment to reach the
+		- $time\_to\_ack$ is the time it takes for the acknowledgment to reach the
 		sender. 
-		- TRANS is the amount of time it takes the server to physically send 
+		- $TRANS$ is the amount of time it takes the server to physically send 
 		the transmission. 
 - With reliable transport protocols we can make three major design decisions
 which we can use to improve on stop and wait:
@@ -714,8 +705,8 @@ which we can use to improve on stop and wait:
 	sender's window is {A+1, A+2, ..., A+n}. If B is the last received packet 
 	without gap  (by the receiver) then the receiver's window is {B+1, 
 	B+2,...,B+n}. 
-	- If window size is $n$, then $throughput = min(\frac{n * DATA}{RTT},
-	link_bandwidth)$. 
+	- If window size is $n$, then $throughput = min(\frac{n * DATA}{RTT},\ 
+	link\_bandwidth)$. 
 	- This is higher throughput than Stop and Wait. 
 - Cumulative ACK 
 	- ACK carries the next in-order sequence number that 
@@ -728,7 +719,7 @@ which we can use to improve on stop and wait:
 - Go-Back-N (GBN)
 	- Sender transmits up to n unacknowledged packets. 
 	- Receiver only accepts packets in order. The receiver discards out of 
-	order packets. Note that the receiver uses cumulative acknowledgement. 
+	order packets. Note that the receiver uses cumulative acknowledgment. 
 	- Sender sets timer for the 1st outstanding ack.
 		- outstanding ack meaning the ACK we expect given the order we've sent 
 		the requests. 
@@ -784,7 +775,7 @@ itself will be wrapped in an IP header when it's sent to the network layer.
 	- Sender sends packet of N bytes. The data starts at sequence number X so the
 	packet consists of bytes [X, X+1, .. , X+N-1]. 
 	- Upon receiving the packet, the receiver sends an ACK of X+N since that's 
-	the next expected byte (cumulative acknowledgement). 
+	the next expected byte (cumulative acknowledgment). 
 - Packet Loss
 	- If the highest in-order byte received is Y such that Y+1 < X, ACK
 	acknowledges Y+1 even if this has been ACKed before. 
@@ -806,6 +797,7 @@ itself will be wrapped in an IP header when it's sent to the network layer.
 	Request : seqNum 600   Response : seqNum 500 
 	Request : seqNum 700   Response : seqNum 500 
 	...  
+	```
 
 	- Note these requests are pipelined so we can't just wait for the ACK to 
 	know which seqNum to request next. The seqNum 600, 700, ... requests 
@@ -838,7 +830,7 @@ itself will be wrapped in an IP header when it's sent to the network layer.
 		in RTT by directly measuring deviation. 
 		$$dev_{sample} = | RTT_{sample} - RTT_{est} |$$
 		$$dev_{est} =  (1-\alpha)dev_{est} + \alpha dev_{sample}$$
-		$$RT) = RTT_{est} + $ dev_{est}$$
+		$$RT) = RTT_{est} + dev_{est}$$
 - Establishing a TCP connection requires some overhead. 
 	- We need to know the sequence number for the first byte (Initial Sequence
 	Number == ISN). 
