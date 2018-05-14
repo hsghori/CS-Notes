@@ -554,11 +554,11 @@ For example we can count the number of occurrences of a word in a string
 using MapReduce
 
 ```Python
-map(key, value):
+def map(key, value):
 	for word in value: 
 		intermediate_map.add(word, '1')
 
-reduce(key, values):
+def reduce(key, values):
 	result = 0
 	for count in values:
 		result += int(count)
