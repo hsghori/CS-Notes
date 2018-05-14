@@ -5,236 +5,74 @@ geometry: margin=1in
 ---
 
 # Basic Internet Organization 
-- The Internet is essentially a network or subnetworks. End-of-systems and networks are connected to the network by switches instead of being directly connected to the network. 
-	- This is done to reduce the number of edges between nodes in the network. 
-	- The Internet ties all the switches together using an IP protocol. In this way, different hardwares and devices can communicate on the same network. 
-- When nodes need to send information they may have to share switches / edges between swtiches. They can do this in three major ways
-	- Circuit switching: Switches are reserved for the entire transfer. 
-		- Source sends a reservation request to the destination. Each intermediate switch checks it's resources to see if it can handle the request. If all the switches have enough resources, the resources will be reserved and the circuit will be established. Once the data transfer is done, the resources on the switch will be freed. 
-		- This works well for really large "one and done" data transfers because the circuit is reserved for the entirety of the connection. However, it doesn't work as well for "bursty" traffic (ie sending a few small messages over time) since bandwidth is reserved for the entirety of the connection. 
-		- Pros: 
-			- Uninterrupted bandwidth (esp good for large/consistent/real-time transfers). AKA predictable performance.
-			- Simple, fast switching. 
-		- Cons:
-			- Wasted bandwidth. 
-			- Connection may be rejected if a resource is used up. 
-			- Circuit set-up and teardown has a lot of overhead for short connections. 
-			- Many points of failure (if a switch fails, the circuit fails).
-	- Packet switching: Each source sends it's message in packets with the destination encoded. Each packet is treated independently and forwarded to its destination. 
-		- The switch needs to have a buffer to deal with transient overload (ie saving packets in transit). If the buffer overloads, packets are dropped. 
-		- Pros:
-			- Efficient use of bandwidth (no wasted bandwidth)
-			- Robust against single switch failure (can re-rout around dead switch).  
-			- Lower latency (no overhead for setup and teardown)
-		- Cons:
-			- Unpredictable performance (all packets are treated the same and packets can be dropped and network cannot guarantee bandwidth)
-			- Requires buffer management and congestion control. 
-	- Hybrid connection
-- A switch internally can divide it's connections using "multiplexing"
-	- Time multiplexing: establishes chooses different connection at a specific time interval.
-		Ex: time 1 connection 1
-			time 2 connection 2
-			time 3 FREE
-			time 4 FREE
-		(switch has 4 time intervals)
-	- Frequency multiplexing: Sends each message at a specific frequency.  
-	- Statistical multiplexing: The communication channel is divided into an arbitrary number of variable bitrate digital channels or data streams. The link sharing is adapted to the instantaneous traffic demands of the data streams that are transferred over each channel.
-- Network Metrics
-	- Network Link
-	- Delay
-		- Transmission Delay: How long does it take to push all bits from a packet into a link?
-			- $transmission_delay = packet_size / transmission_rate_of_link$
-		- Propagation Delay: How long does it take to move one bit from one end of a link to the other?
-			- $propagation_delay = link_length / propogation_time$
-		- Queuing Delay: How long does a packet spend in a buffer before it's processed? 
-			- Depends on arrival rate in the queue, type of arriving traffic (bursty or constatn), and the probability the delay exceeds some threshold (after which the packet will be dropped)
-			- $queue_length = long_term_average_arrival_rate * waiting_time$ (Little's Law)
-		- Processing Delay: Overall end to end delay.
+The Internet is a network of machines connected to each other through a series of universal, open source protocols. This interconnected network allows for free flowing exchange of information and has evolved from a cloistered system used for research and communication to a global network which supports everything from commerce and social media to education and activism. 
 
-### Sockets and Socket Programming
-- In a Unix OS, all IO happens through "file descriptors". 
-- File Descriptor - an integer associated with a file. 
-	- The file can be a terminal, pipe, network connection, etc. 
-- A socket is the file descriptor for a network connection. 
-	- We can use socket to communicate over a network connection usinng the send() and recv() calls. 
-	- We can also use read() and write(), but send() and recv() offer more control. 
-- There are two major types of sockets
-	- Stream Sockets
-		- Reliable two way connections - we expect messages to remain intact when sent through this socket. 
-			- Note we must maintain a connection. 
-		- This reliability is achieved using the Transmission Control Protocol (TCP)
-	- Datagram Sockets 
-		- Unreliable and connectionless. A message is sent in packets - some packet may be dropped or be received out of order. The packets that arrive will arrive error-free.
-		- Datagram sockets use a User Datagram Protocol (UDP). Applications and protocols built on top of datagram sockets will usually implement some kind of packet acknowledgment to make sure that no data is lost over the connection.
-- Socket Programming in C/C++ 
+The Internet is essentially a network or subnetworks. End-of-systems and networks are connected to the network by switches and routerinstead of being directly connected to the network. 
+- This is done to reduce the number of edges between nodes in the network. 
+- The Internet ties all the switches together using an IP protocol. In this way, different hardwares and devices can communicate on the same network. 
 
-```C++
-#include <iostream>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <string>
-#include <cstring>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <algorithm>
+When nodes need to send information they may have to share switches / edges between swtiches. They can do this in three major ways
+1. Circuit switching: Switches are reserved for the entire transfer. 
+	- Source sends a reservation request to the destination. Each intermediate switch checks it's resources to see if it can handle the request. If all the switches have enough resources, the resources will be reserved and the circuit will be established. Once the data transfer is done, the resources on the switch will be freed. 
+	- This works well for really large "one and done" data transfers because the circuit is reserved for the entirety of the connection. However, it doesn't work as well for "bursty" traffic (ie sending a few small messages over time) since bandwidth is reserved for the entirety of the connection. 
+	- Pros: 
+		- Uninterrupted bandwidth (esp good for large/consistent/real-time transfers). AKA predictable performance.
+		- Simple, fast switching. 
+	- Cons:
+		- Wasted bandwidth. 
+		- Connection may be rejected if a resource is used up. 
+		- Circuit set-up and teardown has a lot of overhead for short connections. 
+		- Many points of failure (if a switch fails, the circuit fails).
+- Packet switching: Each source sends it's message in packets with the destination encoded. Each packet is treated independently and forwarded to its destination. 
+	- The switch needs to have a buffer to deal with transient overload (ie saving packets in transit). If the buffer overloads, packets are dropped. 
+	- Pros:
+		- Efficient use of bandwidth (no wasted bandwidth)
+		- Robust against single switch failure (can re-rout around dead switch).  
+		- Lower latency (no overhead for setup and teardown)
+	- Cons:
+		- Unpredictable performance (all packets are treated the same and packets can be dropped and network cannot guarantee bandwidth)
+		- Requires buffer management and congestion control. 
+- Hybrid connection
 
-int connect_server(std::string port) {
-	char buffer[BUFFER_SIZE];
-	int socket_fd;
-	struct addrinfo hints, *res, *p;
-	struct sockaddr_storage conn;
-	int one = 1;
-	memset(&hints, 0, sizeof hints); // clears the hints struct
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(NULL, port.c_str(), &hints, &res) > 0) {
-		std::cerr << "ERROR: Couldn't get address info.\n";
-		exit(1);
-	}
-	for (p = res; p != NULL; p = p->ai_next) {
-		if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
-			std::cerr << "ERROR: Failed to get socket.\n";
-			continue;
-		}
-		if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1) {
-            std::cerr << "ERROR: setupsocket.\n";
-            continue;
-        }
-		if (bind(socket_fd, p->ai_addr, p->ai_addrlen) < 0) {
-			std::cerr << "ERROR: Failed to bind to port " << port << ".\n";
-			continue;
-		}
-		break;
-	}
-	if (p == NULL) {
-		exit(1);
-	}
-	if (listen(socket_fd, 10) < 0) {
-		std::cerr << "ERROR: Failed to listen to remote host.\n";
-		exit(1);
-	}
-	char conn_ip[INET6_ADDRSTRLEN];
-	long bytes = 0;
-	int bytes_rec;
-	int conn_fd;
-	double start_secs, end_secs, dur;
-	while(true) {
-		socklen_t conn_len = sizeof(conn);
-		if ((conn_fd = accept(socket_fd, (struct sockaddr*) &conn, &conn_len)) < 0) {
-			continue;
-		}
-        inet_ntop(conn.ss_family, &conn, conn_ip, sizeof conn_ip);
-        printf("Connected to client %s through port %s.\n", (const char*)conn_ip, (char*)port.c_str());		
-        return conn_fd;
-    }
-}
+A switch internally can divide it's connections using "multiplexing"
+- Time multiplexing: establishes chooses different connection at a specific time interval.
+	Ex: time 1 connection 1
+		time 2 connection 2
+		time 3 FREE
+		time 4 FREE
+	(switch has 4 time intervals)
+- Frequency multiplexing: Sends each message at a specific frequency.  
+- Statistical multiplexing: The communication channel is divided into an arbitrary number of variable bitrate digital channels or data streams. The link sharing is adapted to the instantaneous traffic demands of the data streams that are transferred over each channel.
 
-
-int connect_client(std::string port, std::string hostname, int time) {
-	char buffer[BUFFER_SIZE];
-    struct addrinfo hints, *res, *p;
-    int socket_fd;
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    if (time == -1 || hostname.empty()) {
-    	std::cerr << "ERROR: Invalid arguments\n";
-    }
-    if (getaddrinfo(hostname.c_str(), port.c_str(), &hints, &res) != 0) {
-        std::cerr << "ERROR: Failed to get address";
-        exit(1);
-    }
-    for(p = res; p != NULL; p = p->ai_next) {
-        if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            std::cerr << "ERROR: Failed to get socket.\n";
-            continue;
-        }
-        if (connect(socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
-        	std::cerr << "ERROF: failed to connect to socket.\n";
-            close(socket_fd);
-            continue;
-        }
-        break;
-    }
-    if (p == NULL) {
-        std::cerr << "ERROR: Failed to connect.\n";
-        exit(1);
-    }
-    char server_ip[INET6_ADDRSTRLEN];
-    inet_ntop(p->ai_family, p->ai_addr, server_ip, sizeof server_ip);
-    printf("Connected to server at host %s at port %s.\n", (const char*)server_ip, (char*)port.c_str());
-    freeaddrinfo(res);
-    return socket_fd;
-}
-```
+__Network Metrics__
+- Transmission Delay: How long does it take to push all bits from a packet into a link?
+	- $transmission\_delay = packet\_size / transmission\_rate\_of\_link$
+- Propagation Delay: How long does it take to move one bit from one end of a link to the other?
+	- $propagation\_delay = link\_length / propogation\_time$
+- Queuing Delay: How long does a packet spend in a buffer before it's processed? 
+	- Depends on arrival rate in the queue, type of arriving traffic (bursty or constatn), and the probability the delay exceeds some threshold (after which the packet will be dropped)
+	- $queue\_length = long\_term\_average\_arrival\_rate * waiting\_time$ (Little's Law)
+- Processing Delay: Overall end to end delay.
 
 ### Protocol Layering
-- Applications communicate is handled by a stack such that the high level communication is built on top of those in the lower layers:
-	- Application
-	- Presentation (OSI)
-	- Session (OSI)
-	- Reliable or unreliable transport (Transport)
-	- Best effort global packet delivery (Network) 
-	- Best effor local packet delivery (Data Link)
-	- Physical transfer of bits (Physical)
-- OSI Layers (Open Systems Interconnection) are often implemented as part of the application layer. 
-- A layer is a part of a systems with well defined interfaces to other parts of the system (to other layers). 
-	- One layer only needs to interact with one layer above and one layer below. 
-	- Two layers can only interact through he interface between them. 
-	- Communication between peer layers on different systems is defined by a protocol. 
-		- Ex: two applications may communicate with each other using the HTTP protocol, but that protocol is built off of protocols in the lower layers of the communication stack. 
-- A protocol is an agreement between parties (in the same layer) on how to communicate. It defines the syntax and semantics of communication. 
+Communication between end users is handled in a stack like structure such that high level communication is build on tope of those in the lower layers. The OSI model is defined as a 7 layer system:
 
-```
-[	 Payload	 | Header ]
-```
+- L7: Application 
+- L6: Presentation (OSI)$^{* }$
+- L5: Session (OSI)$^{* }$
+- L4: Reliable or unreliable transport (Transport)
+- L3: Best effort global packet delivery (Network) 
+- L2: Best effor local packet delivery (Data Link)
+- L1: Physical transfer of bits (Physical)
 
-- Syntax
-	- Each protocol has a specific header format which gives instructions on how to process the payload. 
-- Semantics
-	- Each protocol defines how communication is carried out. 
-		- Ex: First an acknowledgment ("hello"), then a request
-- Common Protocols for each layer:
-	- Application: SMTP, HTTP, DNS, NTP
-	- Transport: TCP, UDP
-	- Network: IP
-	- Data Link: Ethernet, FODI, PPP
-	- Physical: Optical, Copper, Radio, PSTN
-- Layer Encapsulation
-	- Application wraps data in HTTP Layer
+$^{* }$L6 and L5 are often implemented as part of the application layer. 
 
-	```
-	[HTTP Header | HTTP Payload]
-	```
+A layer is a part of a systems with well defined interfaces to other parts of the system (to other layers). This system allows a seperation between high level application communication and lower level network communication. Any layer only needs to interact with the layers directly above and below (eg L3 only interacts with L4 and L2) and two layers are limited to interactions through specific interfaces. Communication between peer layers on different systems is defined by a protocol (ex: HTTP, TCP, IP, etc). 
 
-	- Transport Layer wraps HTTP request in TCP Payload 
-
-	```
-	[TCP Header | [HTTP Header | HTTP Payload]]
-	```
-
-	- Network layer wraps TCP request in IP Payload
-
-	```
-	[IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]
-	```
-
-	- Data link layer wraps IP request in Ethernet payload.
-
-	```
-	[Ethernet Header | [IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]]
-	```
-
-	- This data is sent over the physical link and reversed up the stack. 
-- Switches only implement the physical and datalink layers.
-- Routers implement the network layer as well as the physical and datalink layers. 
-- Hosts implement all layers. 
-- Note: Switches and routers are very similar but switches only support local delivery whereas routers support global delivery. 
+We divide machines in the network into three categories, hosts, routers, and swithces. 
+- Hosts are designed to run applications and therefore impliment all seven layers in the OSI model. 
+- Routers are designed for communication between local networks and only impliment L1, L2, and L3. 
+- Switches are designed for communication within local area networks and only impliment L1 and L2. 
 
 ```
 Host 1					  Host 2	  
@@ -244,58 +82,84 @@ IP			 IP			  IP
 Ethernet <-> Ethernet <-> Ethernet
 ```
 
-- Pros 
-	- Reduces complexity 
-	- Improves flexibility and modularity
-- Cons 
-	- Higher overhead 
-		- Each layer needs to add and remove headers from the payload
-	- Cross layer information is often useful
-- IP is the only network protocol - so it is a bottleneck. 
-	- Pros
-		- Allows arbitrary networks to interpolate (anything that supports IP can exchange packets)
-		- Separates applications from low level networking technologies. 
-		- Supports simultaneous innovations above and below IP.
-	- Con:
-		- Changing IP itself is difficult. 
-- End to end argument
-	- Networks should be dumb, end systems should be smart. 
-	- Functions that can be completely and correctly implemented only with the knowledge of application end host should not be pushed into the network.
-		- This may be broken for performance / policy optimization. 
-	- Fate sharing: Fail together or don't fail at all. 
+Each layer has a very specific role and therefore has a specific set of common protocols which are designed to accomplish the goal. 
+- Application: Designed for app to app communication. Common protocols are SMTP, HTTP, DNS, NTP. 
+- Transport: Designed for communication between hosts (but on a lower level than the application layer). Common protocols are TCP and UDP. 
+- Network: Designed for communication between routers (between local area netorks / domains). The only major protocol in use is IP. 
+- Data Link: Designed for communication between switches in a local area network. Common protocols are Ethernet, FODI, PPP. 
+- Physical: Designed for communication between physical systems. Common mediumms are Optical, Copper, Radio, and PSTN. 
+
+A protocol is an agreement between parties (in the same layer) on how to communicate. It defines the syntax and semantics of communication. 
+
+```
+[	 Payload	 | Header ]
+```
+
+Each protocol has a specific header format (the __syntax__) which gives instructions on how to process the payload. Each protocol also defines how communication is carried out (the __semantics__). 
+
+Layer encapsulation is the process by which data is sent through the OSI model. 
+1. Application wraps data in HTTP Layer
+
+```
+[HTTP Header | HTTP Payload]
+```
+
+2. Transport Layer wraps HTTP request in TCP Payload 
+
+```
+[TCP Header | [HTTP Header | HTTP Payload]]
+```
+
+3. Network layer wraps TCP request in IP Payload
+
+```
+[IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]
+```
+
+4. Data link layer wraps IP request in Ethernet payload.
+
+```
+[Ethernet Header | [IP Header | [TCP Header | [HTTP Header | HTTP Payload]]]]
+```
+
+This data is sent over the physical link to the next system in the network and reversed up the stack. 
+
+Layer encapsulation is done because it reduces complexity and increases flexibility and modularity. There is a certian level of abstraction where application programmers do not need to worry about the low level details of the which transport or data link protocol their system is using. Furthermore they don't need to change their code in response to updates to lower level protocols. However, layer encapsulation does have higher overhead since each layer needs to add or remove headers from the payload. Furthermore, since layers only interact with those above and below, there is some information lost that could be useful. 
+
+Note that IP is the only network protocol in use. This allows any machine or small network to join the larger internet since anything that impliments IP can theoretically exchange packets, serves as a buffer between the application layer and the lower level networking technologies, and allows for simultaneous innovations in the layers above and below the network layer. However, this makes changing the IP protocol extremely difficult.   
+
+The end to end argument is a philosophy about network design. The main ideas of this philosophy are that:
+-  Networks should be dumb, end systems should be smart. 
+- Functions that can be completely and correctly implemented only with the knowledge of application end host should not be pushed into the network.
+	- This may be broken for performance / policy optimization. 
+- Fate sharing: Fail together or don't fail at all. 
 
 # The HTTP Protocol 
-- The "world wide web" is a distributed database of pages linked through the Hypertext Transport Protocol (HTTP). 
-	- HTTP was first implemented in 1990 and has been subsequently updated.
-- Content on the web has a 
-	- URL: naming content
-	- HTML: formatting content 
-- URL - Uniform Record Locater 
-	- protocol://hostname[:port]/directory-path/resources 
-		- protocol: http, tfp, https, smtp, rtsp,...
-		- hostname: DNS name or IP address 
-		- port: defaults to protocol's standard port. 
-		- directory path: reflects file system 
-		- resource: identifies the desired resource 
-	- This extends the idea of hierarchal hostnames to include anything in a file system. 
-	- A URL can also include server side processing and program execution. 
-- Principles
-	- An HTTP server is always on and well known. 
-	- The client must initiate contact with the server. 
-	- Request / reply is synchronous (running over TCP: port 80)
-- Request Types:
-	- GET 
-	- POST: send information (web forms)
-	- PUT: updates a file in entity body in the path specified by the URL field. 
-	- DELETE: deletes file specified in the URL field. 
-- Request / Response Steps
-	1. Client sends TCP sync message (establish connection)
-	2. Server sends acknowledgment
-	3. Client sends requests
-	4. Server sends response
-	5. Client closes connection.
-- HTTP Request 
+The HTTP protocol is the most well known of the application layer protocols. It is the protocol that links defines the world wide web, the form of the internet most users interact with. In fact, the world wide web can be seen as  a distributed database of pages which is deifned by and linked through the HTTP protocol.
 
+Content on the web is formatted using HTML, a markup language used to define web pages. The location of rsources on the web is defined by the URL. 
+
+The URL (Uniform Record locator) is of the form:
+```
+protocol://hostname[:port]/directory-path/resources 
+```
+where:
+- protocol: http, tfp, https, smtp, rtsp,...
+- hostname: DNS name or IP address.
+- port: defaults to protocol's standard port. 
+- directory path: reflects file system.
+- resource: identifies the desired resource.
+
+This is essentially the same as using a hierarchical file system to locate a resource in a computer. A URL can also include server side processing and program execution. We use the URL to locate and define resources we want to interact with in the web - specifically to refer to a resource in an HTTP server. 
+
+An HTTP server is an end host that hosts resources that can be accessed through the HTTP protocol. An HTTP server is always on and well known (through DNS). Clients must initiate contact with the HTTP server to request resources. HTTP servers work through a request / response model - clients can query the server with four types of requests and expect a specific response (or an error response) from the server. 
+- GET < url >: gets some information from the server. 
+- POST < url, data >: send information (web forms).
+- PUT < url, data >: updates a file in entity body in the path specified by the URL field. 
+- DELETE < url >: deletes file specified in the URL field. 
+
+HTTP Requests and responses have a specific format:
+- HTTP Request
 	```
 		[method] [resource] [protocol version]
 		<HEADER LINES >
@@ -320,72 +184,32 @@ Ethernet <-> Ethernet <-> Ethernet
 	- The next few lines are the header lines 
 	- The blank line indicates the separation of the header and the data
 	- The body is the data being sent (for a GET)
-- HTTP is stateless
-	- A stateless protocol is a communications protocol in which no information is retained by either sender or receiver, meaning that they are agnostic of the state of one another.
-	- Each request/response is treated independently and the server is not required to retain a state. 
-		- ie the server doesn't need to remember the clients that were communicating with it and vice versa. Each request / response must have enough information to be handled on its own with remembering connection information. 
-	- Pros: 
-		- Improves scalability on the server-side 
-	- Cons:
-		- Some applications need a persistent state. 
-- Cookies 
-	- Some applications require some state fullness (ie authentication services). So we use cookies to maintain some state. 
-	- A cookie represents a small state stored by the client. 
-	- Cookies Process:
-		1. Client sends a request 
-		2. Server sends response paired with a cookie 
-		3. Client sends cookie with all future responses to the server. 
-	- Cookies are often abused 
-		- Sites can store information about users and advertising companies can track preferences and viewing history across sites. 
-- Performance goals 
-	- User 
-		- Fast downloads 
-		- High availability 
-		- Solution: 
-			- Improve networking protocols (ie HTTP, TCP)
-			- Caching and replication 
-	- Content provider 
-		- Cost effective infrastructure 
-		- Solutions:
-			- Caching and replication 
-			- Exploit economies of sale 
-	- Network 
-		- Avoid overhead 
-		Solutions:
-			- Caching and Replication 
-- Performance in practice 
-	- Most webpages have multiple objects (HTML, JS, embedded images, etc)
-		- Original solution was to retrieve one object at a time over a new TCP connection. 
-			- One TCP connection requires 1 RTT for setup, 1 TT for HTTP request and first two bytes.
-			- RTT: time for small packet to travel from client to server and back. 
-		- This requires 2 * RTT + transmission time for each object. 
-			- This is inefficient for lots of objects. 
-		- Pipelining - sending N requests back to back without waiting for response. Then wait for N responses.
-		- Parallel Connections: Send multiple requests in parallel (concurrently)
-		- Persistent Connection: Maintain persistent TCP connections between client and server. 
-		- Time 
-			- $one\ at\ a\ time = 2 * n * RTT$
-			- $concurrent\ = 2 * \frac{n}{m} * RTT$
-			- $persistent\ = (n+1) * RTT $
-			- $pipelined\ = 2 * RTT$ 
-			- $pipelined_persistent = 2 * RTT$ (first time), $= RTT$ later. 
-- Caching
-	- Hosts also uses caching to improve performance. 
-	- Caching - saving recently accessed resources in an easy to access location. 
-	- Essentially, a host will request a resource and add an `if_modified_since <datetime>` tag to the request. 
-		- The server returns `not_modified` if the resource hasn't been modified and the resource otherwise. 
-	- The response will include an `expires` tag which says how long we can safely cache the resource, or a `no_cache` tag which will ignore the cache. 
-	- Content provider caching 
-		- Typically cache content close to server. 
-		- Decreases server load 
-	- ISP / enterprise 
-		- Typically cache content close to client. 
-		- Reduces network traffic and reduces latency. 
-- Replication
-	- Replicate popular content across many machines. 
-		- Spreads load across servers 
-		- Places content closer to client 
-		- Helpful when content isn't cache-able.
+
+HTTP is a stateless protocol.  A stateless protocol is a communications protocol in which no information is retained by either sender or receiver. This means that the client and server are agnostic of the state of one another - each request/response is treated independently and the server is not required to retain a state. In other words, the server doesn't need to remember the clients that were communicating with it and vice versa. Each request / response must have enough information to be handled on its own with remembering connection information. 
+
+Statelessness improves scalability on the server-side, but is problematic for applications that need a persistent state. For example, a web application that maintains log in information would want to keep a persistent state to not prompt the user with their log-in information every time they request a resource. These types of applications use __cookies__ to maintain state. A cookie represents a small state stored by the client. 
+
+If a web application needs to maintain state, the server will send a "cookie" as part of the response to a request from the client. The client stores this cookie and sends it with future requests to the server. Thus, the server can maintain and modify the client state. However, cookies are often abused by companies as sites store infomation about users and advertising companies use that information to track performance and viewing history. 
+
+The HTTP protocol has specific performance goals for the different players in the system. The user expects fast downloads and high availability, the content provider expects a cost effective infrastructure, and the network expects to avoid overhead. These goals can be realized through efficient connection management (pipelining) and smart memory management (caching and replication). 
+
+Pipelining is a techniques of sending requests to increase the efficiency of the HTTP protocol. Most webpages have multiple objects (HTML, JS, embedded images, etc) which can take a long time to download. The original solution was to retrieve one object at a time over a new TCP connection. However, one TCP connection requires $2 * RTT + transmission\_time$ for each object (1 RTT for setup, 1 RTT for request) which is inefficient for lots of back-to-back requests. We can be more efficient by pipelining, creating parallel connections, and creating persistent connections.  
+- Pipelining - sending N requests back to back without waiting for response. Then wait for N responses.
+- Parallel Connections: Send multiple requests in parallel (concurrently)
+- Persistent Connection: Maintain persistent TCP connections between client and server. 
+
+Trivially, these techniques are more efficient than sending requests one at a time. 
+- $one\ at\ a\ time = 2 * n * RTT$
+- $concurrent\ = 2 * \frac{n}{m} * RTT$ for $m$ connections. 
+- $persistent\ = (n+1) * RTT $
+- $pipelined\ = 2 * RTT$ 
+- $pipelined_persistent = 2 * RTT$ (first time), $= RTT$ later. 
+
+Caching is the process of saving recently accessed resources in an easy to access location. When a client requests a resource for the first time, it saves it in a cache for a specified amount of time. If it request that resource again (within that time bound), the client adds an `if_modified_since <datetime>` tag to the request. The server returns  `not_modified` if the resource hasn't been modified and the resource otherwise. The response will include an `expires` tag which says how long we can safely cache the resource, or a `no_cache` tag which will ignore the cache. This greatly increase the efficiency of retrieving repeated resources since we don't have to waste time downloading resources multiple times. 
+
+Content providers and ISPs also cache content in the network based on their use cases. Contnet providers cache content close to the servers to decrease server load. ISPs and enterprise cache content closer to the clients to reduce network traffic and latency. 
+
+Replication is the process of replicating popular content accross many machines. This spreads the request load accross many servers and is more likely to place content close the the client. This is especially helpful when content isn't cacheable. 
 
 # CDN and DNS
 - Content Distribution Networks (CDN) essentially provide caching and replication as a service. 
@@ -396,49 +220,34 @@ Ethernet <-> Ethernet <-> Ethernet
 - Problem is to figure out how to balance load across replicas and pair clients with nearby servers to decrease latency and bandwidth. 
 
 ### DNS
-- DNS is how we map machine addresses (142.2122.113.143) with human readable hostnames (cs.jhu.edu). 
-- Design Goals 
-	- Uniqueness - no naming conflicts
-	- Scalable - many names and frequent updates
-	- Distributed / autonomous administration 
-		- Ability to update my own machine(s) name(s)
-		- Don't need to track everyone's updates 
-	- Highly available 
-	- Fast lookup 
-- Strategy 
-	- Partition the namespace and distribute administration of each partition. 
-	- Distribute name resolution for each partition. 
-	- This was implemented in a hierarchy as a tree. 
+Unique servers are recognized through their IP address, a 32 bit number which acts as a unique identifier for routers to forward packets. However, it is not easy for end users to remember a random string of numbers - rather we want to be able to remember human readble hostnames (like google.com or cs.jhu.edu) and have the computer convert those to the router friendly IP address. This is the role of the Domain Name Service (DNS)
 
-	```
-						   root
-	   /		/		/	 |		 \		\	  \		\
-	 .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...
-		\
-		 jhu.edu 
-		  \
-		   cs.jhu.edu
+The DNS is designed to be:
+- Uniqueness - no naming conflicts
+- Scalable - many names and frequent updates
+- Distributed / autonomous administration 
+	- Ability to update my own machine(s) name(s)
+	- Don't need to track everyone's updates 
+- Highly available 
+- Fast lookup 
 
-	```
+The overall strategy of the DNS is to recursively partition hostnames into administrative regions and allow those administrative regions to bear the responsibility of handling the names within the region. For example, the `.edu` administrator is responsible for assigning all hostnames with a `.edu` suffix. That `.edu` administrator assigns `jhu.edu` to Johns Hopkins University - now Johns Hopkisn University is responsible for maintaining hte IP addresses of all websites with the suffix `.jhu.edu`. This system is implimted in a tree. 
 
-	- The domain name is a leaf to root path in the tree. Each domain is responsible for managing collisions. (.edu must make sure there are no collisions of it's direct children, jhu.edu must maintain everything under it, etc). 
-	- A zone corresponds to an administrative authority that is responsible for that portion of the hierarchy. 
-- Hierarchy implementation 
-	- The top of the hierarchy is the root servers 
-	- Next level: top level domain (TLD0 servers) 
-	- Authoritative DNS servers (actually store name -> address mappings)
-	- Each server stores a small subset of the total DNS database. 
-	- An authoritative DNS server stores resource records for all DNS names in the domain that it has authority for. 
-	- Each server needs to know other servers that are responsible for the other portions of the hierarchy. 
-		- Every server knows the root 
-		- Root knows all top level domains. 
-	- The DNS root is located in Virginia.
-		- There are 13 root servers (A-M)
-		- The servers are replicated via anycast. 
-		- Anycast 
-			- Routing finds shortest paths to destination. 
-			- If several locations are given the same address then the network will deliver the packet to the closest location with that address. 
-			- Requires no modification to the routing algorithms. 
+```
+					   root                                       Root Servers
+   /		/		/	 |		 \		\	  \		\
+ .edu	 .com	 .gov	.mil   .org   .net	 .uk   .fr ...        Top Level Domain Servers
+	\
+	 jhu.edu                                                      Authoritative Servers 
+	  \
+	   cs.jhu.edu                                                 ...
+
+```
+
+The top of this hierarchy is the root servers. The next level is the top level domain (TLD0 servers). All servers below are authoritative DNS servers which actually store name -> address mappings. An authoritative DNS server stores resource records for all DNS names in the domain that it has authority for. Each server needs to know other servers that are responsible for the other portions of the hierarchy. Specificaly, every server knows the root and the root knows all top level domains. 
+
+The DNS root is located in Virginia and there are 13 root servers (A-M) that are replicated via anycast. Anycast  is a routing system that finds the shortest paths to destination. If several locations are given the same address then the network will deliver the packet to the closest location with that address with no modification to the routing algorithm.
+
 - DNS Records 
 	- DNS servers store resource records (RRs). 
 		- Type = A (Address): name = hostname, value = IP address 
@@ -585,129 +394,107 @@ Ethernet <-> Ethernet <-> Ethernet
 	- The responses from the switches are recomposed and sent out to the client via the core switch. 
 
 # Transport Protocols
-- The transport layer is between the application and network layer. While the
+The transport layer is between the application and network layer. While the
 network layer is used to send the communication to the right host, the 
 transport layer determines which packets are sent to which applications. This 
-is called multiplexing / demultiplexing. 
-	- Multiplexing (Mux): gather and combine data chunks at the source host 
-	form different applications and deliver to the network layer. 
-	- Demultiplexing. Delivering the correct data to corresponding sockets for 
-	a multiplexed stream (sending multiplexed packets to the correct 
-	application). 
-	- This is difficult to implement on the network layer alone. 
-- We use a separate transport layer because the IP provides a weak service 
+is called multiplexing / demultiplexing and is difficult to impliment on the network layer or below. 
+- Multiplexing (Mux): gather and combine data chunks at the source host 
+form different applications and deliver to the network layer. 
+- Demultiplexing. Delivering the correct data to corresponding sockets for 
+a multiplexed stream (sending multiplexed packets to the correct 
+application). 
+
+We use a separate transport layer because the IP provides a weak service 
 model (the model itself is called the best-effort). Just using the IP 
 protocol, packets can be corrupted, delayed, dropped, reordered, and 
 duplicated. IP also doesn't provide any guidance on how much traffic to send 
 and when. Dealing with all of these problems on the application side would be 
-tedious. 
-- The transport layer exists to provide:
-	- Communication between processes - eg mux and demux from / to 
-	applications. This is implemented using ports
-	- Provide common end-to-end services for app layer. For example, reliable,
-	in-order data delivery and well paced data delivery. This is not the 
-	primary purpose of the transport layer though. 
-- TCP and UDP are the most common transport protocols. 
-	- UDP is a minimalist transport protocol - eg it only provides mux/demux. 
-	- TCP provides reliable, in-order, byte stream abstraction with congestion
-	control. 
-- Sockets 
-	- Sockets are a common software abstraction to exchange network messages 
-	with the transport layer (which is in the operating system). 
-	- A UDP socket is of type `SOCK_DGRAM` 
-	- A TCP socket is of type `SOCK_STREAM`
-	- See the socket programming section for specifics on implementation. 
-- Ports 
-	- A port is a 16 bit integer that helps disstinguish applications. 
-	- A packet carries the source and destination port number in its transport
-	header. 
-	- The OS stores a mapping between sockets and ports. 
-	- For a UDP port, the OS stores (local port, local IP address) <-> socket. 
-	- For a TCP port, the OS stores (local port, local IP, remote port, remote 
-	IP) <-> socket. 
-- UDP (User Datagram Protocol)
-	- UDP is a lightweight communication between applications. It avoids a lot 
-	of overhead and delays of maintaining order and reliability (by not 
-	enforcing order or reliability). 
-	- UDP basically just contains the destination IP address and port to support
-	multiplexing. 
-	- UDP can have optional error checking on the packet contents and could 
-	contain the source port - which can be useful when responding back to the sender. 
-- As mentioned above, the best-effort model of IP can have a lot of downsides.
-Packets can be lost, corrupted, delayed, reordered, destroyed, or duplicated.
+tedious. The transport layer exists to provide:
+- Communication between processes - eg mux and demux from / to 
+applications. This is implemented using ports
+- Provide common end-to-end services for app layer. For example, reliable,
+in-order data delivery and well paced data delivery. This is not the 
+primary purpose of the transport layer though. 
+
+TCP and UDP are the most common transport protocols. UDP is a minimalist transport protocol - it only provides mux/demux. TCP, on the other hand, provides reliable, in-order, byte stream abstraction with congestion
+control. TCP and UDP use ports to handle mux and demux. A port is a 16 bit integer that distinguishes applications. Transport layer packets carries the source and destination port in its header which is used to route the packet to the correct application. The operating system stores a mapping between sockets (an OS I/O abstraction that treats network communication like writing to a file) and ports. 
+
+UDP is a lightweight communication between application. It avoids a lot of the overhead adn delays of maintaining order and reliability (essentially by not enforcing either order or reliability). UDP basically contains the destination IP address and port and may have optional error checking on the packet contens. UDP packets may also contain the source port which is helpful for responses. 
+
+As mentioned above, the best-effort model of IP can have a lot of downsides.
+Packets can be lost, corrupted, delayed, reordered, destroyed, or duplicated. The
 Transport layers exist to provide reliable transport which overcomes the issues
 in the best-effort model. 
-	- Checksums (detect bit errors)
-		- A checksum is a small piece of data which is used to validate data 
-		integrity (but not authenticity). A checksum function (like a hash) 
-		is performed on the checksum which should produce some expected 
-		result. If that result is not found we know the data is corrupted. 
-	- Timers (detect loss)
-	- Acknowledgments (detect loss)
-	- Sequence numbers (detect duplicates)
+- Checksums (detect bit errors)
+	- A checksum is a small piece of data which is used to validate data 
+	integrity (but not authenticity). A checksum function (like a hash) 
+	is performed on the checksum which should produce some expected 
+	result. If that result is not found we know the data is corrupted. 
+- Timers (detect loss)
+- Acknowledgments (detect loss)
+- Sequence numbers (detect duplicates)
 
 ### Reliable Transport Solutions
-- Stop and Wait 
-	- A correct, but extremely inefficient reliable transport protocol. 
+The stop and wait protocol is a correct, but extremely inefficient reliable transport protocol. 
 
-	```
-	// @ Server
-	do {
-		Server send packet(packet_num)
-		reset timer
-		if (receives ACK) {
-			num++
-		}
-	} while(have packets)
-
-	// @ Receiver 
-	while (packets left to receive) {
-		Receiver waits for packet 
-		if (packet is ok) {
-			send ACK 
-		}
-		else {
-			send INACK
-		}
+```
+// @ Server
+do {
+	Server send packet(packet_num)
+	reset timer
+	if (receives ACK) {
+		num++
 	}
+} while(have packets)
 
-	```
+// @ Receiver 
+while (packets left to receive) {
+	Receiver waits for packet 
+	if (packet is ok) {
+		send ACK 
+	}
+	else {
+		send INACK
+	}
+}
 
-	- If transmission time (TRANS) is significantly less than RTT, then 
-	$throughput ~ \frac{DATA}{RTT}$
-	- $RTT = TRANS + time\_in\_network + time\_to\_ack$
-		- $time\_in\_network$ is the time the data spends traveling through the 
-		network 
-		- $time\_to\_ack$ is the time it takes for the acknowledgment to reach the
-		sender. 
-		- $TRANS$ is the amount of time it takes the server to physically send 
-		the transmission. 
-- With reliable transport protocols we can make three major design decisions
+```
+
+If transmission time (TRANS) is significantly less than RTT, then 
+$throughput ~ \frac{DATA}{RTT}$ where $RTT = TRANS + time\_in\_network + time\_to\_ack$
+- $time\_in\_network$ is the time the data spends traveling through the 
+network 
+- $time\_to\_ack$ is the time it takes for the acknowledgment to reach the
+sender. 
+- $TRANS$ is the amount of time it takes the server to physically send 
+the transmission. 
+
+In a reliable transport protocols we can make three major design decisions
 which we can use to improve on stop and wait:
-	- Which packets can the sender send?
-		- Sliding window
-	- How does the receiver acknowledge packets?
-		- Cumulative 
-		- Selective
-	- Which packets does the sender resend? 
-		- Go-back-N (GBN)
-		- Selective repeat (SR)
-- Sliding Windows 
-	- Here we define a window as a set of adjacent sequence numbers. The size 
-	of the set is the window size. Here we let window size be n. 
-	- The general idea is to send up to n packets at a time using pipelining. 
-		- The sender can send packets in its window and the receiver can accept
-		packets in its window. 
-		- The window of acceptable packets slides on successful acknowledgment. 
-		- The window contains all packets that might still be in transit. 
-		- This is also called "packets in flight". 
-	- If A is the last ack'd packet of the sender without a gap, then the 
-	sender's window is {A+1, A+2, ..., A+n}. If B is the last received packet 
-	without gap  (by the receiver) then the receiver's window is {B+1, 
-	B+2,...,B+n}. 
-	- If window size is $n$, then $throughput = min(\frac{n * DATA}{RTT},\ 
-	link\_bandwidth)$. 
-	- This is higher throughput than Stop and Wait. 
+- Which packets can the sender send?
+	- Sliding window
+- How does the receiver acknowledge packets?
+	- Cumulative 
+	- Selective
+- Which packets does the sender resend? 
+	- Go-back-N (GBN)
+	- Selective repeat (SR)
+
+__Sliding Window__ 
+
+A window is a set of adjacent sequence numbers. The size 
+of the set is the window size. Here we let window size be n. The general idea is to send up to n packets at a time using pipelining. The sender can send packets in its window and the receiver can accept packets in its window.The window contains all packets that might still be in transit and "slides" on successful acknowledgment. 
+
+Then If window size is $n$:
+- If A is the last ack'd packet of the sender without a gap, then the sender's window is $\{A+1, A+2, ..., A+n\}$. 
+- If B is the last received packet without ga (by the receiver) then the receiver's window is $\{B+1, B+2,...,B+n\}$. 
+- And $throughput = min(\frac{n * DATA}{RTT},\link\_bandwidth)$. 
+
+This is higher throughput than Stop and Wait. 
+
+__Acknowledging Packets__
+
+Part of the sliding window protocol is determining how the receiver should acknolwedge packets. There are two major choices: cumulative ACK or selective ACK. 
 - Cumulative ACK 
 	- ACK carries the next in-order sequence number that 
 	the receiver expects. 
@@ -716,33 +503,33 @@ which we can use to improve on stop and wait:
 	application can keep track of which packets remain to be sent. 
 	- Selective ACKs offer more precise information but require more 
 	complicated book keeping than cumulative ACK. 
+
+__Resending Packets__
+
 - Go-Back-N (GBN)
-	- Sender transmits up to n unacknowledged packets. 
-	- Receiver only accepts packets in order. The receiver discards out of 
+	1. Sender transmits up to n unacknowledged packets. 
+	2. Receiver only accepts packets in order. The receiver discards out of 
 	order packets. Note that the receiver uses cumulative acknowledgment. 
-	- Sender sets timer for the 1st outstanding ack.
+	3. Sender sets timer for the 1st outstanding ack.
 		- outstanding ack meaning the ACK we expect given the order we've sent 
 		the requests. 
-	- If there is a timeout, retransmit the entire window (A+1,...,A+n). 
+	4. If there is a timeout, retransmit the entire window (A+1,...,A+n). 
 - Selective Repeat (SR)
-	- Sender transmits up to n unacknowledged packets. 
-	- If packet k is lost but k+1 is not 
+	1. Sender transmits up to n unacknowledged packets. 
+	2. If packet k is lost but k+1 is not 
 		- Receiver indicates packet k+1 is correctly received 
 		- Sender retransmits only packet k once the ACK times out. 
 	- This is more efficient than GBN wrt retransmissions, but require much 
 	more complex book keeping. 
-- GBN is better when error rate is low - otherwise we waste a lot of bandwidth
-repeating requests.
-- SR is better when the error rate is high - otherwise it's too complex to be
+
+GBN is better when error rate is low - otherwise we waste a lot of bandwidth
+repeating requests. SR is better when the error rate is high - otherwise it's too complex to be
 feasible. 
-- Notes: 
-	- With the sliding window it's possible to fully utilize a link provided 
-	the window size is large enough. 
-	- The sender will have to buffer all unacknowledged packets in case they 
-	require retransmission. 
-	- Receiver may be able to accept out of order packets but only up to its 
-	buffer limit. 
-	- Implementation complexity depends on protocol details (mainly GBN vs SR) .
+
+With the sliding window it's possible to fully utilize a link provided 
+the window size is large enough. The sender will have to buffer all unacknowledged packets in case they 
+require retransmission. Receiver may be able to accept out of order packets but only up to its 
+buffer limit. 
 
 ### TCP 
 - TCP delivers a reliable, in-order, byte-stream. 
@@ -874,10 +661,10 @@ resend. TCP uses a timeout of 3sec (sometimes 6sec) for the initial timout.
 		- Sender left edge - beginning of unacknowledged data 
 		- Receiver right edge - beginning of undelivered data 
 		- Right edge = left edge + constant. 
-	- The sender could request a byte that outside the receiver's window (
+	- The sender could request a byte that's outside the receiver's window (
 	outside his buffer). 
 	- The Receiver uses an Advertised Window (RWND) to prevent the sender from
-	overflowing it's window. Receiver indicates the value of RWND in ACKs. 
+	overflowing its window. Receiver indicates the value of RWND in ACKs. 
 	- The sender ensures that hte total number of bytes in flight <= RWND. 
 	This way the sender ensures that they don't request bytes that they 
 	receiver hasn't reached yet. 
@@ -1116,13 +903,15 @@ the systems information to:
 		- Fragmentation and checksum can be handled by transport layer. 
 
 # Routers
-- IP routers are the core building block of the Internet infrastructure. 
-- A router has a router capacity $Cap_R = N \times R$. where $N$ is the number of external router ports and $R$ is the speed (or line rate) of a port. 
-	- Router capacities range from 100 Gb/s to 10 Mbps depending on their use cases. 
-	- Core routers are routers that serve the "core" of the internet infrastructure (ie are in the middle of a hub and have a lot of connections). Core routers have the largest router capacities ($O(100)\ Tbps$). 
-	- Edge routers serve the edge of large hubs and have medium router capacities ($O(100)\ GBPS$). 
-	- Home routers serve individual networks and have small router capacities ($O(10)\ Gbps$). 
-- A router is composed of a control pane and a data plane. 
+IP routers are the core building block of the Internet infrastructure. A router is used to forward packets through the network based on their desitnation IP address. Routers have different routing capacities based on their function. A router capacity is defined as $Cap_R = N \times R$. where $N$ is the number of external router ports and $R$ is the speed (or line rate) of a port. Router capacities range from 100 Gb/s to 10 Mbps depending on their use cases. 
+- Core routers are routers that serve the "core" of the internet infrastructure (ie are in the middle of a hub and have a lot of connections). Core routers have the largest router capacities ($O(100)\ Tbps$). 
+- Edge routers serve the edge of large hubs and have medium router capacities ($O(100)\ GBPS$). 
+- Home routers serve individual networks and have small router capacities ($O(10)\ Gbps$). 
+
+A router forwards packets through the network so they can progress towards their end destination. They do this by reading the address from the packet header and searching through a forwarding table. This is handled by the data plane of the router. 
+
+## Router Structure
+A router is composed of a control pane and a data plane. 
 
 ```
 control  |   [Route/Control Processor]
@@ -1136,92 +925,87 @@ plane    |
          | ->   [in N]                               [out N] ->
 ```
 
-- Data Plane
-	- Input linecards process packets on their way in
-	- Output linecards process packets on their way out
-	- Input and output for the same port are on the same physical lineard. 
-	- The interconnect / switching fabric transfers packets from the input to the output port. 
-- Input Linecards
-	- Receives incoming packets from the physical layer (L1)
-	- Updates IP header (TTL, checksum, options, and fragments as necessary). 
-	- Looks up the output port based on the destination IP address. 
-	- Queues the packet at the switch fabric. 
-	- The biggest challenge when implementing an input linecard is speed. A core router should handle a speed of 40Gbps where each packet is ~100 bytes. Therefore the linecard needs to handle one packet every 20 nanoseconds. 
-	- The bottleneck is looking up the output port of the packet. There are $2^32 \to \ > 4 * 10^9$ possible IP addresses. Creating a standard lookup table would not be efficient. 
-	- For scalability the lookup tables use aggregated addresses. 
-- Longest Prefix Matching
-	- Longest prefix matching is a technique used in IP routers to efficiently match destination IP addresses with ports. Specifically, we match specific prefixes to ports.
-	- Consider a four port router with the following IP bitstring. 
+The Data Plane contains:
+- Input linecards process packets on their way in
+- Output linecards process packets on their way out
+- Input and output for the same port are on the same physical lineard. 
+- The interconnect / switching fabric transfers packets from the input to the output port. 
 
-	```
-	11 00 00 00 : 11 00 00 11 -> Port 1
-	11 00 01 00 : 11 00 01 11 -> Port 2
-	11 00 10 00 : 11 00 11 11 -> Port 3
-	11 01 00 00 : 11 01 11 11  -> Port 4
-	```
+Input Linecards are responsible for:
+- Receives incoming packets from the physical layer (L1)
+- Updates IP header (TTL, checksum, options, and fragments as necessary). 
+- Looks up the output port based on the destination IP address. 
+- Queues the packet at the switch fabric. 
+	
+The biggest challenge when implementing an input linecard is speed. A core router should handle a speed of 40Gbps where each packet is ~100 bytes. Therefore the linecard needs to handle one packet every 20 nanoseconds. 
+The bottleneck is looking up the output port of the packet. There are $2^32 \to \ > 4 * 10^9$ possible IP addresses. Creating a standard lookup table would not be efficient.  Therefore, lookup tables use aggregated addresses through __longest prefix matching__. 
 
-	- Storing this data in a look up table is not efficient - searching the table is still an O(N) operation. We can use a tree structure to efficiently match on the longest prefix in the destination IP. 
+Longest prefix matching is a technique used in IP routers to efficiently match destination IP addresses with ports. Specifically, we match specific prefixes to "ports" (different from the ports in the application context). Consider a four port router with the following IP bitstring. 
 
-	```
-                                     (***)
-                               /                 \
-                             0                    1
-                            /                       \
-                          (O**)                    (1**)
-                         /     \                 /        \
-                    (00*)      (01*)         (10*)        (11*)
-                   /    \       /   \        /    \      /     \
-                (000)  (001)  (010) (011) (100)  (101)  (110) (111)
-	```
+```
+11 00 00 00 : 11 00 00 11 -> Port 1
+11 00 01 00 : 11 00 01 11 -> Port 2
+11 00 10 00 : 11 00 11 11 -> Port 3
+11 01 00 00 : 11 01 11 11  -> Port 4
+```
 
-	- Based on the structure of the IP addresses we know that all IPs will start will the prefix `11 0*`. We can start parsing the binary tree from the fourth character in the bitstring. We then want to match on the "longest prefix that designates a port". Starting from `ip[4]`, a prefix of `1*` indicates port 4. A prefix of `0*` indicates port 3, a prefix of `001*` indicates port 2 and a prefix of `000*` indicates port 1. We can then set up the binary tree with marked nodes:
+Storing this data in a look up table is not efficient - searching the table is still an O(N) operation. We can use a tree structure to efficiently match on the longest prefix in the destination IP. 
 
-	```
-                                     (***)
-                               /                 \
-                             0                    1
-                            /                       \
-                          (O**)                    (1**)
-                          * (3)                     * (4)
-                         /     \                 /        \
-                    (00*)      (01*)         (10*)        (11*)
-                   /    \       /   \        /    \      /     \
-                (000)  (001)  (010) (011) (100)  (101)  (110) (111)
-                * (1)  * (2)
-	```
+```
+                                 (***)
+                           /                 \
+                         0                    1
+                        /                       \
+                      (O**)                    (1**)
+                     /     \                 /        \
+                (00*)      (01*)         (10*)        (11*)
+               /    \       /   \        /    \      /     \
+            (000)  (001)  (010) (011) (100)  (101)  (110) (111)
+```
 
-	- As we parse the prefix starting from `ip[4]`, the destination port corresponds to the deepest marked node we reach in the binary search. Thus the destination matching algorithm is $O(logN)$. This process is usually implemented with specialized hardware. 
-- Output Linecards
-	- Output linecards are responsible for:
-		- Packet Classification: mapping packets to flows
-		- Buffer management: deciding when / which packets to drop
-		- Scheduling: deciding when and which packets to transmit. 
-	- FIFO Router (Simplest Router)
-		- No classification 
-		- Drop tail buffer management: When the buffer is full, drop the incoming packet. 
-		- FIFO Scheduling: packets leave in the order they arrived. 
-	- Packet Classification - classifying an IP packet based on packet header
-		- IP Source / destination 32 bits
-		- TCP source / destination 16 bits
-		- Type of service (TOS) 8 bits
-		- Type of protocol 8 bits
-		- Fields are specified by a range
+Based on the structure of the IP addresses we know that all IPs will start will the prefix `11 0*`. We can start parsing the binary tree from the fourth character in the bitstring (`ip[3]`). We then want to match on the "longest prefix that designates a port". Starting from `ip[3]`, a prefix of `1*` indicates port 4. A prefix of `0*` indicates port 3, a prefix of `001*` indicates port 2 and a prefix of `000*` indicates port 1. We can then set up the binary tree with marked nodes:
+
+```
+                                 (***)
+                           /                 \
+                         0                    1
+                        /                       \
+                      (O**)                    (1**)
+                      * (3)                     * (4)
+                     /     \                 /        \
+                (00*)      (01*)         (10*)        (11*)
+               /    \       /   \        /    \      /     \
+            (000)  (001)  (010) (011) (100)  (101)  (110) (111)
+            * (1)  * (2)
+```
+
+As we parse the prefix starting from `ip[3]`, the destination port corresponds to the deepest marked node we reach in the binary search. Thus the destination matching algorithm is $O(logN)$. This process is usually implemented with specialized hardware. 
+
+Output Linecards are responsible for:
+- Packet Classification: mapping packets to flows based on the contents of the packet header
+	- IP Source / destination 32 bits
+	- TCP source / destination 16 bits
+	- Type of service (TOS) 8 bits
+	- Type of protocol 8 bits
+	- Fields are specified by a range
 	- Scheduler - decides which queue to send packets from and when to send them. 
-		- There is one queue per "flow". 
-		- Scheduling algorithms depend on the policy implemented. 
-- Scheduling Policies 
-	- Priority Scheduler - queues are assigned a priority. Packets in higher priority queues are always served before those in lower priority queues. 
-	- Round Robin Scheduler - packets are served from each queue in turn. 
-	- Fair Queuing (FQ) - round robin for packets of different size (give equal weight to each flow). 
-	- Weighted Fair Queuing (WFQ) -- serve proportional to weight. 
-- Switching Fabric
-	- The switching fabric is itself a mini-network. There are three main ways to switch. 
-		- Switching via shared memory
-		- Switching via a bus
-		- Switching via an inter-connection network. 
-	- Scheduling switching is akin to finding a matching on a bipartite graph. 
-- Routers can be used to improve congestion control (from TCP0). Routers classify packets into flows (TCP connections) each of which has it's own FIFO queue in the router. The router services flows "fairly". 
-	- Max-min fairness - given a set of bandwidth demands $r_i$ and total bandwidth $C$, max-min bandwidth allocations are: $a_i = min(f, r_i)$ where $f$ is the unique value such that $sum(a_c) = C$. 
+- Buffer management: deciding when / which packets to drop
+- Scheduling: deciding when and which packets to transmit. 
+
+The FIFO Router is the simplest implimentation of the output linecards. This router has no packet classification, drop tail buffer management, and FIFO scheduling. 
+- Drop tail buffer management: When the buffer is full, drop the incoming packet. 
+- FIFO Scheduling: packets leave in the order they arrived. 
+
+
+There are many different scheduling policies that can be implimented by the output linecards. 
+- Priority Scheduler - queues are assigned a priority. Packets in higher priority queues are always served before those in lower priority queues. 
+- Round Robin Scheduler - packets are served from each queue in turn. 
+- Fair Queuing (FQ) - round robin for packets of different size (give equal weight to each flow). 
+- Weighted Fair Queuing (WFQ) -- serve proportional to weight. 
+
+Router scheduling policies are designed to improve congestion control. Routers classify packets into flows (TCP connections) each of which has it's own FIFO queue in the router. The router services flows "fairly". 
+- Max-min fairness 
+	- Given a set of bandwidth demands $r_i$ and total bandwidth $C$, max-min bandwidth allocations are: $a_i = min(f, r_i)$ where $f$ is the unique value such that $sum(a_c) = C$. 
 
 	```
 	C = 10, r_1 = 8, r_2 = 6, r_3 = 2, N = 3
@@ -1258,7 +1042,6 @@ plane    |
 	FQ
 	Packet      [ b1 ][ b2 ][a1][ b3 ][a2][a3][ b4 ][a4][a5][ b5 ][a6]
 	System
-
 	```
 
 
@@ -1273,19 +1056,26 @@ plane    |
 	- FQ cons
 		- More complex than FIFO. 
 - FQ is designed to optimize "fairness" - however that is not neccesarily the ideal goal. Routers can also control congestion using rate adjustment and by detecting congestion. 
-	- Rate Control Protocol
-		- Packets carry "rate field"
-		- Routers insert "fair share" f in packet headers 
-		- End hosts set sending rate (window size) to f. 
-	- Explicit Congestion Notification (ECN)
-		- Single bit in packet headers, set by congested routers. If the data packet has that bit set, then ACK has the ECN bit set. 
-		- Routers can set that bit at different points in the processing phase. 
-		- Congestion semantics can be exactly like a drop. 
-		- ECN is useful because it can serve as an early indicator of congestion to avoid delays. 
-		- ECN can be used to charge people for congesting the network. 
+- Rate Control Protocol
+	- Packets carry "rate field"
+	- Routers insert "fair share" f in packet headers 
+	- End hosts set sending rate (window size) to f. 
+- Explicit Congestion Notification (ECN)
+	- Single bit in packet headers, set by congested routers. If the data packet has that bit set, then ACK has the ECN bit set. 
+	- Routers can set that bit at different points in the processing phase. 
+	- Congestion semantics can be exactly like a drop. 
+	- ECN is useful because it can serve as an early indicator of congestion to avoid delays. 
+	- ECN can be used to charge people for congesting the network. 
+
+The switching fabric is a mini network used to transfer packets from the input to output. There are three major ways to switch: Switching Fabric
+- Switching via shared memory
+- Switching via a bus
+- Switching via an inter-connection network. 
+
 
 - Autonomous System (AS) / Domain - region of a network under a single administrative entity. 
-- A router forwards packets through the network so they can progress towards their end destination. They do this by reading the address from the packet header and searching through a forwarding table. This is handled by the data plane of the router. 
+
+## Constructing Forwarding Tables - The Control Plane
 - A router routes packets by constructing forwarding tables - this is handled by the control plane of the router. 
 - The goal of routing is to find a path to a given destination. 
 	- A router has a local routing state which is the forwarding table in the single router. By itself, this state cannot be evaluated - rather we need to evaluate local states in terms of the global state. 
@@ -1337,76 +1127,84 @@ plane    |
 		return  D, P
 	```
 	
-	- THis algorithm can be written in many different ways. Here we use a priority queue to keep track of the paths and return a dictionary of shortest paths from the source to each destination as well as the parents of each node on the path. 
-- The Internet uses "link-state routing" which means that every router knows its local link state (its edges and weights) and sends its local state to all other router (floods its local state to all other routers) in the network. Thus every router learns the total state of the network and can compute Djikstra's algorithm to determine the optimal routing. 
-- Flooding means to send a message to the entire network. 
-	- When a a router floods its link state, the next node forwards the info to all of its links except the one the information arrived from. 
-	- Flooding is initiated on any topology or configuration change (if a link fails or recovers from a failure or if a link cost charges). 
-	- Flooding also occurs periodically to refresh link state information. 
-- Routers flood the network to ensure that all nodes converge to the updated topology. However, there is some convergence delay where routers may have inconsistent state data. This convergence delay can come from latencies in detecting failures, time to flood the link state information, and time to re-compute the forwarding tables. 	
-	- Convergence delays can cause looping packets, dropped packets, or packets arriving out of order. 
-- There are two major link state routing protocols: open shortest path first, and intermediate system to intermediate system. Both essentially work by maintaining a topology map at each node and computing shortest paths using Djikstra's algorithm at each node. 
-- Link State Routing Scalability:
-	- $O(NE)$ messages (N nodes, E links)
-	- $O(N^2)$ computation time
-	- $O(Network \ diameter)$ convergence delay
-	- $O(N)$ entries in forwarding table
-- A distance vector protocol is the opposite of link state routing. A distance vector routing protocol has each node tell its neighbors about its global view. These algorithms rely on the Bellman-Ford equation: $d_x[y] = min_v(c(x, v] + d_v[y]))$. 
-	- $D_x[y]$ is the estimate of the least cost from x to y. 
-	- Node x knows the cost to each neighbor $v$ and maintains its neighbors distance vectors. 
-	- Periodically, each node sends its distance vector estimates to its neighbors. 
-	- When $x$ receives new distance vector estimates from its neighbor, it updates its own distance vector using the Bellman-Ford equation. 
-	- Eventually, the estimate $D_x[y]$ should converge to the actual least cost $d_x[y]$. 
-- THe general algorithm is:
-	1. Each node x: waits for change in local link cost or message from neighbor
-	2. Recompute local estimates
-	3. Notify neighbors if DV to any destination has changed. 
-- This algorithm has some problems with routing loops - if z routes through y and y routes through x and y loses connectivity to x, y may decide to route through z. This causes a loop and could take a long time to resolve. This is called a count to infinity scenario. 
-	- We prevent these scenarios using a heuristic. If z routes to x through y, z advertises to y that its cost to x is infinite. 
-	- y would then never route through z. 
-- Distance vector routing scalability
-	- $O(N)$ update time on arrival of new DV from neighbor
-	- $O(network \ diameter)$ convergence time
-	- $O(N)$ entries in forwarding table
-- Intra-domain routing is the process of routing within an AS. The primary focus is finding least cost paths and fast convergence. Inter-domain routing is routing between ASes. The key challenges here are scaling and administrative structures. 
-- Scaling: a router must be able to reach any destination given a packet's destination address. 
-	- the naive approach to this would be to maintain an entry for every destination. 
-	- we can overcome this using longest prefix matching.
-		- this only works if we carefully assign addresses. 
-- Administrative structure is important because ASes want freedom in picking routes, autonomy, and privacy . Link state algorithms have no privacy and limited autonomy. Distance vector have more autonomy and privacy but weren't designed for this use case. They're also more vulnerable to loops. 
-- IP Addressing
-	- The goal of IP addressing is to keep small forwarding tables at the routers with limited churm (change in routing tables). The ability to aggregate addresses is crucial for both of these properties. 
-	- Aggregation works if 
-		- Groups of destinations are reached via the same path
-		- Groups are assigned contiguous addresses
-		- Groups are relatively stable
-		- Few enough groups to make forwarding easy
-	- IP Addressing is hierarchical in that address structure and allocation are hierarchal. 
-	- IP Addresses are 32 bit numbers. These bits are partitioned into a prefix and suffix component. The prefix is the network component and the suffix is the host component. 
-- Classless inter-domain routing (CIDR)
-	- Flexible division between network and host addresses. Offers a better tradeoff between size of the routing table and efficient use of the IP address space. 
-	- If a network has 50 computers, allocate 6 bits for host address (2^5 < 50 < 2^6) and the remaining 26 bits as the prefix. We can then use an OR mask where the 26 prefix bits are 1 and the 6 suffix bits are 0 (subnet mask) to refer to the network hosts. 
-	- An IP address can be written X.X.X.X / Y where Y is the number of bits of the prefix max. 
-- Allocation of IP address blocks is done in hierarchies. 
-	- Large blocks are given to regional Internet registries. These registries give blocks to large institutions (ISPs like Comcast, At&t, etc). These organizations give addresses to individuals and smaller institutions. 
-	- Examples of this hierarchy are: `ICANN -> ARIN -> AT&T -> JHU -> JHU-CS`.
-	- Addresses are allocated in contiguous prefix chunks. 
-		1. CIANN gives ARIN several /8s
-		2. ARIN gives AT&T one /8, 12.0x/8 
-		3. AT&T gives JHU one /16, 12.34x/16
-		4. JHU gives JHUCS one /24, 12.34.56/24
-		5. JHUCS gives specific user an address, 12.34.56.78
-- Hierarchical address allocation only helps routing scalability if allocation matches the topological hierarchy. 
-	- If we add end hosts to a specific domain, the upstream routers don't need to change their routing tables. 
-	- "Multi-homed" networks are networks that are connected to more than one domain. This can be done for fault tolerance, load balancing, etc. Aggregating addresses is not always possible for multi homed networks. 
+	- This algorithm can be written in many different ways. Here we use a priority queue to keep track of the paths and return a dictionary of shortest paths from the source to each destination as well as the parents of each node on the path. 
 
-# Border Gateway Protocol
+## Routing Algorithms
+
+### Link State Routing
+The Internet uses "link-state routing" which means that every router knows its local link state (its edges and weights) and sends its local state to all other router (floods its local state to all other routers) in the network. Thus every router learns the total state of the network and can compute Djikstra's algorithm to determine the optimal routing. 
+
+Flooding means to send a message to the entire network. 
+- When a a router floods its link state, the next node forwards the info to all of its links except the one the information arrived from. 
+- Flooding is initiated on any topology or configuration change (if a link fails or recovers from a failure or if a link cost charges). 
+- Flooding also occurs periodically to refresh link state information. 
+
+Routers flood the network to ensure that all nodes converge to the updated topology. However, there is some convergence delay where routers may have inconsistent state data. This convergence delay can come from latencies in detecting failures, time to flood the link state information, and time to re-compute the forwarding tables. 	
+- Convergence delays can cause looping packets, dropped packets, or packets arriving out of order. 
+
+There are two major link state routing protocols: open shortest path first, and intermediate system to intermediate system. Both essentially work by maintaining a topology map at each node and computing shortest paths using Djikstra's algorithm at each node. 
+
+Link State Routing Scalability:
+- $O(NE)$ messages (N nodes, E links)
+- $O(N^2)$ computation time
+- $O(Network \ diameter)$ convergence delay
+- $O(N)$ entries in forwarding table
+
+### Distance Vector Routing 
+A distance vector protocol is the opposite of link state routing. A distance vector routing protocol has each node tell its neighbors about its global view. These algorithms rely on the Bellman-Ford equation: $d_x[y] = min_v(c(x, v] + d_v[y]))$. 
+- $D_x[y]$ is the estimate of the least cost from x to y. 
+- Node x knows the cost to each neighbor $v$ and maintains its neighbors distance vectors. 
+- Periodically, each node sends its distance vector estimates to its neighbors. 
+- When $x$ receives new distance vector estimates from its neighbor, it updates its own distance vector using the Bellman-Ford equation. 
+- Eventually, the estimate $D_x[y]$ should converge to the actual least cost $d_x[y]$. 
+
+Thus, tHe general algorithm is:
+1. Each node x: waits for change in local link cost or message from neighbor
+2. Recompute local estimates
+3. Notify neighbors if DV to any destination has changed. 
+
+This algorithm has some problems with routing loops - if z routes through y and y routes through x and y loses connectivity to x, y may decide to route through z. This causes a loop and could take a long time to resolve. This is called a count to infinity scenario. 
+- We prevent these scenarios using a heuristic. If z routes to x through y, z advertises to y that its cost to x is infinite. Thus, y will never route through z. 
+
+Distance vector routing scalability
+- $O(N)$ update time on arrival of new DV from neighbor
+- $O(network \ diameter)$ convergence time
+- $O(N)$ entries in forwarding table
+
+## Autonomous Services (Domains)
+An Autonomous Service (domain) is a region of the network under a single administrative control. Intra-domain routing is the process of routing within an AS. The primary focus is finding least cost paths and fast convergence. Inter-domain routing is routing between ASes. The key challenges here are scaling and administrative structures. 
+- Scaling: a router must be able to reach any destination given a packet's destination address. 
+- Administrative structure is important because ASes want freedom in picking routes, autonomy, and privacy. Link state algorithms have no privacy and limited autonomy. Distance vector have more autonomy and privacy but weren't designed for this use case. They're also more vulnerable to loops. 
+
+The goal of IP addressing is to keep small forwarding tables at the routers with limited churm (change in routing tables). The ability to aggregate addresses is crucial for both of these scaling and administrative structure. 
+- Aggregation works if 
+	- Groups of destinations are reached via the same path
+	- Groups are assigned contiguous addresses
+	- Groups are relatively stable
+	- Few enough groups to make forwarding easy
+- IP Addressing is hierarchical in that address structure and allocation are hierarchal. 
+- IP Addresses are 32 bit numbers. These bits are partitioned into a prefix and suffix component. The prefix is the network component and the suffix is the host component. 
+
+Classless inter-domain routing (CIDR) is a flexible division between network and host addresses. This offers a better tradeoff between size of the routing table and efficient use of the IP address space. CIDR works as follows: If a domain has 50 computers, it should allocate 6 bits for the host address (2^5 < 50 < 2^6) and the remaining 26 bits as the prefix. We can then use an OR mask where the 26 prefix bits are 1 and the 6 suffix bits are 0 (subnet mask) to refer to the network hosts. 
+	- An IP address can be written X.X.X.X / Y where Y is the number of bits of the prefix max. 
+
+This method of IP address assignment can be used to assign IP addresses hierarchicaly. Large blocks are given to regional Internet registries. These registries give blocks to large institutions (ISPs like Comcast, At&t, etc). These organizations give addresses to individuals and smaller institutions. 
+For example:
+1. CIANN gives ARIN several /8s
+2. ARIN gives AT&T one /8, 12.0x/8 
+3. AT&T gives JHU one /16, 12.34x/16
+4. JHU gives JHUCS one /24, 12.34.56/24
+5. JHUCS gives specific user an address, 12.34.56.78
+
+Hierarchical address allocation only helps routing scalability if the allocation matches the topological hierarchy. Thus, if we add end hosts to a specific domain, the upstream routers don't need to change their routing tables. However, this doesn't work for all networks. "Multi-homed" networks are networks that are connected to more than one domain. This can be done for fault tolerance, load balancing, etc. Aggregating addresses is not always possible for multi homed networks. 
+
+### Border Gateway Protocol
 - As mentioned before, domains want freedom to pick their own routes based on policy. Additionally they want privacy and autonomy. The topology and policy of the Internet is, in many ways, shaped by the inter-domain business relationship. 
 	- Domain A could be Domain B's customer, provider, or peer. 
 - The Border Gateway Protocol (BGP) is the inter-domain routing protocol that is implemented by domain border routers. The main idea of a BGP is that a domain advertises (exports) its best routes to one or more IP prefixes and each domain selects the best rout it hears advertised for a prefix. 
 	- This algorithm is very similar to the distance vector algorithm. The domains can advertise routes per-destination, don't have to share intradomain network topology information globally, and the network will eventually converge on paths.
 	- Differences between BGP and distance vector: 
-		- BGP picks the best route based on policy (as opposed to shortest distance0. 
+		- BGP picks the best route based on policy (as opposed to shortest distance. 
 		- BGP uses path vector routing to avoid loops. 
 			- Path vector routing: advertise the entire path (as opposed to just a distance). So we can avoid loops by discarding paths with loops. 
 		- For scalability, BGP may aggregate routes for different prefixes. 
@@ -1423,7 +1221,10 @@ plane    |
 	- Peers and Providers only export routes to customers. 
 - Valley Free Routing
 	- Valley-free routing is a way of annotating paths with respect to BGP policy. We number links as +1, 0, -1 for customer-to-provider, peer-to-peer, and provider-to-customer. 
-	- In any path you should only see a sequence of +1s, followed by at most one 0, followed by a sequence of -1s. 
+	- In any path you should only see a sequence of +1s, followed by at most one 0, followed by a sequence of -1s.
+
+![](src/bgp-routing.png){width=400px}
+
 - Border routers of a domain are the only routers that implement that BGP protocol standard. They specify what messages to exchange with other BGP "speakers" and how to process these messages. 
 	- eBGP : BGP sessions between border routers in different domains. 
 	- iBGP : BRP sessions between border routers and other routers within the same domain.
@@ -1620,6 +1421,130 @@ plane    |
 		- this allows htem to insert themselves as the main in the middle as they take over a lot of core information. 
 
 
+# Applications
 
+## Sockets and Socket Programming
+- In a Unix OS, all IO happens through "file descriptors". 
+- File Descriptor - an integer associated with a file. 
+	- The file can be a terminal, pipe, network connection, etc. 
+- A socket is the file descriptor for a network connection. 
+	- We can use socket to communicate over a network connection usinng the send() and recv() calls. 
+	- We can also use read() and write(), but send() and recv() offer more control. 
+- There are two major types of sockets
+	- Stream Sockets
+		- Reliable two way connections - we expect messages to remain intact when sent through this socket. 
+			- Note we must maintain a connection. 
+		- This reliability is achieved using the Transmission Control Protocol (TCP)
+	- Datagram Sockets 
+		- Unreliable and connectionless. A message is sent in packets - some packet may be dropped or be received out of order. The packets that arrive will arrive error-free.
+		- Datagram sockets use a User Datagram Protocol (UDP). Applications and protocols built on top of datagram sockets will usually implement some kind of packet acknowledgment to make sure that no data is lost over the connection.
+- Socket Programming in C/C++ 
+
+```C++
+#include <iostream>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <string>
+#include <cstring>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <algorithm>
+
+int connect_server(std::string port) {
+	char buffer[BUFFER_SIZE];
+	int socket_fd;
+	struct addrinfo hints, *res, *p;
+	struct sockaddr_storage conn;
+	int one = 1;
+	memset(&hints, 0, sizeof hints); // clears the hints struct
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+	if (getaddrinfo(NULL, port.c_str(), &hints, &res) > 0) {
+		std::cerr << "ERROR: Couldn't get address info.\n";
+		exit(1);
+	}
+	for (p = res; p != NULL; p = p->ai_next) {
+		if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
+			std::cerr << "ERROR: Failed to get socket.\n";
+			continue;
+		}
+		if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1) {
+            std::cerr << "ERROR: setupsocket.\n";
+            continue;
+        }
+		if (bind(socket_fd, p->ai_addr, p->ai_addrlen) < 0) {
+			std::cerr << "ERROR: Failed to bind to port " << port << ".\n";
+			continue;
+		}
+		break;
+	}
+	if (p == NULL) {
+		exit(1);
+	}
+	if (listen(socket_fd, 10) < 0) {
+		std::cerr << "ERROR: Failed to listen to remote host.\n";
+		exit(1);
+	}
+	char conn_ip[INET6_ADDRSTRLEN];
+	long bytes = 0;
+	int bytes_rec;
+	int conn_fd;
+	double start_secs, end_secs, dur;
+	while(true) {
+		socklen_t conn_len = sizeof(conn);
+		if ((conn_fd = accept(socket_fd, (struct sockaddr*) &conn, &conn_len)) < 0) {
+			continue;
+		}
+        inet_ntop(conn.ss_family, &conn, conn_ip, sizeof conn_ip);
+        printf("Connected to client %s through port %s.\n", (const char*)conn_ip, (char*)port.c_str());		
+        return conn_fd;
+    }
+}
+
+
+int connect_client(std::string port, std::string hostname, int time) {
+	char buffer[BUFFER_SIZE];
+    struct addrinfo hints, *res, *p;
+    int socket_fd;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if (time == -1 || hostname.empty()) {
+    	std::cerr << "ERROR: Invalid arguments\n";
+    }
+    if (getaddrinfo(hostname.c_str(), port.c_str(), &hints, &res) != 0) {
+        std::cerr << "ERROR: Failed to get address";
+        exit(1);
+    }
+    for(p = res; p != NULL; p = p->ai_next) {
+        if ((socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            std::cerr << "ERROR: Failed to get socket.\n";
+            continue;
+        }
+        if (connect(socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
+        	std::cerr << "ERROF: failed to connect to socket.\n";
+            close(socket_fd);
+            continue;
+        }
+        break;
+    }
+    if (p == NULL) {
+        std::cerr << "ERROR: Failed to connect.\n";
+        exit(1);
+    }
+    char server_ip[INET6_ADDRSTRLEN];
+    inet_ntop(p->ai_family, p->ai_addr, server_ip, sizeof server_ip);
+    printf("Connected to server at host %s at port %s.\n", (const char*)server_ip, (char*)port.c_str());
+    freeaddrinfo(res);
+    return socket_fd;
+}
+```
+
+## Router Programming and P4
 
 

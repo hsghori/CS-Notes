@@ -7,140 +7,157 @@ geometry: margin=1in
 # Laws of Parallel Programming 
 
 ## Measuring Parallelism
-- Moore's Law 
-	- The number of transistors that can be inexpensively placed on an integrated
-	circuit doubles approximately every two years. 
-	- This "law" has held for the last fifty years. 
-- Moor's law is technically true but doesn't mean our chips are faster. 
-- Dennard scaling
-	- As transistors get smaller, their power density stays constant - power is
-	proportional to area. 
-	- Therefore performance per watt increases exponentially.
-	- This phenomenon flatlined in 2006. The most cited reason is that at small
-	sizes, current leakage becomes a big issue and causes the chip to heat up. 
-	This leads to "thermal runaway" and increases energy cost. 
-	- so while transistors / chip have been
-	increasing exponentially, clock speed, power, and performance / clock have
-	remained fairly constant. 
-- Moore's law implicitly resulted in parallelism - increasing the number of
-transistors increased the number of independent processing unites on the chip.
+Parallel programming is an emerging technique in computer science with applications in 
+everything from machine learning to graphics processing. As computational tasks get 
+more difficult, we need paralle machines to be able to handle the workload and solve
+bigger problems. The purpose of this course is to learn about different technologies
+and techniques for parallel programming and to talk about how to measure parallelism. 
+
+
+__Moore's Law__
+
+> The number of transistors that can be inexpensively placed on an integrated circuit 
+> doubles approximately every two years. 
+
+This "law" has held for the last fifty years. While Moore's law is technically true it 
+doesn't mean our chips are faster. An example of this phenominon is __Dennard Scaling__ which 
+said that as transistors get smaller, their power density stays constant. Therefore performance
+per watt increases exponentially. Dennart scaling broke down in 2006 when it was found that 
+the power density began to decrease. It is theorized that this change was because, at a small
+scale, current leakage from the transistors became a big issue. This led to thermal runaway and
+increased energy costs. So while transistors per chip have been increasing exponentialy (following 
+Moore's Law), clock speed, power, adn performance have remained fairly constant. 
+
+Following Moore's law implicitly resulted in parallelism because increasing the number of
+transistors increased the number of independent processing unites on the chip. However, 
 Software engineering trends are just now catching up to this parallel
 architecture. 
-- Amdahl's Law: Improving a portion $P$ of a computation by factor $s$ results
-in an overall speedup of 
+
+__Amdahl's Law and Gustafson's Law__
+
+Amdahl's Law and Gustafson's Law are  metrics by which we can measure 
+how parallelism can theoretically improve the runtime of a program. Here we care about
+the __speedup__ of a program. Speedup is defined as $S(n) = \frac{T(1)}{T(s)}$ where 
+$T(1)$ is the time to execute a task on a single resource and $T(n)$ is the time 
+to execute a task on $n$ resources. 
+
+Amdahl's law states that improving a portion $P$ of a computation by 
+factor $s$ results in an overall speedup of:
 $$S_{latency}(s) = \frac{1}{(1-P) + \frac{P}{s}}$$
+
 This law essentially means that the speedup is limitted to the fraction that 
 can be improved by speedup. 
-	- $P$ is the fraction of the code that runs in parallel
-	- $s$ is the number of resources
-	- $S_{latency}(s)$ is the observed speedup
+- $P$ is the fraction of the code that runs in parallel
+- $s$ is the number of resources
+- $S_{latency}(s)$ is the observed speedup
 - The non-parallel part of the code is said to be "sequential". 
-- We define speedup as $\frac{T(1)}{T(s)}$ where $T(1)$ is the time to execute 
-a task on a single resource and $T(s)$ is the time to execute a task on $s$
-resources. 
-- Gustafson's Law: Improving a portion $P$ of a computation by factor $s$
+
+Gustafson's Law states that improving a portion $P$ of a computation by factor $s$
 results in an overall speedup of 
 $$S_{latency}(s) = (1-P) + sP$$
-- Strong scaling: how the solution time varies with the number of processors 
-for a fixed total problem size. 
-	- Designing a strong scaling experiment: Run a program on a fixed problem 
-	size and vary the number of threads. 
-	- Strong scaling attempts to answer: how much faster can we solve this 
-	problem with parallelism? This is answered by Amdahl's law
-- Weak scaling: how the solution time varies with the number of processors for 
-a fixed problem size per processor. 
-	- Designing a weak scaling experiment: Run a program with a fixed number of
-	iterations per thread and vary the number of threads. 
-	- Weak scaling attempts to answer: can we solve bigger problems with more
-	parallelism? This can be answered by Gustafosan's law.
-	- Weak scaling is becoming less feasible as processor growth is 
-	outstripping memory growth. Since weak scaling involves solving bigger 
-	problems, more memory is key. 
-	- Weak scaling is difficult to express in algorithms.  
+
+__Scaling__
+
+Amdahl's Law and Gufstafson's law introduce important concepts for how we measure parallelism. 
+Specifically we consider how well programs can "scale" as we increase the number of 
+resources applied to the problem. 
+
+__Strong scaling__ describes how the solution time varies with the number of processors 
+for a fixed total problem size. To design a strong scaling experiment we run a program on a
+fixed problem size and vary the number of parallel resources (threads, processes, etc) used to
+solve the problem. Strong scaling attempts to answer "how much faster can we solve this 
+problem with parallelism?" and is answered by Amdahl's law
+
+__Weak scaling__ describes how the solution time varies with the number of processors for 
+a fixed problem size per processor. To design a weak scaling experimen we run a program 
+with a fixed number of iterations per thread and vary the number of threads. Weak scaling 
+attempts to answer "can we solve bigger problems with more parallelism?" and is answered 
+by Gustafosan's law. However, weak scaling is becoming less feasible as processor growth is 
+outstripping memory growth. Since weak scaling involves solving bigger problems, more memory 
+is key. Additionaly, weak scaling is difficult to express in algorithms.  
 
 ## Factors Against Parallelism
-- There are three major factors against parallelism. 
-	1. Startup costs associated with initiating processes. 
-		- May overshadow actual processing time. 
-		- Involves thread/process creation, data movement, etc. 
-	2. Interference - slowdown resulting from multiple processes accessing 
-	shared memory. 
-		- Resources: memory, I/O, system bus, sub-processors 
-		- Software synchronization: locks, latches, mutex, barriers 
-		- Hardware synchronization: cache faults, HW mutexes and locks. 
-	3. Skew - when breaking a single task into many smaller tasks, not all 
-	tasks may be of the same size
-		- Therefore not all tasks finish at the same time. 
-- There are a few other factors that can degrade parallelism
-	- I/O, network communication, failed processes, etc. Generally we focus on
-	communication among processes as a major chokepoint. 
-- Parallel computation proceeds in phases - first we compute some local data,
-then exchange the data with other processes. 
-	- Communication is governed by the latency (fixed cost to send a message) 
-	and the link capacity. 
-	- Latency dominates for small messages and bandwidth dominates large messages. 
-	- We often want to overlap communications to reduce wait time between 
-	computing phases. 
-- Bulk Synchronous Parallel is a natural abstraction for parallel computation. 
-	- Processing is divided into "supersteps" - each superstep has three 
-	phases, compute, communicate, and barrier. This allows for no overlap.  
-	- Communication and barrier are sequential (unoptimized). 
+There are three major factors against parallelism. 
+1. Startup costs associated with initiating processes. 
+	- May overshadow actual processing time. 
+	- Involves thread/process creation, data movement, etc. 
+2. Interference - slowdown resulting from multiple processes accessing 
+shared memory. 
+	- Resources: memory, I/O, system bus, sub-processors 
+	- Software synchronization: locks, latches, mutex, barriers 
+	- Hardware synchronization: cache faults, HW mutexes and locks. 
+3. Skew - when breaking a single task into many smaller tasks, not all 
+tasks may be of the same size. Therefore not all tasks finish at the same time. 
+
+There are a few other factors that can degrade parallelism. For example: 
+I/O, network communication, failed processes, etc. Generally we focus on communication 
+between processes as a major chokepoint. 
+
+Parallel computation proceeds in phases - first we compute some local data,
+then exchange the data with other processes. Communication is governed by the 
+latency (fixed cost to send a message) and the link capacity. Latency dominates for 
+small messages and bandwidth dominates large messages. We often want to overlap
+communications to reduce wait time between computing phases. 
 
 # Serial to Parallel - Loop Parallelism and OpenMP
-- The easiest way to write parallel code is to convert some serial code to
+The easiest way to write parallel code is to convert some serial code to
 parallel execution. The idea behind this process is to write some serial code, 
 profile it to find the slowest parts, and use a framework to parallelize (and therefore
-increase the speed of) the code.
-- This is not the best way to create parallel programs, just the easiest. 
-- OpenMP is a parallel programming environment for master/slave and/or fork/
+increase the speed of) the code. This is not the best way to create parallel programs, 
+just the easiest. 
+
+OpenMP is a parallel programming environment for master/slave and/or fork/
 join execution model, loop parallelism, and shared memory architectures. It
 allows us to write serial programs in C/C++ or fortran, add parallel
-directives, and get a parallel program that computes the exact same result. 
-	- OpenMP is not fundamentally a serial to parallel environment, but it is 
-	most often used in that way. 
-- OpenMP works with a shared memory architecture.
-- A shared memory architecture is hardware that provides the abstraction
-of coherent read/write to common memory from multiple resources
-	- Coherent - repeatable reads 
-	- Abstraction that there is a single memory for all processes 
-	- Data can be shared between process by reading and writing to memory. 
-	- This abstraction holds even if there are different physical memories. 
-- To run a a block in parallel using OpenMP we need to include omp.h and call 
-the directive `#pragma omp parallel <options>`{.c++}. 
-	- We can easily parallelize for loops using the directive `#pragma omp 
-	parallel for <scheduling opeions>`{.c++}. 
-	- The scheduling options define how to schedule the threads (how many
-	iterations to run before switching, etc). 
-	- `<scheduling options> = kind [,chunk size]`.
-		- static - divide loop into equal sized chunks 
-		- dynamic - build internal work queue and dispatch one block at a time
-		- guided - dynamic scheduling with decreasing block size for load balancing. 
-		- auto - compiler chooses from above 
-		- runtime - runtime configuration chooses from above. 
-		- chunk size = number of iterations per thread. 
-- Technically speaking, OpenMP is master/worker. There is some entry thread 
-that runs the serial content and creates other threads. 
-- We usually use OpenMP for "loop parallelism" - ie running a loop in
+directives, and get a parallel program that computes the exact same result.
+OpenMP is not fundamentally a serial to parallel environment, but it is 
+most often used in that way. 
+
+OpenMP works with a shared memory architecture. A __shared memory architecture__ 
+is hardware that provides the abstraction of coherent read/write to common memory 
+from multiple resources
+- Coherent - repeatable reads 
+- Abstraction that there is a single memory for all processes 
+- Data can be shared between process by reading and writing to memory. 
+- This abstraction holds even if there are different physical memories. 
+
+To run a a block in parallel using OpenMP we need to include omp.h and call 
+the directive `#pragma omp parallel <options>`{.c++}. We can easily parallelize 
+for loops using the directive `#pragma omp parallel for <scheduling opeions>`{.c++}. 
+The scheduling options define how to schedule the threads (how many iterations 
+to run before switching, etc). 
+- `<scheduling options> = kind [,chunk size]`.
+	- static - divide loop into equal sized chunks 
+	- dynamic - build internal work queue and dispatch one block at a time
+	- guided - dynamic scheduling with decreasing block size for load balancing. 
+	- auto - compiler chooses from above 
+	- runtime - runtime configuration chooses from above. 
+	- chunk size = number of iterations per thread. 
+
+We usually use OpenMP for "loop parallelism" - ie running a loop in
 parallel. This is a pretty easy concept to think about and work with when 
 coming from serial programming. However we need to be careful about how our
 loops access memory - especially nested loops. 
-- Loops are relatively simple constructs to parallelize, but we need to take a
+
+Loops are relatively simple constructs to parallelize, but we need to take a
 few factors into account. Specifically, loop carried dependencies: when one 
 iteration of a loop depends on the computations from other iterations. These
 issues can be addressed by loop rewriting, removable dependencies, and separable
 dependencies. 
-- Loop optimizations: changing loops so they can run faster. 
-	- Fusion: Merge loops to create larger tasks. This amortizes startup costs. 
-	- Coalesce: Coalesce loops to get more UEs and thus more parallelism. 
-	- Unrolling: Decrease the number of iterations in a loop (and do more work in the body). 
-	This works best for loops that do little work and therefore have a high 
-	startup costs relative to runtime. 
-	- Memory Access Pattern: consider how loops iterate over memory and 
-	optimize to access sequential memory. 2D array is stored in rows - better 
-	to access the entire row in one loop. 
-	- Loop tiling: Localizes memory twice (in cache lines and in cache 
-	registers).
-- OpenMP reductions - in OpenMP we sometimes need to share a value between
+
+There are several loop optimizations which we can use to make our loops run faster.
+- Fusion: Merge loops to create larger tasks. This amortizes startup costs. 
+- Coalesce: Coalesce loops to get more UEs and thus more parallelism. 
+- Unrolling: Decrease the number of iterations in a loop (and do more work in the body). 
+This works best for loops that do little work and therefore have a high 
+startup costs relative to runtime. 
+- Memory Access Pattern: consider how loops iterate over memory and 
+optimize to access sequential memory. 2D array is stored in rows - better 
+to access the entire row in one loop. 
+- Loop tiling: Localizes memory twice (in cache lines and in cache 
+registers).
+
+In OpenMP we sometimes need to share a value between
 threads while avoiding race conditions. We can do this by marking a block as
 critical, but that can be inefficient. We use reduction functions to more
 efficiently handle these cases without interference. 
@@ -173,21 +190,23 @@ This essentially tells the compiler to use the max function to update max_val.
 # System Architectures
 
 ## Classifications
-- Flynn's Taxonomy - characterizes machines by the number of instruction 
+
+Flynn's Taxonomy is a means of characterizing machines by the number of instruction 
 streams and data streams. 
-	- SISD - single instruction, single data 
-	- SIMD - single instruction, multiple data 
-	- MISD - multiple instruction, single data 
-		- This doesn't exist 
-	- MIMD - multiple instruction, multiple data
-- SISD is called the Von Neumann architecture. This implements a universal
-Turing machine and conforms to serial algorithmic analysis. This is how most
-people think of a computer
-- SIMD has a single instruction stream that is carried out on multiple data
-streams. Eg one program happening on multiple data sets. 
-- MIMD defines most of the machines we're interested in - multi cores, SMP,
-clusters, etc. 
-- Flynn's taxonomy is a bit too simplistic to discuss the wide range of parallel
+- SISD - single instruction, single data 
+	- SISD is called the Von Neumann architecture. This implements a universal
+	Turing machine and conforms to serial algorithmic analysis. This is how most
+	people think of a computer
+- SIMD - single instruction, multiple data 
+	- SIMD has a single instruction stream that is carried out on multiple data
+	streams. Eg one program happening on multiple data sets. 
+- MISD - multiple instruction, single data 
+	- This doesn't exist 
+- MIMD - multiple instruction, multiple data
+	- MIMD defines most of the machines we're interested in - multi cores, SMP,
+	clusters, etc. 
+
+Flynn's taxonomy is a bit too simplistic to discuss the wide range of parallel
 architectures in existence. 
 - Shared Memory Systems. 
 	- Large class defined by the shared memory architecture model. 
@@ -219,24 +238,23 @@ architectures in existence.
 	- A message passing machine has SMP at each of its nodes. 
 
 ## Memory Abstractions and Caching
-- Just as there are different models for processor architecture there are
-different architectures for memory and cache architectures. 
-- Memory itself is an abstraction - it is really a steep hierarchy of caches. 
-	- different levels have different performance, capacity, sharing, 
-	semantics, etc. 
+Just as there are different models for processor architecture there are
+different architectures for memory and cache architectures. Memory itself 
+is an abstraction - it is really a steep hierarchy of caches where different "levels" 
+have different performance, capacity, sharing, semantics, etc. 
 - Cache Hierarchy
 	- L1 - on chip 
 		- One per processor
 	- L2 - on chip. 
-		- 10 x slower, bigger, cheaper than L1. Shared among coes
+		- 10x slower, bigger, cheaper than L1. Shared among coes
 	- L3 - most modern processors 
 	- Main Memory 
 		- 10x slower, 2000x bigger, 20x cheaper than L2. Shared among multiple
 		processors. 
 	- SSDs
-		- 10x slower, 100x bigger, 20x cheaper than memory 
+		- 10x slower than Main Memory, 100x bigger, 20x cheaper than memory 
 	- disk dirves 
-		- 10x slower, 5x bigger, 5x cheaper than RAM 
+		- 10x slower than SSDs, 5x bigger, 5x cheaper than RAM 
 - Caching concepts 
 	- Cache line - fundamental unit of cache (line size is a power of 2)
 	- Inclusive / exclusive: 
@@ -244,121 +262,122 @@ different architectures for memory and cache architectures.
 		- Exclusive - data in L1 cannot be in L2 
 	- Associativity - number of locations a cache block can go into 
 	- Unified - shared among multiple cores 
-- Based on this hierarchy, different memory access patterns can result in
+
+Based on this hierarchy, different memory access patterns can result in
 drastically different performance for the same computation. In parallel
-programming we want to use all the data in a cache line and if the program is
-referencing the data in the cache more than once. 
-	- Accessing a single cache requires loading the entire line. 
-- Memory terms
-	- Aligned - access range starts / ends on cache line boundaries 
-	- Sequential - a continuous range of bytes 
-	- Coalesced - uses all associated regions of memory. 
+programming we want to use all the data in a cache line since accessing 
+a single cache requires loading the entire line. 
+
+When dealing with memory we describe memory ranges as:
+- Aligned - access range starts / ends on cache line boundaries 
+- Sequential - a continuous range of bytes 
+- Coalesced - uses all associated regions of memory. 
 
 ## OS Abstractions
-- A task is a sequence of instructions that operate as a group. 
-- Unit of Execution (UE) is the execution context for a task
-- Preprocessing element (PE): the hardware element that runs the UE
-- A process is the operating system's abstraction for a running program. 
-	- A process provides the illusion that the program is the only one running 
-	on the system. 
-	- Each process appears to have exclusive use of the hardware and execute
-	instructions one after another without interruption. 
-	- Processes do not share memory. 
-	- The process abstraction allows for multiple serial programs to run
-	concurrently and in parallel. 
-- Context switch: how the operating system switches among running processes. 
-- Context: the per-process state maintained by the OS. 
-	- The context is required to suspend and resume processes and includes the
-	program counter, register file, and contents of memory. 
-- Virtual Memory - the memory abstraction processes have. This allows them to
-believe that they have exclusive use of memory. The memory itself contains the
+
+### Processes
+WHen discussing parallel programming, a __task__ is a sequence of instructions 
+that operate as a group, a __unit of execution__ (UE) is the execution context for a task, 
+a __preprocessing element__ (PE) is the hardware element that runs the UE, and a 
+__process__ is the operating system's abstraction for a running program. A process
+provides the illusion that the program is the only thing running on the system - thus each 
+process appears to have exclusive control of hardware and can execute instructions sequenctialy
+without interruption. Additionaly, processes do not share memory. The process abstraction 
+allows for multiple serial programs to run concurrently and in parallel. 
+
+The OS switches between running processes using a __context switch__. Note that a __context__
+is the per-process state maintained by the OS - it is required to suspend and resume
+processes and includes the program counter, register files, and contents of memory. 
+
+Processes have a memory abstraction called __virtual memory__ which allows processes 
+to act as though they have exclusive use of memory. The memory itself contains the
 state of a single program (code, data, stack, heap, mapped memory).
-- We can use processes to create parallel programs
-	- `fork()` creates a copy of the running process 
-	- `exec()` loads a new program into the process. 
-	- A parallel implementation using process would esentially fork multiple 
-	times and execute the same process on each fork. The OS assigns the 
-	processes to different cores. 
-- Properties of multi process programs 
-	- Processes have no shared state
-		- Applications that need to share state must do so explicitly using
-		inter-process communication. These interfaces are generally clunky. 
-	- No shared state means no dependencies - theis makes parallelizing easier
-	using a message passing architecture. 
-	- Multiprocess programs are generally the simplest parallel programs. 
-- A thread is a concurrent execution unit within a process. 
-	- Unlike a process, threads can share memory. 
-	- Threads have a more lightweight context (thread ID, stack, and registers). 
-	- They share the heap and libraries and can share data using shared memory. 
-- Every process has at least one thread. 
-- Simultaneous multithreading - run multiple threads on each core each cycle. 
-- Hyperthreading - processor and OS advertise two threads per core. 
-- Threading can greatly increase performance - as much as linear speedup with
-each core. Other benefits are more incremental
-	- Simultaneous multi threading can improve speedup by 15-30%
-	- Threading can overlap cache stalls with the execution of other threads 
-	- Can decrease cycles per instruction for some workloads. 
-- Properties of multi thread programs 
-	- Shared variables
-	- Easy to communicate between threads
-	- Hidden dependencies may be hard to debug
-	- Can be abstracted using object oriented programming. 
-- Threads in Java
-	- Java has a standard interface to handle threads. The Runnable interface 
-	is used to handle the execution and the Thread class handles 
-	multithreading. 
-	- There are multiple ways to implement multithreading but the easiest (and
-	preferable) way is to implement Runnable and wrap it in a thread. 
-	- When we run a thread we should call join() on it to wait for it to 
-	finish. 
-	- In Java threading we may need to read / write to shared variables.
-	Uncontrolled sharing can lead to unpredictable outcomes and race 
-	conditions. 
-		- Atomic - in transactions either all actions happen or none happens. 
-		- Synchronize - a block that's only accessed by one thread at a time. 
-		- volatile - a variable that is guaranteed to have memory synchronized 
-		on each access. 
+
+We can use processes to create parallel programs using the `fork()` and `exec()` commands. 
+- `fork()` creates a copy of the running process 
+- `exec()` loads a new program into the process. 
+
+A parallel implementation using process would esentially fork multiple 
+times and execute the same process on each fork. The OS assigns the 
+processes to different cores. 
+
+Multi-process programs have no shared state. Applications that need to share state must
+do so explicitly using inter-process communication. These interfaces are generally clunky. 
+This means that multiprocess programs have no implicit dependencies which makes parallization
+using a message passing architecture like MPI much easier. In general, multiprocess programs
+are the simplest parallel programs. 
+ 
+### Threads
+A __thread__ is a concurrent execution unit within a process. Unlike a process, threads 
+can share memory, the heap, and libraries. Threads also have a more lightweight context 
+(thread ID, stack, and registers) than processes. Every process has at least one thread. 
+
+A process can run multiple threads at a time - this is called simultaneous multithreading. 
+Additionaly, some systems can conduct hyperthreading which is when the processor and OS
+advertises two threads per core. In general, threading can greatly increase performance.
+- Simultaneous multi threading can improve speedup by 15-30%
+- Threading can overlap cache stalls with the execution of other threads 
+- Can decrease cycles per instruction for some workloads. 
+
+Java has a standard interface to handle threads. The Runnable interface 
+is used to handle the execution and the Thread class handles 
+multithreading. There are multiple ways to implement multithreading but the easiest (and
+preferable) way is to implement Runnable and wrap it in a thread. When we run a thread we 
+should call join() on it to wait for it to finish. 
+
+In Java threading we may need to read / write to shared variables.
+Uncontrolled sharing can lead to unpredictable outcomes and race 
+conditions. Java introducees some keyword tags to prevent race conditions.
+	- `atomic`{.java} - in transactions either all actions happen or none happens. 
+	- `synchronize`{.java} - a block that's only accessed by one thread at a time. 
+	- `volatile`{.java} - a variable that is guaranteed to have memory synchronized 
+	on each access. 
 
 ## Synchronization 
-- Synchronization is the process of preventing multiple UEs from accessing the 
-same resources at once - ie preventing race conditions. 
-- Synchronization properties:
-	- Mutual exclusion - the property that only one UE can access a shared 
-	resource at a time. 
-	- Deadlock freedom - the property that at least one UE will eventually be
-	able to access the resource. Ie the UEs won't get stuck waiting on the 
-	resource forever. 
-	- Starvation freedom - the property that a UE won't be forever locked out
-	from using the resource. Ie if a UE wants to use a resource it will 
-	eventually be able to use the resource. 
+Synchronization is the process of preventing multiple UEs from accessing the 
+same resources at once - ie preventing race conditions. Synchronization aims to
+maintain three major propertise:
+- Mutual exclusion - the property that only one UE can access a shared 
+resource at a time. 
+- Deadlock freedom - the property that at least one UE will eventually be
+able to access the resource. Ie the UEs won't get stuck waiting on the 
+resource forever. 
+- Starvation freedom - the property that a UE won't be forever locked out
+from using the resource. Ie if a UE wants to use a resource it will 
+eventually be able to use the resource. 
+
+When discussing communication between processes we deal with two types of communicaton:
 - Transient communication - a form of communication that requires both parties
 to communicate at the same time. Ex: talking on the phone, shouting from a 
 distance, etc. 
 - Persistent communication - a form of communication that allows both parties 
 to communicate at different times. Ex: writing notes, raising flags, etc.
-- We can characterize concurrency with two properties
+
+We can characterize concurrency with two properties
 	- Safety (correctness) - what are the semantic guarantees expressed by a 
 	locking protocol under concurrent execution. 
 	- Liveness - how can the execution of one thread by delayed by other threads 
-- Locks - A lock is a "lock" or hold on a resource. There are a few ways a 
+
+A lock is a "lock" or hold on a resource. There are a few ways a 
 parallel program can implement locks. 
-	- Spinlock - a lock which causes the thread trying to acquire it to wait in a
-	loop (spin) while checking to see if the lock is available. 
-		- Spinlocks are generally used in OS, but not so great for parallel processes. 
-		- When the lock is freed, all the other UEs will try to acquire it - 
-		performance may vary. 
-	- Ticket lock - a lock that uses a FIFO ticket system (like the DMV) to 
-	control which thread can access resources. 
-		- There is some queue of threads waiting to access a critical section. 
-		- There is a variable queue_len which keeps track of the number of 
-		threads in the queue. 
-		- When a thread enters the queue, it sets `thread.ticket = queue_len` 
-		and increments queue_len (`queue_len++`). 
-		- When a thread leaves the critical section it returns `dequeue =
-		thread.ticket++`. Every other thread checks to see if `thread.ticket =
-		dequeue`. If so, that thread can now enter the critical section. 
-		- Ticket lock is FIFO, mutually exclusive, and deadlock free. 
-- Semaphore - a variable used to control access to a shared resource. 
+- Spinlock - a lock which causes the thread trying to acquire it to wait in a
+loop (spin) while checking to see if the lock is available. 
+	- Spinlocks are generally used in OS, but not so great for parallel processes. 
+	- When the lock is freed, all the other UEs will try to acquire it - 
+	performance may vary. 
+- Ticket lock - a lock that uses a FIFO ticket system (like the DMV) to 
+control which thread can access resources. 
+	- There is some queue of threads waiting to access a critical section. 
+	- There is a variable queue_len which keeps track of the number of 
+	threads in the queue. 
+	- When a thread enters the queue, it sets `thread.ticket = queue_len` 
+	and increments queue_len (`queue_len++`). 
+	- When a thread leaves the critical section it returns `dequeue =
+	thread.ticket++`. Every other thread checks to see if `thread.ticket =
+	dequeue`. If so, that thread can now enter the critical section. 
+	- Ticket lock is FIFO, mutually exclusive, and deadlock free. 
+
+A semaphore is a variable used to control access to a shared resource. 
 Semaphores are usually implemented in operating systems. These are especially
 useful when more than one process can access the resource -
 
@@ -370,135 +389,141 @@ critical section
 up(s)
 ```
 
-- Synchronization algorithms:
-	- Peterson's algorithm 
+### Synchronization Algorithms
+There have been a few different algorithms that have been developed to control
+access to critical sections / resources. 
 
-	```
-	// process 0
-	b[0] = true 
-	victim = 0
-	await (b[1] = false or victim = 1);
-	critical section 
-	b[0] = false
+__Peterson's algorithm__
 
-	// process 1
-	b[1] = true
-	victim = 1
-	await (b[0] = false or victim = 0)
-	critical section 
-	b[1] = false
-	```
+This is perhaps the simplest of the synchronizations algorithms. 
 
-	- b[x] indicates process x wants to enter the critical section. 
-	- Write to victim indicates who got there first
-	- This algorithm is mutually exclusive, starvation resistant, contention 
-	free, and has arbitrary wait. It lasso requires atomic registers. 
-	- This algorithm requires busy waiting - eg the await construct. This is a 
-	good construct when there are many processes, there's no othe ruseful work 
-	to do, or wait times are very short. The alternative is to sleep / restart. This is usually implemented by hardware interrupts and has more overhead. 
-	- Lamport's algorithm scales mutual exclusion to n processes
+```
+// process 0
+b[0] = true 
+victim = 0
+await (b[1] = false or victim = 1);
+critical section 
+b[0] = false
 
-	```
-	start: 
-	b[i] = true;
-	x = i
-	if y != 0
-		b[i] = false 
-		await y == 0
-		goto start
-	y = i
-	if x != i
-		b[i] = false
-		for j = 1 ... n:
-			await b[j] = false
-		if y != i 
-			await y = 0
-			goto start
-	critical section 
-	y = 0
+// process 1
+b[1] = true
+victim = 1
+await (b[0] = false or victim = 0)
+critical section 
+b[1] = false
+```
+
+- b[x] indicates process x wants to enter the critical section. 
+- Write to victim indicates who got there first
+- This algorithm is mutually exclusive, starvation resistant, contention 
+free, and has arbitrary wait. It lasso requires atomic registers. 
+- This algorithm requires busy waiting - eg the await construct. This is a 
+good construct when there are many processes, there's no othe ruseful work 
+to do, or wait times are very short. The alternative is to sleep / restart. This is usually implemented by hardware interrupts and has more overhead. 
+
+__Lamport's Algorithm__
+
+This algorithm scales mutual exclusion to n processes
+
+```
+start: 
+b[i] = true;
+x = i
+if y != 0
+	b[i] = false 
+	await y == 0
+	goto start
+y = i
+if x != i
 	b[i] = false
-	```
+	for j = 1 ... n:
+		await b[j] = false
+	if y != i 
+		await y = 0
+		goto start
+critical section 
+y = 0
+b[i] = false
+```
 
-	- This algorithm has fast MutEx properties. However, starvatio nis 
-	possible since the wait time is unbounded. 
-	- Peterson and Lamport's algorithms are too simple to be used in practice but
-	demonstrate fundamental trade-offs in synchronization. Space vs speed vs
-	fairness. 
-	- Both of these algorithms require atomic registers which are not available in
-	distributed memory machines. 
-	- Lampart's bakery algorithm is an algorithm meant to improve saftey in the
-	usage of shared resources among mutual threads using mutual exclusion. 
-		- Lamport envisioned a bakery with a numbering machine at its entrance 
-		so each customer is given a unique number. Numbers increase by one as 
-		customers enter the store. A global counter displays the number of the 
-		customer that is currently being served. All other customers must wait 
-		in a queue until the baker finishes serving the current customer and 
-		the next number is displayed. When the customer is done shopping and 
-		has disposed of his or her number, the clerk increments the number, 
-		allowing the next customer to be served. That customer must draw 
-		another number from the numbering machine in order to shop again.
-		- According to the analogy, the "customers" are threads, identified by 
-		the letter i, obtained from a global variable.
-		- Due to the limitations of computer architecture, some parts of 
-		Lamport's analogy need slight modification. It is possible that more 
-		than one thread will get the same number n when they request it; this 
-		cannot be avoided. Therefore, it is assumed that the thread identifier 
-		i is also a priority. A lower value of i means a higher priority and 
-		threads with higher priority will enter the critical section first.
-	- The Bakery algorithm is FIFO and satisfies mutual exclusion. 
-	- The bakery algorithm is not fast. 
-- Common atomic operations
-	- Read, write, test-and-set, swap, fetch and add, read-modify-write,
-	compare-and-swap
+- This algorithm has fast MutEx properties. However, starvatio nis 
+possible since the wait time is unbounded. 
+
+Peterson and Lamport's algorithms are too simple to be used in practice but
+demonstrate fundamental trade-offs in synchronization. Space vs speed vs
+fairness. Both of these algorithms require atomic registers which are not available in
+distributed memory machines. 
+
+__Bakery Algorithm__
+
+Lampart's bakery algorithm is an algorithm meant to improve saftey in the
+usage of shared resources among mutual threads using mutual exclusion. 
+- Lamport envisioned a bakery with a numbering machine at its entrance 
+so each customer is given a unique number. Numbers increase by one as 
+customers enter the store. A global counter displays the number of the 
+customer that is currently being served. All other customers must wait 
+in a queue until the baker finishes serving the current customer and 
+the next number is displayed. When the customer is done shopping and 
+has disposed of his or her number, the clerk increments the number, 
+allowing the next customer to be served. That customer must draw 
+another number from the numbering machine in order to shop again.
+- According to the analogy, the "customers" are threads, identified by 
+the letter i, obtained from a global variable.
+- Due to the limitations of computer architecture, some parts of 
+Lamport's analogy need slight modification. It is possible that more 
+than one thread will get the same number n when they request it; this 
+cannot be avoided. Therefore, it is assumed that the thread identifier 
+i is also a priority. A lower value of i means a higher priority and 
+threads with higher priority will enter the critical section first.
+- The Bakery algorithm is FIFO and satisfies mutual exclusion. 
+- The bakery algorithm is not fast. 
+
 - Barrier - a software implementation to synchronize processes on 
 asynchronous hardware. 
 
 ## Multiprocessing and Message Passing
-- Clusters and multi-process programs with no shared state sometimes need to 
-communicate with each other. 
-	- SPMD model (single program, multiple data), master / slave, loop 
-	parallelism
-- MPI is the "assembly language of parallel programming" - it is a message 
+Clusters and multi-process programs with no shared state sometimes need to 
+communicate with each other. These programs typically work off of the SIMD 
+model. MPI is the "assembly language of parallel programming" - it is a message 
 passing interface with support for C++ and Fortran. It is used to send and 
 receive messages across processes. 
-- When writing message passing protocols it's important to avoid potential 
-deadlocks. 
-	- Synchronous - the caller waits for the message to be delivered prior 
-	to returning. This is the fallback mode for MPI messaging. 
-	- deadlocks are cycles in a dependency graph. 
-	- the easiest way to avoid deadlocks is to either synchronize message 
-	passing, avoid cyclic message passing, or both. We generally synchronize
-	message passing between pairs of processes. 
-	- MPI has the option for non-blocking send/recv, but they are generally
-	more complex than we need. Runtime is trying to do this anyways. 
-	- we can also create a barrier explicitly in MPI to synchronize actions but
-	that creates global stalls. 
+
+MPI is not particularly difficult to use. The interface allows the programmer
+to send data accross process in a general way using send and recv calls. 
+However, when writing message passing protocols it's important to avoid potential 
+deadlocks. \
+When designing these programs we can view the message passing system as a dependency graph 
+(ie how proccesses wait to send / receive messages to / from other processes). Deadlocks 
+can be seen as cycles in the dependency graph. The easiest way to avoid deadlocks is 
+to either synchronize message passing, avoid cyclic message passing, or both. 
+We generally synchronize message passing between pairs of processes. We can also create 
+barriers explicitly in MPI to synchronize actions but that creates global stalls. 
 
 ### IO and Checkpointing
 
-- In large scale programs, failures are inevitable. When writing MPI programs we 
+In large scale programs, failures are inevitable. When writing MPI programs we 
 often want to write some method for recovering from failure (since otherwise a failure 
-would break the program). 
-- Checkpointing is a technique to add fault tolerance into computing systems. 
-It basically consists of saving a snapshot of the application's state, so that 
-it can restart from that point in case of failure. 
-- Checkpointing requires that we do some I/O - but I/O can take a long time. 
-- We find that if startup costs are amortized, writing more small files is 
-better than writing fewer large files. 
+would break the program). __Checkpointing__ is a technique to add fault tolerance 
+into computing systems. It basically consists of saving a snapshot of the application's 
+state, so that it can restart from that point in case of failure. 
+
+Checkpointing requires that we do some I/O - but I/O can take a long time. We find that 
+if startup costs are amortized, writing more small files is better than writing fewer large files. 
 
 # Map / Reduce
 
 ## Fundamentals of Map Reduce
-- The MapReduce framework is a parallel programming model based off of Lisp
-(a functional programming language). 
-- In Lisp A map takes an input function and some values and applies the
-function to each value. A reduce combines all of the elements of a sequence
-using a binary operator. 
-- In Parallel Programming a map takes an input pair and produces a set of 
-intermediate key / value pairs. The reduce function takes an input key (from
-the map function) and a set of values for that key and merges them into some
-smaller solution space. 
-- For example we can count the number of occurrences of a word in a string 
+The Map Reduce framework is a parallel programming model based off of Lisp
+(a functional programming language). In Lisp A map takes an input function 
+and some values and applies the function to each value. A reduce combines 
+all of the elements of a sequence using a binary operator. 
+
+In our applications, map and reduce are functions that work to accomplish a specific
+task. A map takes an input pair and produces a set of intermediate key / value pairs. 
+The reduce function takes an input key (from the map function) and a set of values 
+for that key and merges them into some smaller solution space. 
+
+For example we can count the number of occurrences of a word in a string 
 using MapReduce
 
 ```
@@ -513,84 +538,90 @@ reduce(String key, Iterator values):
 	return result 
 ```
 
-- We can parallelize this model by splitting the input data into M "shards" 
+We can parallelize this model by splitting the input data into M "shards" 
 each of which can be processed on different, parallel machines. This 
-essentially parallelizes the map phase. 
-- We can partition the reduce function by splitting the intermediate map into R
-shards and processing those on different machiens. 
-- This process is overseen by a master thread which manages the partitioning 
-of tasks. 
+essentially parallelizes the map phase. We can partition the reduce 
+function by splitting the intermediate map into R shards and processing 
+those on different machiens. This process is overseen by a master thread 
+which manages the partitioning of tasks. 
 
 ## Applications of Map Reduce
 
 ### Hadoop
-- Hadoop is a map-reduce implementation maintained by Apache. It handles the 
+Hadoop is a map-reduce implementation maintained by Apache. It handles the 
 entire streaming logic and requires the programmer to only impliment the map-reduce
 logic. It has language support in Java and can be implimented as a streaming client
-with Python. 
-- In addition to the mapper and reducer processes, Hadoop introduces three other 
+with Python. In addition to the mapper and reducer processes, Hadoop introduces three other 
 important components:
-	- Shuffle: The process of routing mapper outputs to the reducers
-	- Combiner: An optional reducer-like process that runs on the mapper
-	nodes. The combiner performs an early reduction on the mapper output
-	which makes input to the shuffle smaller and reduces data handling. 
-	Combiners are typically used to pre-compute aggregates (ie word 
-	counts) or extra (finding max  /min associated with a key).
-	- Partition: The partition of data associated with a parallel 
-	execution unit. The output partition is the part of the result
-	written by each reducing process. Within a given partition the
-	intermediate key-value pairs are processed in increasing key order.
+- Shuffle: The process of routing mapper outputs to the reducers
+- Combiner: An optional reducer-like process that runs on the mapper
+nodes. The combiner performs an early reduction on the mapper output
+which makes input to the shuffle smaller and reduces data handling. 
+Combiners are typically used to pre-compute aggregates (ie word 
+counts) or extra (finding max  /min associated with a key).
+- Partition: The partition of data associated with a parallel 
+execution unit. The output partition is the part of the result
+written by each reducing process. Within a given partition the
+intermediate key-value pairs are processed in increasing key order.
 
 ### Google File System (HDFS)
-- Files are divided into fixed-size chunks of 64 megabytes, similar to 
+Files are divided into fixed-size chunks of 64 megabytes, similar to 
 clusters or sectors in regular file systems, which are only extremely 
 rarely overwritten, or shrunk; files are usually appended to or read. 
-- A GFS cluster consists of multiple nodes. These nodes are divided into 
+A GFS cluster consists of multiple nodes. These nodes are divided into 
 two types: one Master node and a large number of Chunkservers. 
-- Each file is divided into fixed-size chunks which are stored in the chunk
+Each file is divided into fixed-size chunks which are stored in the chunk
 servers. Each chunk is assigned a unique 64-bit label by the master node 
 at the time of creation, and logical mappings of files to constituent 
 chunks are maintained. Each chunk is replicated several times throughout 
 the network. 
-- The Master server does not usually store the actual chunks, but rather 
+The Master server does not usually store the actual chunks, but rather 
 all the metadata associated with the chunks. All this metadata is kept 
 current  by the Master server periodically receiving updates from each 
-chunk server.
-- Permissions for modifications are handled by a system of time-limited,
+chunk server.\
+Permissions for modifications are handled by a system of time-limited,
 expiring "leases", where the Master server grants permission to a process 
 for a finite period of time during which no other process will be granted 
 permission by the Master server to modify the chunk. The modifying 
 chunkserver, which is always the primary chunk holder, then propagates the 
 changes to the chunkservers with the backup copies. The changes are not 
 saved until all chunkservers acknowledge, thus guaranteeing the completion 
-and atomicity of the operation.
-- Programs access the chunks by first querying the Master server for the
+and atomicity of the operation.\
+Programs access the chunks by first querying the Master server for the
 locations of the desired chunks. If the chunks are not being operated on, 
 the Master replies with the locations, and the program then contacts and 
 receives the data from the chunkserver directly.
-- Unlike most other file systems, GFS is not implemented in the kernel of 
+Unlike most other file systems, GFS is not implemented in the kernel of 
 an operating system, but is instead provided as a userspace library.
 
 ### Spark - Resilient Distributed Datasets
-- A resilient Distributed Dataset (RDD) is a data abstraction used to performm 
+Spark is a framework run on top of Hadoop that uses resilient distributed datasets
+to handle big data problems in the Map Reduce framework. Specifically Spark is used
+to efficiently handle iterative map reduce algorithms that need to access data 
+multiple times. These types of applications are notoriously inefficeint on standard
+Map Reduce, but Spark can increase the efficiency by orders of magnitude. 
+
+A __resilient distributed dataset__ (RDD) is a data abstraction used to performm 
 in-memory computations on large clusters. Specifically, the RDD abstarction is 
 an immutable, distribution of data that can be stored on memory or in a cluster
 that can be operated on in parallel with a low level API that provides specific
 transformations and actions. 
-- A transformation is a function that converts an RDD to another RDD (ie 
-transforms the RDD). An action returns some value based to the application 
-or user. 
-	- `RDD.transformation() -> RDD'`
-	- `RDD.action() -> SEQ`
-- RDDs are not necessarily stored in storage in their entirety. Rather an RDD
+
+Spark provides two means of interacting with RDDs.
+A transformation is a function that converts an RDD to another RDD (ie 
+transforms the RDD). An action returns some value (called a sequence) based on 
+the application or user. 
+- `RDD.transformation() -> RDD'`
+- `RDD.action() -> SEQ`
+
+RDDs are not necessarily stored in storage in their entirety. Rather an RDD
 maintains the pipeline of transformations that can be used to reconstruct the
 RDD from stable data storage. We can make an RDD persist in memory by calling 
-the `persist()` function. 
-	- For this reason, RDDs are described as "lazily initialized" in that they 
-	only store the information required to compute them from data stored in memory
-	instead of being computed directly. 
-	- This is also seen as a pipeline processing as computing the RDD from stored
-	lineage can be seen as processing a pipeline of transformations. 
+the `persist()` function. For this reason, RDDs are described as "lazily initialized" 
+in that they only store the information required to compute them from data stored in memory
+instead of being computed directly. This is also seen as a pipeline processing 
+as computing the RDD from stored lineage can be seen as processing a pipeline of 
+transformations. 
 - Transformations include:
 	- map(f: T -> U)
 	- filter(f: T -> bool)
@@ -605,27 +636,30 @@ the `persist()` function.
 	- reduce(f: (T, T) -> T)
 	- lookup(k : K)
 	- save(path : String)
-- RDDs are stored in a distributed way - the RDD is split and each section (or
+
+RDDs are stored in a distributed way - the RDD is split and each section (or
 partition) is stored on a specific node in the cluster. Spark has two major 
 partitioning schemes:
-	- Range partitioning: partition RDD by key value. Assign specific range of
-	key values to partition and split RDD by key. Fetching c contiguous items from
-	a range partitioned RDD takes $O(log N)$ time. 
-	- Hash partitioning: partition RDD by hash value. For key k with N partitions
-	assign k to $H(k) % N$. Fetching c contiguous items from a hash partitioned RDD
-	takes $O(c)$ time. 
-	- Hash partitioning is better for load balancing and is the default partitioning
-	scheme. 
-- RDDs store a lineage of how they were computed from base data. So on failure, 
-we identify partitions of the RDD that have failed, and recompute the failed 
-partitions in parallel using Spark. This does not require more costly measures
-seen in other memory models
-	- Checkpoint: save required memory in persistent storage sufficient to 
-	restart the computation 
-	- Restart: restart computation from a checkpoint
-	- Rollback: undo changes made to memory associated with computations that
-	have failed or did not complete.
-- Distributed shared memory (DSM) is the standard distributed memory model 
+- Range partitioning: partition RDD by key value. Assign specific range of
+key values to partition and split RDD by key. Fetching c contiguous items from
+a range partitioned RDD takes $O(log N)$ time. 
+- Hash partitioning: partition RDD by hash value. For key k with N partitions
+assign k to $H(k) % N$. Fetching c contiguous items from a hash partitioned RDD
+takes $O(c)$ time. 
+- Hash partitioning is better for load balancing and is the default partitioning
+scheme. 
+
+Since RDDs store a lineage of how they were computed from base data, on failure, 
+we can identify partitions of the RDD that have failed, and recompute the failed 
+partitions in parallel using Spark. This is much more efficient than other memory 
+models which require more costly recovery procedures. 
+- Checkpoint: save required memory in persistent storage sufficient to 
+restart the computation 
+- Restart: restart computation from a checkpoint
+- Rollback: undo changes made to memory associated with computations that
+have failed or did not complete.
+
+Distributed shared memory (DSM) is the standard distributed memory model 
 in a cluster. The DSM model allows for memory reads and write to all 
 addresses in a global address space whereas RDD "writes" can only be done 
 through coarse transformation. This means RDDs are only 
@@ -638,31 +672,27 @@ tasks which is harder to do on a DSM where we'd have to worry about memory
 access. 
 
 ### Pig and Hive 
-- Pig is a platform for analyzing large data sets that consists of a high-level language for expressing data analysis programs, coupled with infrastructure for evaluating these programs. The salient property of Pig programs is that their structure is amenable to substantial parallelization, which in turns enables them to handle very large data sets.
-- The Pig data model consists of atoms (simple values), tuples (sequences of values), bags (multisets with duplicates), and maps. 
-- Every Pig program is compiled to several MR programs and run on Hadoop. 
-- Hive is a Data Warehousing package that is constructed on top of Hadoop for analyzing huge amounts of data. Hive is essentially a SQL like system for MR. 
+Pig is a platform for analyzing large data sets that consists of a high-level language for expressing data analysis programs, coupled with infrastructure for evaluating these programs. The salient property of Pig programs is that their structure is amenable to substantial parallelization, which in turns enables them to handle very large data sets. The Pig data model consists of atoms (simple values), tuples (sequences of values), bags (multisets with duplicates), and maps. Every Pig program is compiled to several MR programs and run on Hadoop. 
+
+Hive is a Data Warehousing package that is constructed on top of Hadoop for analyzing huge amounts of data. Hive is essentially a SQL like system for MR. 
 
 # GPU Programming
-- A Graphics Processing Unit (GPU) is a specialized peive of hardware for rendering 3D graphics. GPUs are essentially an extremely parallel proceser which is designed to render vertices and pixels in parallel. GPUs are programmable and aren't limited to graphical applications. Recently GPUs have been used in bitcoin mining rigs and machine learning applications. 
-- GPUs are designed for math intensive parallel problems so they have more transistors dedicated to ALU (arithmetic logic units) than flow control and data cache. This means that GPUs can be extremely efficient for parallelization but the programs must be more predictable in regards to data access coherency and program flow. 
+A __Graphics Processing Unit__ (GPU) is a specialized peive of hardware for rendering 3D graphics. GPUs are essentially an extremely parallel proceser which is designed to render vertices and pixels in parallel. GPUs are programmable and aren't limited to graphical applications. Recently GPUs have been used in bitcoin mining rigs and machine learning applications. GPUs are designed for math intensive parallel problems so they have more transistors dedicated to ALU (arithmetic logic units) than flow control and data cache. This means that GPUs can be extremely efficient for parallelization but the programs must be more predictable in regards to data access coherency and program flow. 
 
 ## CUDA
-- Compute Unified Device Architecture (CUDA) is a way to perform computations on the GPU. It has specification for a computer architecture, a language, and an API. 
-- A CUDA device is a highly parallel processor which can execute many hunderds of threads in parallel. (Thread to stream ration > 1). When writing CUDA software we think in terms of threads instead of processes. The startup and context switching costs per thread are very low. 
-- The CUDA programming model uses a data decomposition approach. The grid is the data domain (1D, 2D, or 3D) and is decomposed into thread blocks. A thread block is decomposed into threads. Thread blocks and threads are given unique identifiers which are used by the kernel to identify which part of a problem to work on. 
-	- Grids and thread blocks are abstracted as 1, 2, or 3D groupings. A grid may be a 2D representation of thread blocks and each thread block may be a 1D group of threads. 
+__Compute Unified Device Architecture__ (CUDA) is a system released by NVIDIA to perform computations on the GPU. It has specification for a computer architecture, a language, and an API. A CUDA device is a highly parallel processor which can execute many hunderds of threads in parallel. (Thread to stream ration > 1). When writing CUDA software we think in terms of threads instead of processes. The startup and context switching costs per thread are very low. 
+
+The CUDA programming model uses a data decomposition approach. The grid is the data domain (1D, 2D, or 3D) and is decomposed into thread blocks. A thread block is decomposed into threads. Thread blocks and threads are given unique identifiers which are used by the kernel to identify which part of a problem to work on. 
 
 ![](src/cuda-memory.png){width=400px}
 
-- A kernel is a program that processes a single data element. A thread runs the kernel on a data element. 
-- A thread block contains a multiple of 32 threads and may have up to 512 threads. All threads in a thread block time are run on the same multi-processor. This allows threads in a thread block to communicate via shared memory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. 
-- Warps are the fundamental scheduling unit of the processor. They are groups  or 32 threads that are dispatched two at a time to 16 processors each. Each warp forms a SIMD group. 
-- All parts of the processor has read access to constant memory and texture memory and read/write access to global memory. Individual multiprocessors have read/write access to shared memory, and individual threads have private read/write access to local memory and registers. 
+A __thread block__ contains a multiple of 32 threads and may have up to 512 threads. All threads in a thread block time are run on the same multi-processor. This allows threads in a thread block to communicate via shared memory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. __Warps__ are the fundamental scheduling unit of the processor. They are groups of 32 threads that are dispatched two at a time to 16 processors each. Each warp forms a SIMD group. A __kernel__ is a function that processes a single data element. 
+
+All parts of the processor has read access to constant memory and texture memory and read/write access to global memory. Individual multiprocessors have read/write access to shared memory, and individual threads have private read/write access to local memory and registers. 
 
 ### CUDA Language
 
-- The CUDA language is similar to C/C++, however CUDA cannot use C/C++ runtime library functions. Rather there are device specific functions in CUDA. 
+We program CUDA devices using the CUDA language, which is similar to C/C++. However CUDA cannot use C/C++ runtime library functions. Rather there are device specific functions in CUDA. 
 - There is no stack on CUDA. All function calls are inlined and all local variables and function calls are stored in registers. Therefore, there is no recursion or function pointers. 
 - Declspecs (declaration specifier / declaration qualifier) are modifiers applied to declarations of variables and functions (`const`{.c}, `extern`{.c}, `static`{.c} are examples in C).  CUDA has custom dualspecs for functions and variables. Note that here "device" refers to the GPU and host refers to the GPU. So a `__global__` function is called from the host and executed on the device. 
 	- `__device__` declares s function that is compiled to and executes on the device and can only be called from the device. 
@@ -724,55 +754,54 @@ int main() {
 }
 ```
 
-- We can use CUDA to greatly speed up this process. 
-- Modifications
-	- We need to convert the `add` function into a CUDA kernel by adding the `__global__` dualspec. 
+We can use CUDA to greatly speed up this process. 
+- We need to convert the `add` function into a CUDA kernel by adding the `__global__` dualspec. 
 
-	```C++
-	__global__
-	void add(int n, float *x, float *y)  { // body }
-	```
+```C++
+__global__
+void add(int n, float *x, float *y)  { // body }
+```
 
-	- We need to allocate the `x` and `y` arrays on CUDA
+- We need to allocate the `x` and `y` arrays on CUDA
 
-	```C++
-	float* x, y;
-	cudaMallocManaged(&x, N*sizeof(float));
-  	cudaMallocManaged(&y, N*sizeof(float));
+```C++
+float* x, y;
+cudaMallocManaged(&x, N*sizeof(float));
+	cudaMallocManaged(&y, N*sizeof(float));
 
-  	// ... 
+	// ... 
 
-  	cudaFree(x);
-  	cudaFree(y);
-	```
+	cudaFree(x);
+	cudaFree(y);
+```
 
-	- We need to use `<<<numBlocks, blockSize>>>` syntax to set the number of blocks and threads to run the kernel on.
+- We need to use `<<<numBlocks, blockSize>>>` syntax to set the number of blocks and threads to run the kernel on.
 
-	```C++
-	int blockSize = 256;
-	int numBlocks = (N + blockSize - 1) / blockSize;
-	add<<<numBlocks, blockSize>>>(x, y);
-	```
+```C++
+int blockSize = 256;
+int numBlocks = (N + blockSize - 1) / blockSize;
+add<<<numBlocks, blockSize>>>(x, y);
+```
 
-	- We need to block the CPU code until the calls to the kernel finishes
+- We need to block the CPU code until the calls to the kernel finishes
 
-	```C++
-	cudaDeviceSynchronize();
-	```
+```C++
+cudaDeviceSynchronize();
+```
 
-	- As written right now, the `add` kernel will do the same computation on each thread / thread block. We need ot modify the kernel to compute a different section per thread. 
+- As written right now, the `add` kernel will do the same computation on each thread / thread block. We need ot modify the kernel to compute a different section per thread. 
 
-	```C++
-	__global__
-	void add(int n, float *x, float *y) {
-		int index = blockIdx.x * blockDim.x + threadIdx.x;
-		int stride = blockDim.x * gridDim.x;
-		for (int i = index; i < n; i += stride)
-			y[i] = x[i] + y[i];
-	}
-	```
+```C++
+__global__
+void add(int n, float *x, float *y) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
+	for (int i = index; i < n; i += stride)
+		y[i] = x[i] + y[i];
+}
+```
 
-- The program below is a CUDA parallelized version of the program to add two float arrays. 
+The program below is a CUDA parallelized version of the program to add two float arrays. 
 
 ```C++
 #include <iostream>
@@ -825,68 +854,70 @@ int main() {
 ```
 
 ### Parallel Reduction
-- Parallel reduction is a means of reducing a problem into smaller problems that can be executed in parallel. This is done using a tree-based approach used within each thread block or for multiple thread blocks. 
-- Parallel reduction must also be able to use multiple thread blocks to process very large arrays. Each of the thread blocks would reduce a portion of the array. The issue here is figuring out how to communicate partial results between the thread blocks. 
-- Global synchronization would a trivial way of solving this problem. This process is essentially syncing global memory after every block produces its result. Once all blocks reach the synchronization point, continue recursively. 
-- CUDA does not have global synchronization because it's expensive to build hardware for GPUs with global synchronization and global synchronization would force us to use less blocks to avoid deadlocks. 
-- We can get over this by decomposing the computation into multiple kernels. The Kernel launch serves as a global synchronization point. 
-	- Launching a kernel has negligible hardware and software overhead. 
-- The goal of parallel reduction is to reach GPU peak performance. Typically we measure this performance in bandwidth - so we want the GPU to reach peak bandwidth. 
-- Reductions: Here we'll go over reductions for summing all the elements in an array. 
-	- Interleaved Addressing
+__Parallel reduction__ is a means of reducing a problem into smaller problems that can be executed in parallel. This is done using a tree-based approach used within each thread block or for multiple thread blocks. Parallel reduction must be able to use multiple thread blocks to process very large arrays. Each of the thread blocks would reduce a portion of the array. The issue here is figuring out how to communicate partial results between the thread blocks. 
 
-	```C
-	__syncthreads();
-	for (unsigned int s = 1; s < blockDim.x; s*=2) {
-		if (tid % (2*s) == 0) {
-			sdata[tid] += sdata[tid + s]
-		}
-		__synchtreads();
+Global synchronization would a trivial way of solving this problem. This process is essentially syncing global memory after every block produces its result. Once all blocks reach the synchronization point, continue recursively. However, CUDA does not have global synchronization because it's expensive to build hardware for GPUs with global synchronization and global synchronization would force us to use less blocks to avoid deadlocks. 
+We can get over this by decomposing the computation into multiple kernels. The Kernel launch serves as a global synchronization point. Launching a kernel has negligible hardware and software overhead. 
+
+The goal of parallel reduction is to reach GPU peak performance. Typically we measure this performance in bandwidth - so we want the GPU to reach peak bandwidth. 
+
+Here we'll go over reductions for summing all the elements in an array. 
+- Interleaved Addressing
+
+```C
+__syncthreads();
+for (unsigned int s = 1; s < blockDim.x; s*=2) {
+	if (tid % (2*s) == 0) {
+		sdata[tid] += sdata[tid + s]
 	}
-	```
+	__synchtreads();
+}
+```
 
-	![](src/cuda-reduction-1.png){width=400px}
+![](src/cuda-reduction-1.png){width=400px}
 
-		- This introduces a problem of __thread divergence__. This occurs when threads in a single warp need to do different things (ie they diverge). This can lead to a large loss in performance. We want to avoid conditioning on `tid`. 
+This introduces a problem of __thread divergence__. This occurs when threads in a single warp need to do different things (ie they diverge). This can lead to a large loss in performance. We want to avoid conditioning on `tid`. 
 
-	- Interleaved Addressing 2
+- Interleaved Addressing 2
 
-	```C
-	__syncthreads();
-	for (unsigned int s = 1; s < blockDim.x; s*=2) {
-		int index = 2*s*tid;
-		if (index < blockDim.x) {
-			sdata[index] += sdata[index + s];
-		}
-		__syncthreads();
+```C
+__syncthreads();
+for (unsigned int s = 1; s < blockDim.x; s*=2) {
+	int index = 2*s*tid;
+	if (index < blockDim.x) {
+		sdata[index] += sdata[index + s];
 	}
-	```
-
-		- Note that this has much less divergence. However, it suffers from shared memory bank conflicts. 
-	- Sequential Addressing
-
-	```C
 	__syncthreads();
-	for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
-		if (tid < s) {
-			sdata[tid] += sdata[tid + s];
-		}
-		__syncthreads();
+}
+```
+
+Note that this has much less divergence. However, it suffers from shared memory bank conflicts. 
+
+- Sequential Addressing
+
+```C
+__syncthreads();
+for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+	if (tid < s) {
+		sdata[tid] += sdata[tid + s];
 	}
-	```
+	__syncthreads();
+}
+```
 
-	![](src/cuda-reduction-2.png){width=400px}
+![](src/cuda-reduction-2.png){width=400px}
 
-		- This reduction is conflict free but leaves a lot of idle threads which isn't particularly efficient. 
-	- Other reductions include unrolling the loop, computing the first add when loading the data, and invoking multiple adds / threads. 
+This reduction is conflict free but leaves a lot of idle threads which isn't particularly efficient. 
+
+- Other reductions include unrolling the loop, computing the first add when loading the data, and invoking multiple adds / threads. 
 
 # Roofline
-- The emergence of multicore processors and the diversity of implimentations of computing systems has created a need for a more insightful model of computing performance. 
-- Operational intensity: operations per byte of DRAM traffic. Otherwise calculated as 
-$$I = \frac{W}{Q}$$
-where $W$ is the work and $Q$ is the memory traffic. 
-- The Roofline model is an intuitive visual performance model used to provide performance estimates of a given compute kernel or application running on multi-core, many-core, or accelerator processor architectures, by showing inherent hardware limitations, and potential benefit and priority of optimizations. By combining locality, bandwidth, and different parallelization paradigms into a single performance figure, the model can be an effective alternative to assess the quality of attained performance instead of using simple percent-of-peak estimates, as it provides insights on both the implementation and inherent performance limitations.\
-`attainable\ gflops per  sec = = min(peak floating point performance, peak memory bandwidth * operational intensity)` \
+The emergence of multicore processors and the diversity of implimentations of computing systems has created a need for a more insightful model of computing performance. We define __operational intensity__ as operations per byte of DRAM traffic. This is calculated as $I = \frac{W}{Q}$ where $W$ is the work and $Q$ is the memory traffic. 
+
+The __roofline model__ is an intuitive visual performance model used to provide performance estimates of a given compute kernel or application running on multi-core, many-core, or accelerator processor architectures, by showing inherent hardware limitations, and potential benefit and priority of optimizations. By combining locality, bandwidth, and different parallelization paradigms into a single performance figure, the model can be an effective alternative to assess the quality of attained performance instead of using simple percent-of-peak estimates, as it provides insights on both the implementation and inherent performance limitations.
+
+$$performance = min(peak\_floating\_point\_performance, peak\_memory\_bandwidth * operational\_intensity)$$
+
 The Roofline is defined by the peak performance and the peak memory bandwidth.
 - Roofline is an ideal metric. Each process has a roofline and a perfect program would realize the roofline. 
 - Every kernel (or program) has a specific operational intensity - well engineereed kernels have an operational intensity which puts their attainable gfops per second near the roofline. This is a more nuanced view of Amdahl's law. 
