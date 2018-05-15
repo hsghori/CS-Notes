@@ -1196,32 +1196,25 @@ Within the frame context, the sender always inserts a 0 after five consecutive 1
 
 The MAC (Medium Access Control) address is a numerical address associated with a network adapter. The MAC address is unique to the adapter and assigned hierarchically (similarly to IP addresses). 
 
-<table>
-  <tr>
-    <th>MAC</th>
-    <th>IP</th> 
-  </tr>
-  <tr>
-    <td>Hard coded when the adapter is built</td>
-    <td>Configured or learned dynamically</td> 
-  </tr>
-  <tr>
-    <td>Flat name space of 48 bits</td>
-    <td>Hierarchical name space of 32 bits</td> 
-  </tr>
-  <tr>
-  	<td>Like a social security number</td>
-  	<td>Like a postal mailing address</td>
-  </tr>
-  <tr>
-  	<td>Not portable - depends on where the host is attached</td>
-  	<td>Portable and can stay the same as the host moves</td>
-  </tr>
-  <tr>
-  	<td>Used to get packet between interfaces on the same network</td>
-  	<td>Used to get a packet to destination IP</td>
-  </tr>
-</table>
+
+----------------------------------------------------------------------------------------------------------------
+ *MAC*                                					    *IP*           
+-------------                          					   -----------------  
+Hard coded when the adapter is built  					    Configured or learned dynamically              
+                                                  
+
+Flat name space of 48 bits            					    Hierarchical name space of 32 bits        
+                              
+
+Like a social security number         					    Like a postal mailing address  
+
+
+ Not portable - depends on where the host is attached       Portable and can stay the same as the host moves
+
+
+ Used to get packet between interfaces on the same network  Used to get a packet to destination IP
+
+----------------------------------------------------------------------------------------------------------------
 
 L2 routing is handled using MAC addresses instead of IP addresses. THerefore, Ethernet cannot use link state routing or distance vectors because MAC addresses cannot be aggregate like IP addresses. When a packet is sent from a host, the frame's destination MAC address is the MAC address of the "gateway" (the router in the LAN network). The frame is broadcast onto the broadcast link. Once the packet reaches the gateway (ie the destination MAC address matches that of the receiver) the receiver passes the frame into the network layer to be routed via the destination IP address. 
 
