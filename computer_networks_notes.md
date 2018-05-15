@@ -214,9 +214,9 @@ Trivially, these techniques are more efficient than sending requests one at a ti
 
 - $one\ at\ a\ time = 2 * n * RTT$
 - $concurrent\ = 2 * \frac{n}{m} * RTT$ for $m$ connections. 
-- $persistent\ = (n+1) * RTT $
+- $persistent\ = (n+1) * RTT$
 - $pipelined\ = 2 * RTT$ 
-- $pipelined_persistent = 2 * RTT$ (first time), $= RTT$ later. 
+- $pipelined\ persistent = 2 * RTT$ (first time), $= RTT$ later. 
 
 Caching is the process of saving recently accessed resources in an easy to access location. When a client requests a resource for the first time, it saves it in a cache for a specified amount of time. If it request that resource again (within that time bound), the client adds an `if_modified_since <datetime>` tag to the request. The server returns  `not_modified` if the resource hasn't been modified and the resource otherwise. The response will include an `expires` tag which says how long we can safely cache the resource, or a `no_cache` tag which will ignore the cache. This greatly increase the efficiency of retrieving repeated resources since we don't have to waste time downloading resources multiple times. 
 
