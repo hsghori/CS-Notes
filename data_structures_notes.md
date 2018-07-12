@@ -384,15 +384,11 @@ Interfaces
 		            +     -      2     /
 		          /  \     \          /  \
 		         1    2     6        14   5
-		in-order traversal for fully parenthesized in-fix form:
-		(((1+2)*(-6))-(2*(14/5)))
-
-		pre-order traversal generates pre-fix notation:
-		- * + 1 2 - 6 * 2 / 14 5
-
-		post-order traversal generates post-fix notation:
-		1 2 + 6 - * 2 14 5 / * -
-		```
+		     ```
+		- in-order traversal for fully parenthesized in-fix form: $(((1+2)*(-6))-(2*(14/5)))$
+		- pre-order traversal generates pre-fix notation: `- * + 1 2 - 6 * 2 / 14 5`
+		- post-order traversal generates post-fix notation: `1 2 + 6 - * 2 14 5 / * -`
+		
 - AVL Tree
 	- An AVL tree is a binary search tree which must maintain the Height Balance Property
 		- The absolute value of the difference between the heights of any node's children must be less than or equal to one.
@@ -418,43 +414,8 @@ Interfaces
 				- If right-right imbalance, do left rotation
 				- If left-right imbalance, do left then right rotation
 				- If right-left imbalance, do right then left rotation
-```
-	Left-Left Case
-		   z 								   y 
-		 /  \ 								/     \
-		y   T4 		Right Rotate (z) 	   x       z
-	   / \ 			- - - - - - - -> 	  / \     / \
-	  x  T3 							T1  T2   T3  T4
-	 / \
-	T1 T2
 
-	Right-Right Case
-	       z                                    y 
-	      /  \                               /     \
-	     T1   y      Left Rotate(z)         z       x
-	         / \    - - - - - - - ->       / \     / \
-	        T2  x                         T1 T2   T3  T4
-	           / \
-	          T3 T4
-
-	Left-Right Case
-	       z                                  z                                  x
-	     /  \                               /   \                             /     \
-	    y   T4       Left Rotate (y)       x    T4      Right Rotate(z)      y       z
-	   / \          - - - - - - - - ->    / \          - - - - - - - ->     / \     / \
-	  T1  x                              y  T3                             T1 T2   T3 T4
-	     / \                            / \
-	    T2 T3                          T1 T2
-
-	Right-Left Case
-	        z                               z                                     x 
-	       / \                            /   \                                /     \
-	      T1  y      Right Rotate (y)    T1    x        Left Rotate(z)        z       y
-	         / \    - - - - - - - - ->        / \      - - - - - - - ->      / \     / \
-	        x  T4                            T2  y                          T1 T2   T3 T4
-	       / \                                  / \
-	      T2 T3                                T3 T4
-```
+![](src/data-struct/avl-rotation.png)
 
 #### Priority Queue
 - A data structure, similar to a queue which gets objects with maximum priority.

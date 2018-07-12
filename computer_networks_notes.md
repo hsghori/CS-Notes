@@ -975,9 +975,9 @@ However, FQ is significantly more complex to implement that FIFO.
 
 So far we've tried to optimize "fairness". However, that is not always the ideal goal. Routers may also control congestion using rate adjustment and by detecting congestion. 
 
-In the Rate Control Protocol, packets carry "rate field" and routers insert a "fair share" f variable in the packet headers. End hosts then set the sending rate (window size) to f. 
+In the __Rate Control Protocol__, packets carry "rate field" and routers insert a "fair share" f variable in the packet headers. End hosts then set the sending rate (window size) to f. 
 
-Explicit Congestion Notification (ECN) is a process by which routers inform hosts of congestion. Packets have a single bit in their headers which is set by congested routers. If the data packet has that bit set, then ACK has the ECN bit set. Routers can set that bit at different points in the processing phase. The semantics of congestion can work exactly as though the packet was dropped (in terms of TCP congestion control). ECN is useful because it can serve as an early indicator of congestion to avoid delays. ECN can also be used to charge people for congesting the network. 
+__Explicit Congestion Notification (ECN)__ is a process by which routers inform hosts of congestion. Packets have a single bit in their headers which is set by congested routers. If the data packet has that bit set, then ACK has the ECN bit set. Routers can set that bit at different points in the processing phase. The semantics of congestion can work exactly as though the packet was dropped (in terms of TCP congestion control). ECN is useful because it can serve as an early indicator of congestion to avoid delays. ECN can also be used to charge people for congesting the network. 
 
 The switching fabric is a mini network used to transfer packets from the input to output. There are three major ways to switch: 
 

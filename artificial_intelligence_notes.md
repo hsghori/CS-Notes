@@ -4,596 +4,624 @@ author: Haroon Ghori
 geometry: margin=1in
 ---
 
-## Search Problem
+# Search Problem
 
-### Planning Problems / Tree Search 
-- An agent in articial intelligence is an artificial actor in an AI problem.
-- Reflex agents
-	- An agent whose actions are chosen by a specific set of inputs.
-	- A reflex agent is a direct mapping from a set of inputs / memory to a
-	  specific output with no consideration for possible future outcomes.
-	- A reflex agent can be rational if your function is complex enough.
-- Planning agents
-	- A planning agent is an agent that asks "what if".
-	- A planning agent creates a model of the world and how it __would__
-	  respond to actions.
-		- This requires that the agent has a model of the world and some kind
-		  of goal.
-	- Complete planning agent: Finds a way to achieve its goals
-	- Optimal planning agent: Finds the best solution based on a given cost
-	  function.
-	- Planning agent: Comes up with a single complete plan and executes it.
-	- Replanning agent: Comes up with many plans one after the other. (ie
-	  accomplishes smaller goals)
-- Search problem
-	- Getting to a specific goal.
-	- State space: encodes how the world is at a moment in the plan.
-	- Succesor function: models how you think the world works.
-		- Where can i get to immedietly, how can I achieve that, and what
-		  changes
-	- Start state: where we begin
-	- Goal tet: a state that constitutes an end / success
-	- Solution: A sequence of actions which transforms the start stae into the
-	  goal test.
-- Search problems are always models of the world. If we add too many variables
-  the problem becomes unsolvable or not realistically or easily solvable.
-	- World State: actual representation of all variables in the world
-		- Too large
-	- Problem State (Search space): subset of world state variables that are
-	  relevant to the problem
-		- Still very large
-		- Would like to not enumerate the entire search space.
-		- Can make any programatic choice for encodin search space.
-- State space graph - a mathematical representation of a search problem
-	- Nodes are some abstarction of word configuration
-	- Arcs represent successors (results of actions)
-	- Goal test is a set of goal nodes.
-		- Think terminal state in DFA
-	- In a search graph each state occurs only once (regardless of the number
-	  of ways to get to it).
-	- Generally a state space graph is too big to actually build.
-- Search Tree
-	- root : current state
-	- Children are the successor states.
-	- Nodes show states, but they are actually __plans__ to reach that state (a
-	  node in the tree is a path in the graph).
-	- This tree is also too big to feasibly store, so for most problems we
-	  don't actually build the entire tree.
-- Searching with a search tree
-	- When searching with a search tree, the idea is to expand out potential
-	  plans and maintain a "fringe" of partial plans under construction.
-	- We are trying to expand out as few plans as possible.
+## Agents, States, and the Tree Search Algorithm
+An agent in articial intelligence is an artificial actor in an AI problem. In AI
+we are usually defining how some agent interacts with the world around it. Agents can 
+classified broadly into two categories. 
 
-	```
-	def tree_search(problem, strategy): 
-		initiate the search tree using the initial
-			state of problem 
-		do: 
-			get next node based on strategy 
-			if there are no candidates for expansion: 
-				return False 
-			if the node contains a goal state:
-				return the corresponding solution (path from start to node) 
-			else: expand the node and add the resulting nodes to the search tree
-	```
+A __reflex agent__ is an agent whose actions are chosen by a specific set of inputs. 
+A reflex agent is a direct mapping from a set of inputs / memory to a specific output 
+with no consideration for possible future outcomes. The rationality and robustness of 
+a reflex agent's actions depends on the complexity of the mapping - a complex enough 
+function can lead to a very rational agent.  
 
-	- The biggest question is how you explore the fringe nodes.
-		- ie what is `strategy`?
-- __Note that in these search algorithms we are literally searching the search
-  tree itself.__
-- Depth First Search
-	- Strategy is to expand the deepest node (path) first.
-	- We treat the fringe as a stack and push successors onto the fringe in a
-	  defined way (ie always in the same direction order). This allows us to
-	  explore the deepest path first.
+A __planning agent__ is an agent whose actions are chosen by creating a model of the world 
+and inferring how it would respond to specific inputs. These agents have some model of the
+world and a goal. A __complete planning agent__ will always find a way to achieve its
+goal and a __optimal planning agent__ will find the best solution given a cost function. 
 
-	```Python 
-	def depthFirstSearch(problem):
-		visited, stack = set(), Stack()
-	    curr = (problem.getStartState(), [], 0)
-	    while not problem.isGoalState(curr[0]):
-	        (state, steps, cost) = curr
-	        if state not in visited:
-	            visited.add(state)
-	            for suc in problem.getSuccessors(state):
-	                if suc[0] not in visited:
-	                    tmp = steps + [suc[1]]
-	                    suc = (suc[0], tmp, suc[2])
-	                    stack.push(suc)
-	        curr = stack.pop()
-	    return curr[1]
-	```
+Planning agents can be further subclassified into generic planning agents and replanning
+agents. Where a planning agent comes up with a single complete plan and completes it, a
+__replanning agent__ splits its goals into smaller subgoals and comes up with
+plans as it completes the subgoals. 
 
-	- Complete: If there are no cycles - will always find a path.
-	- Optimal: No - will not always find the best path. Will always find the
-	  x-most path if x is the direction we push onto the fringe first.
-	- Time Complexity: Exponential $O(b^m)$ where $m$ is the depth of the tree.
-	- Space Complexity: $O(b * m)$ where $b$ is the branching factor and $m$ is
-	  the depth of the tree.
-- Breadth First Search
-	- Strategy is to expnd the shallowest node (path) first.
-	- Push nodes onto the fringe in order of shallowness.
-	- We treat the fringe as a queue. This allows us to explore the fringe a
-	  layer at a time. 
+Both reflex and planning agents "know" the state of the world. In general the __state space__ 
+is an encoding of "the world" at a moment in time. Agents use this representation to make
+decisions and therefore encoding a complex state space is important to properly solving 
+problems in AI. A __successor function__ models how agents can transition between states. 
+Typically a successor function will define how the state changes given an agent's action
+or some other event in the state. A __goal state__ is a state where the agent has 
+acheived it's goal. 
+
+The __search problem__ is the process of getting to a goal state from a given start state.
+This problem can be reformulated as a graph search problem. We define the __state space
+graph__ as a graph where the vertices are individual states and the edges represent 
+transitions between states. Edge $(x, y)$ means that there exists some action $a$ such that given
+a successor function $f : States,\ Actions) \to \ States$, $f(x, a) = y$.  A __search tree__ is a 
+slightly different representatino of the state space graph where 
+the root is the current state and the children are the successor states. Both state space graphs
+and search trees are too big to feasibly store, but they are useful representations in finding
+a goal state. 
+
+To solve the search problem we use a generic __tree search algorithm__ which can be solved in a 
+few different ways. The main idea is to initialize the search tree with the initial state, and 
+check successor states using some strategy which minimizes the number of states we have to check
+before we reach the goal. 
+
+```
+def tree_search(problem, strategy): 
+	initiate the search tree using the initial state of problem 
+	do: 
+		get next node based on strategy 
+		if there are no candidates for expansion: 
+			return False 
+		if the node contains a goal state:
+			return the corresponding solution (path from start to node) 
+		else: expand the node and add the resulting nodes to the search tree
+```
+
+In these search algorithms we are literally searching the search
+tree itself. Thus we want to choose an optimal strategy to avoid the overhead of 
+building the large search tree. We say that we __expand__ a node when we "get" it based
+on the strategy. We also keep a __fringe__ of nodes which we have collected from previously 
+expanded nodes, but we haven't expanded yet. The strategy involves intelligently picking 
+the next node to expand from the fringe. 
+
+Graph Search is a slight modification of tree search where every time we expand a state, 
+we keep track of the set of states already expanded.
+We expand the search tree node-by-node following tree search, but before expanding a 
+node we check to make sure its state is new. If not new, skip it. This set of expanded 
+nodes is called a __closed set__.
+
+## Uninformed Search Algorithms
+
+### Depth First Search
+Depth First Search (DFS) is a classic graph search algorithm which can be applied towards 
+the search problem. The strategy is to expand the "deepest" node first. Practicaly, we
+treat the fringe as a stack and push successors onto the fringe in a
+defined way (ie always in the same direction order). This allows us to
+explore the deepest path first.
+
+```Python 
+def depthFirstSearch(problem):
+	visited, stack = set(), Stack()
+    curr = (problem.getStartState(), [], 0)
+    while not problem.isGoalState(curr[0]):
+        (state, steps, cost) = curr
+        if state not in visited:
+            visited.add(state)
+            for suc in problem.getSuccessors(state):
+                if suc[0] not in visited:
+                    tmp = steps + [suc[1]]
+                    suc = (suc[0], tmp, suc[2])
+                    stack.push(suc)
+        curr = stack.pop()
+    return curr[1]
+```
+
+------------------------------------------------------------------
+
+Property          | 
+----------        | ----------
+                  |
+Fringe            | Stack 
+                  |
+Complete          | Yes if there are no cycles
+                  |
+Optimal           | No. Will always find the left-most path
+                  |
+Time Complexity   | $O(b^m)$ where $b$ is the branching factor and $m$ is the depth
+                  |
+Space Complexity  | $O(b * m)$ where $b$ is the branching factor and $m$ is the depth of the tree.
+
+-----------------------------------------------------------------
+
+
+We can see that DFS is best if the shallowest goal state is on the "leftmost" 
+side of the search tree. However, it is not optimal if the goal states on the 
+left side of the search tree are deep in the tree or if the goal states are
+on the right side of the search tree. In these cases we can use __iterative
+deepening__ to cut off the DFS search after a specific depth limit and iteratively
+keep increasing the depth limit until a solution has been found. This takes advantage
+of the relatively low space complexity of DFS. 
+
+### Breadth First Search
+Breadth First Search (BFS) is another classic graph search algorithm. The strategy is 
+to expnd the shallowest node (path) first. We treat the stack as a queue and 
+explore the fringe a layer at a time. 
 	
-	```Python 
-	def breadthFirstSearch(problem):
-	    visited, queue = set(), Queue()
-	    curr = (problem.getStartState(), [], 0)
-	    while not problem.isGoalState(curr[0]):
-	        (state, steps, cost) = curr
-	        if state not in visited:
-	            visited.add(state)
-	            for suc in problem.getSuccessors(state):
-	                if suc[0] not in visited:
-	                    tmp = steps + [suc[1]]
-	                    suc = (suc[0], tmp, suc[2])
-	                    queue.push(suc)
-	        curr = queue.pop()
-	    return curr[1]
-	```
+```Python 
+def breadthFirstSearch(problem):
+    visited, queue = set(), Queue()
+    curr = (problem.getStartState(), [], 0)
+    while not problem.isGoalState(curr[0]):
+        (state, steps, cost) = curr
+        if state not in visited:
+            visited.add(state)
+            for suc in problem.getSuccessors(state):
+                if suc[0] not in visited:
+                    tmp = steps + [suc[1]]
+                    suc = (suc[0], tmp, suc[2])
+                    queue.push(suc)
+        curr = queue.pop()
+    return curr[1]
+```
 
-	- Complete: Yes - if a solution exists, BFS must find it.
-	- Optimal: Yes - if the costs are all 1.
-	- Time complexity: Exponential $O(b^s)$ where $s$ is the level of the
-	  shallowest solution.
-	- Space complexity: $O(b^s)$ where $b$ is the branching factor and $s$ is
-	  the depth of the shallowest level.
-- DFS vs BFS
-	- BFS if the solutions are relatively shallow.
-	- DFS if the depth is small compared to the branching factor.
-- Iterative Deepening
-	- Since DFS has a better space complexity than BFS we may want to take
-	  advantage of that.
-	- Run DFS with a depth liimt of 1.
-	- Run DFS with depth limit 2.
-	- Run DFS with depth limit 3.
-	- Keep going until DFS returns solution.
-- Uniform Cost Search
-	- Very similar to BFS but we prioritize by cost instead of depth.
-	- Push nodes (paths) onto the fringe in order of cost (lowest cost first).
-	- We treat the fringe as a prioirity queue (lowest cost --> highest
-	  priority). This allows us to explore the fringe by exploring the cheapest
-	  nodes first.
+------------------------------------------------------------------
+              
+Property          | 
+----------        | ----------
+                  |
+Fringe            | Queue 
+                  |
+Complete          | Yes 
+                  |
+Optimal           | Yes. Only if the transition cost between all states is 1 (unweighted search tree). 
+                  |
+Time Complexity   | $O(b^s)$ where $b$ is the branching factor and $s$ is the level of the shallowest solution.
+                  |
+Space Complexity  | $O(b^s)$ where $b$ is the branching factor and $s$ is the depth of the shallowest level.
 
-	```Python 
-	def uniformCostSearch(problem):
-	    visited, p_queue = set(), PriorityQueue()
-	    curr = (problem.getStartState(), [], 0)
-	    while not problem.isGoalState(curr[0]):
-	        (state, steps, cost) = curr
-	        if state not in visited:
-	            visited.add(state)
-	            for suc in problem.getSuccessors(state):
-	                if suc[0] not in visited:
-	                    tmp = steps + [suc[1]]
-	                    suc = (suc[0], tmp, suc[2] + cost)
-	                    p_queue.push(suc, suc[2])
-	        curr = p_queue.pop()
-	    return curr[1]
-	```
+-----------------------------------------------------------------
 
-	- If the solution costs $C^* $ and arcs cost at least $\epsilon$ then the
-	  effective depth is roughly $c^* / \epsilon$.
-	- Complete: Yes
-	- Optimal: Yes
-	- Time complexity: $O(b^{C^* / \epsilon})$.
-	- Space complexity: $O(b^{C^* / \epsilon})$.
-- The search algorithms we've talked about above have been "uninformed search".
-  That means that they haven't taken into account the direction (in the search
-  treee) where the solution may be. Informed search algorithms use __heuristic
-  function__ to infer the best successors to avoid expanding too much of the
-  search tree.
-- Heuristic - a function that estimates how close a state is to a goal. A
-  heuristic is designed for a particular search problem.
-- Greedy Search - expand the node that you think is closest to a goal state.
-- A* search
-	- Essentially a combination of UCS and Greedy Search.
-	- Push states onto the fringe with $priority = path_cost(state) +
-	  heuristic(state)$. So explore nodes with the lowest estimated heuristic
-	  (closest to goal) AND path cost (cheap to reach).
+DFS and BFS are very similar algorithms but have drasticaly different use cases. 
+We want to use DFS if the depth is small compared to the branching factor (ie if each 
+state doesn't have too many branches) and BFS if the solutions are relatively shallow. 
 
-	```Python 
-	def aStarSearch(problem, heuristic=nullHeuristic):
-	    visited, p_queue = set(), util.PriorityQueue()
-	    curr = (problem.getStartState(), [], 0)
-	    while not problem.isGoalState(curr[0]):
-	        (state, steps, cost) = curr
-	        if state not in visited:
-	            visited.add(state)
-	            for suc in problem.getSuccessors(state):
-	                if suc[0] not in visited:
-	                    tmp = steps + [suc[1]]
-	                    suc = (suc[0], tmp, suc[2] + cost)
-	                    p_queue.push(suc, suc[2] + heuristic(suc[0], problem))
-	        curr = p_queue.pop()
-	    return curr[1]
-	```
+### Uniform Cost Search
+Uniform Cost Search (UCS) is similar to Djikstra's algorithm except it terminates after
+the search algorithm has found a goal state. We push nodes onto the fringe in order 
+of cost (with the lowest cost prioritized first). We treat the fringe as a priority queu
+with lower costs assigned higher priority. 
 
-	- Complete: Yes
-	- Optimal: Yes
-	- Time Complexity: Exponential
-	- Space complexity: Exponential
-- Admissibility
-	- Inadmisible heuristics break optimality by trapping good plans on the
-	  fringe
-	- Admissible heuristics slow down bad plans but never outweigh true costs.
-	- A heuristic $h$ is admissible if: $0 \leq h(n) \leq h^{ * } (n)$ where
-	  $h^{ * } (n)$ is the true cost to the nearest goal.
-	- Proof - Optimality of A*
-		- In a search tree we have two goal states, G (good) and B (bad).
-		- $f(x)$ is the priority of state x.
-		- If B is on the fringe, some ancestor n of G is on the fringe too.
-		- We can say tht n will be expanded before B because
-			- $f(n) \leq f(G)$ because h is admissible
-			- $f(G) \leq f(B)$ because B is suboptimal
-			- $f(G) = c_G + h(G)$, $f(B) = c_B + h(B)$ and $h(G) = h(B) =
-			0$ since h is admissible.
-			- Since B is bad, $c_G \leq c_B$.
-	- Given two heuristics $h_a$ and $h_c$ and $\forall n \ h_a(n) \geq
-	  h_c(n)$, $h_a$ dominates $h_c$.
-	- Heuristics form a semi lattice. The maximum of all admissible heuristic
-	  is the max heuristic and the minimum of all admissible heuristics returns
-	  0.
-- A* search is used in everything from video games and robot movement to
-  natural language.
-- Graph Search
-	- Every time we expand a state, we keep track of the set of states already
-	  expanded.
-	- Expand the search tree node-by-node but before expanding a node, check to
-	  make sure its state is new. If not new, skip it.
-	- This set of expanded nodes is called a __closed set__.
-	- Consistency - for any node $N$ and each successor $P$ of $N$, the
-	  estimated cost of reaching the goal from $N$ is no greater than the step
-	  cost of getting to $P$ plus the estimated cost of reaching the goal from
-	  $P$. $$h(N) \leq c(N \to P) + h(P)$$
-	- Consistency is stronger than admissibility - that is, a consistent
-	  heuristic is admissible.
-	- The graph search implementation A* search is complete with a consistent
-	  heuristic.
+```Python 
+def uniformCostSearch(problem):
+    visited, p_queue = set(), PriorityQueue()
+    curr = (problem.getStartState(), [], 0)
+    while not problem.isGoalState(curr[0]):
+        (state, steps, cost) = curr
+        if state not in visited:
+            visited.add(state)
+            for suc in problem.getSuccessors(state):
+                if suc[0] not in visited:
+                    tmp = steps + [suc[1]]
+                    suc = (suc[0], tmp, suc[2] + cost)
+                    p_queue.push(suc, suc[2])
+        curr = p_queue.pop()
+    return curr[1]
+```
 
-### Constraint Satisfaction Problem (CSP)
-- Identification problem: the goal itself is important as opposed tot he path.
-- Constraint Satisfaction Problem: A subset of search problems. Come up with
-  some variable assignment that satisfies a set of constraints.
-	- A state is defined by variables $X_i$ with values froma a domain $D$.
-	- The goal test is a set of constraints specifying allowable combinatiosn
-	  of values for subsets of variables.
-- Constraint Satisfaction Problem is a simple example of aformal representation
-  language. Allows useful general purpose algorithms with more power than
-  standard search algorithms.
-- Example: Color a map of Australia such that each state is a different color.
-	- Variables: WA, NT, Q, NSW, V, SA, T (states)
-	- Domains: (red, green, blue)
-	- Constraints:
-		- WA != NT (implicit constraint)
-		- $(WA, NT) \in \{red,\ green), (red, blue),...)$
-	- Solutions are assignments satisfying all constraints
+------------------------------------------------------------------
 
-	```
-	 NT --- WA -- Q
-	  \   /  \   /
-	    SA -- NSW
-	     \     /
-	      \   /
-	        V
+Property          | 
+----------        | ----------
+                  |
+Fringe            | Priority Queue (lower cost $\to$ higher priority) 
+                  |
+Complete          | Yes 
+                  |
+Optimal           | Yes 
+                  |
+Effective Depth   | $c^{* } \times \epsilon$ where the solution costs $c^{* }$ and arcs cost at least $\epsilon$
+                  |
+Time Complexity   | $O(b^{c^* \times \epsilon})$ where $b$ is the branching factor and $c^* $ is the solution cost.
+                  |
+Space Complexity  | $O(b^{c^* \times \epsilon})$ where $b$ is the branching factor and $c^* $ is the solution cost.
 
-	        T
-	```
+-----------------------------------------------------------------
 
-- Constraint graph: nodes are variable, edges show constraints.
-- CSPs can have finite or infinite domains and coninuous or discrite domains.
-- Constraints can be unary (restriction on one variable), binary (restriction
-  between two variables), or higher order.
-- Applying standard search to CSP
-	- Initial State: Nothing has been assigned.
-	- Current State: defined by values assigned (is a partial assignment of
-	  values).
-	- Successor function: assign k value to an unassigned variabl.
-	- Goal Test: tests if the current assignment is complete and satisfies all
-	  constraints.
-- Using this approach we could apply BFS, DFS, UCS, or A* search to a CSP.
-  However, these are very inefficient on their own. Consider the map coloring
-  case - the successor function of a standard search problem doesn't consider
-  the restrictions of a CSP. So using one of these algorithms would (generally)
-  require traversing the entire search tree.
-- Backtracking Search
-	- Assign one variable at a time
-	- Check constraints as you go.
+## Informed Search and Heuristic Functions
+The search algorithms we've talked about above have been uninformed search.
+That means that they haven't taken into account the direction (in the search
+treee) where the solution may be. __Informed search__ algorithms use __heuristic
+function__ to infer the best successors to avoid expanding too much of the
+search tree.
 
-	```
-	def backtracking_search(csp): 
-		return recursive_backtrack({}, csp)
+A __heuristic function__ is a function that estimates how close a state is to a goal. Each
+heuristic is designed for a specific search problem.
 
-	def recursive_backtrack(assignment, csp): 
-		if assignment is complete: 
-			return assignment 
-		var = select_unassigned(csp.variables, assignment, csp) 
-		for each value in domain_values(var, assignement, csp): 
-			if value is consistent with assignemtn given csp.constraints: 
-				add var == value to assignment 
-				result = recursive_backtrack(assignment, csp) 
-			if result != false return result
-			remove var == value from assignment 
-		return False
-	```
+__Greedy Search__ is the simplest informed search algorithm. The idea behind 
+greedy search is to expand the node that you think is closest to a goal state. 
 
-- We can improve the general idea of backtracking search by ordiering
-  intelligently (ordering) and ruling out assignment quickly (filtering).
-- Filtering
-	- Forward Checking
-		- Keep track of domains for unassigned variiables and cross off bad
-		  options
-		- Remove values that violate a constraint in another variable when
-		  adding to the existing assignment.
-		- When an unassigned variable's domain is empty we backtrack.
-	- Edge consistency
-		- An edge X -> Y is consistent if for every x in the tail there is some
-		  Y in the head that can be assigned without violating a constraint.
-		- We make an edge consistent by removing potential assignment
-		values from the tail.
-		- Forward checking is enforcing consistency of an incoming arc.
-		- Visit all edges until they are all consistent
-		- If there is an arc that cannot be made to be consistent (ie
-		attempting to make the arc consistent results in an empty domain)
-		backtrack.
-		- Edge consistency does not detect all failures.
-	- Edge consistency is more powerful than forward checking, but it's much
-	  more expensive.
-- Ordering
-	- Choosing the next variable: Choose the variable with the fewest legal
-	  values left in its domain (most contained variable).
-	- Called fail fast ordering.
-	- Choosing the variable's value: Choose the value that rules out the fewest
-	  other values (least constraining value).
+### A* search
+A* search is a combination of UCS and Greedy Search. We push states onto the 
+fringe with $priority(state) \ = \ path\_cost(state) \ + \ heuristic(state)$. 
+This allows us to explore states with the lowest heuristic and path cost - ie
+the state closest to the goal and cheapest to reach. 
+
+```Python 
+def aStarSearch(problem, heuristic=nullHeuristic):
+    visited, p_queue = set(), util.PriorityQueue()
+    curr = (problem.getStartState(), [], 0)
+    while not problem.isGoalState(curr[0]):
+        (state, steps, cost) = curr
+        if state not in visited:
+            visited.add(state)
+            for suc in problem.getSuccessors(state):
+                if suc[0] not in visited:
+                    tmp = steps + [suc[1]]
+                    suc = (suc[0], tmp, suc[2] + cost)
+                    p_queue.push(suc, suc[2] + heuristic(suc[0], problem))
+        curr = p_queue.pop()
+    return curr[1]
+```
+
+------------------------------------------------------------------
+              
+Property          | 
+----------        | ----------
+                  |
+Fringe            | Priority Queue 
+                  |
+Complete          | Yes 
+                  |
+Optimal           | Yes, with an __admissble__ heuristic. 
+                  |
+Time Complexity   | Exponential
+                  |
+Space Complexity  | Exponential
+
+-----------------------------------------------------------------
+
+A* search is used in everything from video games and robot movement to
+natural language.
+
+### Properties of Heuristic Functions
+A* search is built on using the right heuristic function. Picking the wrong 
+heuristic function can break optimality by trapping good plans on the gringe. 
+We define a hueristic function $h$ as __admissible__ if $0 \leq h(n) \leq h^{ * } (n)$ 
+where $h^{ * } (n)$ is the true cost to the nearest goal.
+
+Given two heuristics $h_a$ and $h_c$ and $\forall n \ h_a(n) \geq h_c(n)$, 
+$h_a$ dominates $h_c$. The maximum of all admissible heuristic 
+is the max heuristic and the minimum of all admissible heuristics returns
+0.
+
+We define a heuristic function $h$ is __consistent__ if for every state $n$ and each
+sucessor $p$ of $n$ $h(n) \leq c(n, p) + h(p)$ and $h(G) = 0$. A consistent heuristic 
+is one such that the heuristic of a state $n$ is less than or equal to the cost to get 
+to some successor $p$ from $n$ and the estimated cost to reach the goal from $p$. 
+Consistency is said to be stronger than admissibility - that is, a consistent heuristic 
+function is also admissible. 
+
+## Constraint Satisfaction Problem (CSP)
+A Constraint Satisfaction Problem (CSP) is a subset of search problems where the 
+goal itself is important, but the path is irrelevant. In a CSP, a state is defined 
+by variable $x_i$ which can take on a value from domain $D$. The goal test is a 
+set of constraints specifying allowable combinations of values from subsets of variables. 
+
+CSPs are a simple example of a formal representation language. This allows for useful 
+general purpose algorithms with more power and efficiency than standard search algorithms.
+We can solve a CSP by applying a specialized algorithm to a __constraint graph__. A 
+constraint graph is a graph wwhere the vertices are vaiables and the 
+edges show constraints. Constraint graphs' vertices can have finite, infinite, continuous, 
+or discrete domains. Constraint graphs' edges can be unary, binary, or higher order. 
+
+We can solve a CSP inefficiently using tree search. The inital state is where no vertices
+hav ebeen assigned and current states are states where values are assigned. Non-goal states are 
+states with a partial assignment of values. The successor function assigns k value to an 
+unassigned variable. The goal test tests if the current assignment is complete and 
+satisfies all constraints. 
+
+Using this approach we could apply BFS, DFS, UCS, or A* search to a CSP.
+However, these are very inefficient on their own. Consider the map coloring
+case - the successor function of a standard search problem doesn't consider
+the restrictions of a CSP. So using one of these algorithms would (generally)
+require traversing the entire search tree.
+
+### Backgracking Search
+Backracking search is a specialized CSP algorithm where we assign one variable
+at a time and check the constraints as we go. 
+
+```Python
+def backtracking_search(csp): 
+	return recursive_backtrack({}, csp)
+
+def recursive_backtrack(assignment, csp): 
+	if assignment is complete: 
+		return assignment 
+	var = select_unassigned(csp.variables, assignment, csp) 
+	for each value in domain_values(var, assignement, csp): 
+		if value.isConsistent(csp.constraints(assignment)): 
+			assignemnt.add(var == value)
+			result = recursive_backtrack(assignment, csp) 
+		if result != false: 
+			return result
+		assignment.remove(var == value)
+	return False
+```
+
+We can improve the general idea of backtracking search by ordiering
+intelligently (ordering) and ruling out assignment quickly (filtering).
+
+__Filtering__
+
+Filtering is a process of ruling out bad assignments quickly. 
+
+- Forward Checking \
+Using forward checking, we keep track of domains for unassigned variiables and cross off bad
+options. We then remove values that violate a constraint in another variable when
+adding to the existing assignment. When an unassigned variable's domain is empty we backtrack.
+- Edge consistency \
+An edge X -> Y is consistent if for every X in the tail there is some
+Y in the head that can be assigned without violating a constraint. We make an edge 
+consistent by removing potential assignment values from the tail. Forward checking is 
+essentialy enforcing consistency of an incoming arc. To enforce edge consistency 
+we visit all edges until they are all consistent and use forward checking to make the
+edge consistent. If there is an arc that cannot be made to be consistent (ie
+attempting to make the arc consistent results in an empty domain)
+backtrack.\
+Edge consistency is more powerful than forward checking, but it's much
+more expensive.
 - K-Consistency
-	- 1-Consistency: Each single node's domain has n values which meets the
-	  node's unary conditions.
-	- 2-Consistency (Edge consistency): For each pair of nodes, any consistent
-	  assignment to one can be extended to the other.
-	- K-Consistency: For each k nodes, any consistent assignment to k-1 can be
-	  extended to the kth node.
-		- Much more expensive for larger k.
-		- Strong K-consistency - essentially k-1, k-2, ..., 1 consistency.
-- Structure
-	- Taking advantage of the constraint graph structure to efficiently solve a
-	  problem.
-	- Connected components
-		- Check the constraint graph for discrete components. Then you can
-		  solve the problems independently.
-	- Tree Structured CSP
-		- If the constrant graph has no loops, the CSP can be solved in  O(n
-		  d62) time.
-		- Algorithm for tree structured CSPs
-			1. Choose a root variable and order the variables so that parents
-			   preceed children.
-			2. Remove backwards: For i = n...2 apply
-			   makeConsistent(Parent(X_i), X_i)
-			3. Assign forward: for i = 1...n, assign X_i consistently with
-			   Parent(X_i). Note that there will always be a consistent
-			   solution in this phase. The reasoning for this is intuitive
-			   based on how we enforce consistency in the backwards pass.
-	- Nearly Tree Structured CSPs
-		- Cutset Conditioning - Instantiate a set of variables such that the
-		  remaining constraint graph is a tree.
-		- if the cutset is of size c, we may need to instantiate all possible
-		  versions of the cutset. So the algorithms exponential in c and
-		  linear in the rest of the tree.
-		- Finding the cutset is NP hard.
-	- Tree Decomposition
-		- Create a tree structured graph of "mega variables" (small groups of
-		  connected variables).
-		- Each mega variable encodes part of the original CSP.
-		- Subproblems overlap to ensure consistent solutions.
-- Iterative Improvement Algorithms
-	- Local search method - typically works with complete states (all variables
-	  assigned)
-	- To apply to CSP
-		- Take an assignment with unsatisfied constraints (not a goal state).
-		- Operators reassign values of variables.
-	- Algorithm:
-		- Repeat until solved (while not solved):
-			1. Variable selection - randomly select any conclicted variable.
-			2. Value selection - choose a value that violates the fewest
-			   constraints. (min conflicts heuristic)
-	- Given random initial state we can solve the n-queens problem in almost
-	  constant time with high probability.
-	- The same appears to  be true for any randomly generated CSP except in
-	  narrow range of the ratio.
-	- R =  number of constraints / number of variables
-	- For most R we can solve CSP almost instantaneously. However there is a
-	  small range of R where CSP become hard to solve iteratively - this is
-	  where a lot of natural problems are :(.
+  - 1-Consistency: Each single node's domain has n values which meets the
+    node's unary conditions.
+  - 2-Consistency (Edge consistency): For each pair of nodes, any consistent
+    assignment to one can be extended to the other.
+  - K-Consistency: For each k nodes, any consistent assignment to k-1 can be
+    extended to the kth node.
+    - Much more expensive for larger k.
+    - Strong K-consistency - essentially k-1, k-2, ..., 1 consistency.
+
+__Ordering__
+
+Ordering is the processes of choosing the next variable in a backtracking 
+search algorithm. The general idea of ordering is to choose the variable with 
+the fewest legal values left in its domain (ie the most constrained variable). 
+This is also called __fail fast ordering__. 
+
+__Structure__
+
+We can also use the constraint graph's structure to efficiently solve a CSP. 
+
+- Connected components
+	- Check the constraint graph for discrete components. Then you can
+	  solve the problems independently.
+- Tree Structured CSP
+	- If the constrant graph has no loops, the CSP can be solved in $O(n
+	  d^2)$ time.
+	- Algorithm for tree structured CSPs
+		1. Choose a root variable and order the variables so that parents
+		   preceed children.
+		2. Remove backwards: For $i = n...2$ apply
+		   makeConsistent(Parent(X_i), X_i)
+		3. Assign forward: for $i = 1...n$, assign $X_i$ consistently with
+		   $parent(X_i)$. Note that there will always be a consistent
+		   solution in this phase. The reasoning for this is intuitive
+		   based on how we enforce consistency in the backwards pass.
+- Nearly Tree Structured CSPs
+	- Cutset Conditioning - Instantiate a set of variables such that the
+	  remaining constraint graph is a tree.
+	- if the cutset is of size c, we may need to instantiate all possible
+	  versions of the cutset. So the algorithms exponential in c and
+	  linear in the rest of the tree.
+	- Finding the cutset is NP hard.
+- Tree Decomposition
+	- Create a tree structured graph of "mega variables" (small groups of
+	  connected variables).
+	- Each mega variable encodes part of the original CSP.
+	- Subproblems overlap to ensure consistent solutions.
+
+### Iterative Improvement Algorithms
+A local search method is an algorithm which takes a completely assigned state
+and iteratively improves it. To apply iterative improvement to a CSP we take 
+an assignment with unsatisfied constraints (not a goal state) and iteratively
+reassign values of variables. 
+
+- Algorithm:
+	- Repeat until solved (while not solved):
+		1. Variable selection - randomly select any conclicted variable.
+		2. Value selection - choose a value that violates the fewest
+		   constraints. (min conflicts heuristic)
+
+Given random initial state we can solve the n-queens problem in almost
+constant time with high probability. The same appears to be true for any 
+randomly generated CSP except in the narrow range of the ratio: $R = \frac{number\ of\ 
+constraints}{number\ of\ variables}$. 
+For most R we can solve CSP almost instantaneously. However there is a
+small range of R where CSP become hard to solve iteratively - this is
+where a lot of natural problems are.
 
 ### Local Search 
-- Local search improves a single option until you can't make it better. There
-  is no concept of a fringe / keeping track of the search tree.
-- The successor function of local search takes a complete assignment and
-  modifies it as opposed to extending a plan.
-- Generally, local search is much faster and more memory efficient than tree
-  search.
+Local search improves a single option until you can't make it better. There
+is no concept of a fringe / keeping track of the search tree.
+The successor function of local search takes a complete assignment and
+modifies it as opposed to extending a plan.
+Generally, local search is much faster and more memory efficient than tree
+search.
 
-### Adversarial Search 
-- Algorithm that calculates a strategy which reccomends a move from each state.
-- Deterministic Games
-	- States - S (initial state is s_0)
-	- Players P={1...N} usually take terns
-	- Actions A
-	- Transition Function - SxA -> S how the state evolves in response to
-	  actions
-	- Terminal Test - S -> (t,f), a goal state / end state
-	- Terminal Utilities - SxP -> R, for an end state, how much this is worth
-	  to each player
-- Zero Sum Games - Agents have opposite utilities (values on outcomes).
-	- This lets us think of a single value that some players maximize and
-	  others minimize.
-	- Much simpler than a general game.
-- Value of a state: the best achievable outcome from that state.
-	- In the terminal state, this value is known.
-	- For non-terminal states, $V(s) = max_{s' \in children(s))} V(s')$. That 
-	is, the value of a state is the maximum value of the values of its 
-	children.
-- Minimax Values: The best value we can achieve assuming an optimal adversary.
-	- In minimax we consider the search tree as layers - one layer where an
-	  agent maximizes the end value and another layer where the adversary tries
-	  to minimize the same value.
-	- For state under the agent's control, the value of the state is the
-	  maximum of the values of its children.
-	- For a state under the adversary's control, the value of the state is the
-	  minimum of the values of its children. 
+## Adversarial Search 
+Adversarial search is a class of search algorithms that calculates a strategy for
+a scenario with adversarial agents. We think of these types of problems as deterministic
+games. A deterministic game is defined as follows: 
+
+- States - S (initial state is s_0)
+- Players P={1...N} usually take terns
+- Actions A
+- Transition Function - SxA -> S how the state evolves in response to
+  actions
+- Terminal Test - S -> (t,f), a goal state / end state
+- Terminal Utilities - SxP -> R, for an end state, how much this is worth
+  to each player
+
+In a __zero sum game__ the agents have opposite utilities (values on outcomes).
+This lets us think of a single value that some players maximize and
+others minimize. These games are much simpler than a general game.
+
+The __value (utility) of a state__ is the best achievable outcome from that state.
+In the terminal state, this value is known. For non-terminal states, 
+$V(s) = max_{s' \in children(s))} V(s')$. That is, the value of a state is the 
+maximum value of the values of its children.
+
+In general, utilities are functions from outcomes to real numbers that describe
+an agent's preference. Utilities can be defined in many ways so long as they 
+summarize the agent's goal. Any "rational" preferences can be summarized as 
+a utility function. We generally hard code utilities and let behaviors emerge.
+
+### Minimax
+The __minimax value__ is the best value we can achieve assuming an optimal adversary.
+In minimax we consider the search tree as layers - one layer where an
+agent maximizes the end value and another layer where the adversary tries
+to minimize the same value. For state under the agent's control, the value of 
+the state is the maximum of the values of its children. For a state under the 
+adversary's control, the value of the state is the minimum of the values of its children. 
 	 
-	  ```Python 
-	  def max_values(state):
-		if state is terminal: 
-			return terminal(state) # value of terminal state 
-		v = -inf 
-		for each successor of state: 
-			v = max(v, min_values(successor))
-		return v
+```Python 
+def max_values(state):
+  if state is terminal: 
+  	return terminal(state) # value of terminal state 
+  v = -inf 
+  for each successor of state: 
+  	v = max(v, min_values(successor))
+  return v
 
-		def min_value(state) 
-			if state is terminal: 
-				return terminal(state) # value of terminal state 
-			v = inf 
-			for each successor of state: 
-				v = min(v, max_values(successor))
-			return v
+def min_value(state) 
+	if state is terminal: 
+		return terminal(state) # value of terminal state 
+	v = inf 
+	for each successor of state: 
+		v = min(v, max_values(successor))
+	return v
 
-		def value(state): 
-			if state is terminal: 
-				return terminal(state) # value of terminal state 
-			if nextAgent is max: 
-				return max_values(state) 
-			elif nextAvent is min: 
-				return min_values(state)
-		```
+def value(state): 
+	if state is terminal: 
+		return terminal(state) # value of terminal state 
+	if nextAgent is max: 
+		return max_values(state) 
+	elif nextAvent is min: 
+		return min_values(state)
+```
 
-	- This minimaz algorithm is essentially a DFS. Therefore it is:
-		- Time: O(b^m)
-		- Space: O(bm)
-	- We can alleviate the resource problems by using depth limited search
-	  instead of DFS and replace the terminal utilities with some evaluation
-	  function for non-terminal positions. This estimates a value of a non-
-	  terminal state.
-		- This doesn't guarantee optimal play, but going deeper in the tree
-		  (searching more plies) makes a big difference.
-		- Iterative deepening can be used to give the best result possible
-		  given a time limit.
-- Evaluation function: a function that inputs a non-terminal state and returns
-  an approximation of the minimax value of the state.
-	- Typically we use a linear combination of important features, but we can
-	  have more complicated (nonlinear) evaluation functions.
-- Alpha Beta Pruning
-	- Minimax allows us to prune the search tree a bit.
-	- Consider the a MAX root node
-		- We're computing the min value of some node n by looping over n's
-		  children.
-		- As we loop over n's children, n's estimate of the children's min can
-		  only drop (or remain the same).
-		- Let a be the best value that MAX can get at any choice point along
-		  the current path from the root.
-		- If n becomes less than a, MAX will avoid it so we can stop
-		  considering n's other children (we already know n won't be
-		  considered).
+This minimaz algorithm is essentially a DFS. Therefore it is:
+- Time: O(b^m)
+- Space: O(bm)
 
-		```
-		                 root                (MAX) 
-		          /       |         \ 
-		        x1        x2         x3      (MIN) 
-		      /   \      /  \       /  \ 
-		     x11 x12  x21  x22   x31   x32   (MAX)
-		   ...        ...       ...
-		```
+We can alleviate the resource problems by using depth limited search
+instead of DFS and replace the terminal utilities with some evaluation
+function for non-terminal positions. This estimates a value of a non-
+terminal state. This doesn't guarantee optimal play, but going deeper in the tree
+(searching more plies) makes a big difference. Iterative deepening can be 
+used to give the best result possible given a time limit.
 
-			- the minimax value of root will be a min of x1, x2, and x3. If we
-			  calculate MIN(x1) == a, then MAX(root) >= a. Then when we're
-			  calculating x2 and x3, if any child has a value < a, we don't
-			  need to consider that entire branch since we know the lower bound
-			  on the root.
-		- The inverse (MIN root) is symmetric. 
+An __evaluation function__ is a function that inputs a non-terminal state and returns
+an approximation of the minimax value of the state. Typically we use a linear 
+combination of important features, but we can have more complicated (non-linear) 
+evaluation functions.
+
+### Alpha Beta Pruning
+The structure of a minimax search tree allows us to prune the search tree a bit.
+If we consider the a MAX root node we need to find the maximum of all of the 
+successor nodes. So for each successor node $n$, we need to find the minimum value
+by iterating over n's children. As we loop over n's children, n's estimate of the children's min can
+only drop (or remain the same). Then let $\alpha$ be the best value that 
+MAX can get at any choice point along the current path from the root. If n becomes 
+less than $\alpha$, MAX will avoid it so we can stop considering n's other 
+children (we already know n won't be considered).
+
+```
+                 root                (MAX) 
+          /       |         \ 
+        x1        x2         x3      (MIN) 
+      /   \      /  \       /  \ 
+     x11 x12  x21  x22   x31   x32   (MAX)
+   ...        ...       ...
+```
+
+The minimax value of root will be a min of $x_1, x_2, x_3$. If we
+calculate $MIN(x1) = \alpha$, then $MAX(root) >= \alpha$. Then when we're
+calculating $x_2$ and $x_3$, if any child has a value less than $\alpha$, we don't
+need to consider that entire branch since we know the lower bound
+on the root.
+
+The inverse (MIN root) is symmetric. $\beta$ represents the lowest value a MIN
+node can be on the path to the root. 
 		
-		```Python
-			# alpha : MAX's best option on the path to the root
-			# beta : MIN's best option on the path to the root
+```Python
+# alpha : MAX's best option on the path to the root
+# beta : MIN's best option on the path to the root
 
-			def max_value(state, alpha, beta): 
-				v = -inf 
-				for each successor of state: 
-				v = max(v, value(successor, alpha, beta)) 
-				if v >= Beta: 
-					return v 
-				alpha = max(alpha, v) 
-			return v
+def max_value(state, alpha, beta): 
+	v = -inf 
+	for each successor of state: 
+	v = max(v, value(successor, alpha, beta)) 
+	if v >= Beta: 
+		return v 
+	alpha = max(alpha, v) 
+return v
 
-			def min_value(state, alpha, beta): 
-			v = inf 
-			for each successor of state: 
-				v = min(v, value(successor, alpha, beta)) 
-				if v <= alpha: 
-					return v 
-				beta = min(beta, v) 
-			return v
+def min_value(state, alpha, beta): 
+v = inf 
+for each successor of state: 
+	v = min(v, value(successor, alpha, beta)) 
+	if v <= alpha: 
+		return v 
+	beta = min(beta, v) 
+return v
 
-			def value(state): 
-				if state is terminal: 
-					return terminal(state) # value of terminal state 
-				if nextAgent is max: 
-					return max_values(state, alpha, beta)
-				elif nextAvent is min: 
-					return min_values(state, alpha, beta)
-		```
+def value(state): 
+	if state is terminal: 
+		return terminal(state) # value of terminal state 
+	if nextAgent is max: 
+		return max_values(state, alpha, beta)
+	elif nextAvent is min: 
+		return min_values(state, alpha, beta)
+```
 
-	- You can't apply alpha beta pruning for action selection - the value at
-	  the children has to be correct for optimal action selection.
-- Minimax assumes a perfect player - however, our agents are not always working
-  against perfect adversaries. Sometimes our "adversaries" aren't adversarila
-  at all but are operating on chance.
-- Expectimax Search
-	- Computing the average score under optimal play. 
-	
-	```Python 
-	  def max_value(state): 
-	  	v = -inf 
-	  	for each successor of state: 
-	  		v = max(value(successor)) 
-	  	return v
+You can't apply alpha beta pruning for action selection - the value at
+the children has to be correct for optimal action selection.
 
-		def exp_value(state): 
-			v = 0 
-			for each successor of state: 
-				p = probability(successor) 
-				v += p * value(successor) return v
-			return v
-		
-		def value(state): 
-			if state is terminal: 
-				return terminal(state) 
-			if nextAgent is max: 
-				return max_value(state) 
-			elif nextAgent is exp: 
-				return exp_value(state)
-		```
+### Expectimax 
+Minimax assumes a perfect player - however, our agents are not always working
+against perfect adversaries. Sometimes our "adversaries" aren't adversarila
+at all but are operating on chance. __Expectimax Search__ computes the average
+score under optimal play. 
 
-	- This assumes a tree of the form
+```Python 
+def max_value(state): 
+	v = -inf 
+	for each successor of state: 
+		v = max(value(successor)) 
+	return v
 
-	```
-	                  root                (MAX) 
-	          /        |         \ 
-	         x1        x2         x3 (EXPECTED)
-	        /  \      /  \       /  \ 
-	      x11 x12  x21  x22   x31   x32   (MAX)
-	   ...        ...       ...
-	```
+def exp_value(state): 
+	v = 0 
+	for each successor of state: 
+		p = probability(successor) 
+		v += p * value(successor) return v
+	return v
 
-	- The general expectimax tree cannot be pruned since we can't generalize
-	  any bounds.
-	- Expectimax, like minimax, is a very expensive process so we use
-	  evaluation functions to estimate the expected value of a non-terminal
-	  node. This is much more difficult to do in expectimax than in minimax.
-	- To make expectimax work we need to estimate some probability
-	  distribution.
-- Some games have mixtures of minimax and expectimax. That is that the search
-  tree has mixtures of min, max, and expected value layers.
+def value(state): 
+	if state is terminal: 
+		return terminal(state) 
+	if nextAgent is max: 
+		return max_value(state) 
+	elif nextAgent is exp: 
+		return exp_value(state)
+```
+
+This assumes a tree of the form
+
+```
+                  root                (MAX) 
+          /        |         \ 
+         x1        x2         x3 (EXPECTED)
+        /  \      /  \       /  \ 
+      x11 x12  x21  x22   x31   x32   (MAX)
+   ...        ...       ...
+```
+
+The general expectimax tree cannot be pruned since we can't generalize
+any bounds. Expectimax, like minimax, is a very expensive process so we use
+evaluation functions to estimate the expected value of a non-terminal
+node. This is much more difficult to do in expectimax than in minimax.
+To make expectimax work we need to estimate some probability distribution.
+
+Some games have mixtures of minimax and expectimax. That is that the search
+tree has mixtures of min, max, and expected value layers.An example of this 
+is Backgammon. In backgammo, a player makes a move, then a di is rolled, and 
+based on that roll, an adversary makes a move.
 
 ``` 
                 root                 (MAX) 
@@ -604,116 +632,108 @@ geometry: margin=1in
        ...        ...       ...
 ```
 
-- An example of this is Backgammon. In backgammo, a player makes a move,
-  then a di is rolled, and based on that roll, an adversary makes a move.
-- If a node has multiple players and / or is not a zero sum game, we can use a
-  search tree with different terminal utilities for each player.
-- Maximum expected utility - a rational agent should choose the action that
-  maximizes its expected utility given its knowledge.
-- Utilities
-	- Utilities are functions from outcomes (states for the world) to real
-	  numbers that describe an agent's preference.
-	- Utilities can be defined in many ways so long as they summarize the agent's goal.
-	- Any "rational" preferences can be summarized as a utility function.
-	- We generally hard code utilities and let behaviors emerge.
-- Preferences
-	- An agent must have preferences among:
-		- Prizes: A, B, etc
-		- Lotteries: situations with uncertain prizes - L = {(p, A), ((1-p),
-		  B)}
-	- Preference A > B
-	- Indifference A ~ B
-	- An expected value node is essentially a lottery, and an expectimax search
-	  is a large recursive lottery.
-	- The prizes are essentially representative of the utilities.
-- Rationality
-	- We want to put some constraints on preferences before we call them
-	  rational.
-	- Transitivity: (A > B) and (B > C), then A > C
-	- Orderability: A > B or B > A or A ~ B
-	- Continuity: A > B > C then there exists a lottery [p, A: 1-p, C] ~ B
-	- Substitutability: A ~ B then there exists a lottery [p, A; 1-p; C] ~ [p,
-	  B; 1-p, C]
-	- Monotonicity: A ~ B then p >= q then [p, A; 1-p, B] >= [q, A; 1-q, B]
-	- If preferences satisfy these axioms we call them rational.
-	- Given any preferences satisfying these constraints there exists a real
-	  valued function U such that values assigned by U preserve preferences of
-	  both prizes and lotteries.
 
-### Non Deterministic Search - Markov Dicision Properties
-- Non-deterministic search is a search problem when the outcome of our actions
-are uncertain. 
-- Grid World - maze like world. The agent lives in a grid and walls blck the
-agent's path. Actions do not always go as planned. 
-	- 80% N -> N 
-	- 10% N -> W
-	- 10% N -> E 
-	- If there is a well in the direction the agent would have taken the agent 
-	stays put. 
-	- The agent receives a reward each time step. There's a small "living" 
-	reward each step and a big reward at the end of the game. Note that we use 
-	"reward" to mean some feedback. Reward can be negative (bad). 
-- We solve these kinds of problems using a Markov Decision Process (MDP). 
-- A Markov Decision Process is defined by:
-	- A set of states: $s \in S$
-	- A set of actions: $a \in A$
-	- A transition function: $T(s, a, s')$
-		- This defines the probability that action $a$ from state $s$ leads to 
-		state $s'$. 
-		- Alo called the model or dynamics. 
-	- A reward function: $R(s)$ or $R(s')$
-	- A start state: $s_0$
-	- An (optional) terminal state. 
-		- MDPs can be infinite
-- Markov principle - the future only depends on the present, not the past. 
-- Unlike in a regular search problem where our functions return a plan or path
-to reach the goal, in an MDP we return an optimial "policy": $\pi* \ : S \to 
-A$.
-	- A policy $\pi$ gives an action for each state. 
-	- An optimal policy is a policy that maximizes expected utiltiy if followed. 
-	- An explicit policy defines a reflex agent. 
-	- Expectimax is similar but it only computed an action for the current 
-	state. It doesn't compute an explicit policy. 
-- When constructing MDPs we have to consider how to optimize our reward. Ie
-should the agent prefer to obtain a reward sooner or later? 
-	- Typically we want the agent to prefer rewards sooner - to do this we add 
-	a factor $\gamma$ into our functions which actus to reduce the reward 
-	value for later rewards. This is called discounting. 
-- These games could also last forever
-	- We could set finite horizons (depth limited search)
-	- Discounting - the exponential decay reduces rewards as the limit 
-	increases. 
-	- Absorbing state - guarantee that every state will eventually result in a
-	terminal state. 
-- A queue state (s,a) is an action we've comitted to from some state s, but 
-that hasn't been carried out yet. 
-- Optimal Quantities
-	- Utility of a state: $V* (s)$ is the expected reward starting in s and 
-	acting optimally. Expectimax utility. 
-	- Utility of a queue state: $Q* (s,a)$ is the expected reward starting out
-	having taken action a from state s and then acting optimally. 
-	- Value of a stare is the expected future utility from a state
-	- Optimal policy: $\pi * (s)$ the optimal action from state s
-- We define the optimal utility of a state as:
-$$ V* (s) = max_{a} {Q* (s,a)}$$
-$$ Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
-- This is called the Bellman equation. 
-	- Observe that $\sum_{s'}{T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') 
-	]}$ is effectively finding the expected value of the action $a$. 
-- Time limited values 
-	- $V_k$ is the optimal value of s if the game ends in k more time steps. 
-	- We call this time limited but it's really depth limited. 
-- Value iteration: Assuming we have a small number of possible states:
-	- Set $V_{0} = 0$ for all states. Ie $V_{0}[s] = 0 \ \forall s \in S$
-	- Then $V_{k+1} = \max_{a} { \sum_{s'}{T(s,a,s') [R(s,a,s') + \gamma V_{k} 
-	(s')]}}$. 
-	- Repeat until convergence. 
-		- This process will converge to unique optimal values. 
-- Example: Consider the following racecar. If the car drives slowly he cannot
+If a node has multiple players and / or is not a zero sum game, we can use a
+search tree with different terminal utilities for each player.
+
+### Rational Agents
+An agent must have preferences among:
+
+- Prizes: A, B, etc
+- Lotteries: situations with uncertain prizes - L = {(p, A), ((1-p),
+  B)}
+- Preference A > B
+- Indifference A ~ B
+- An expected value node is essentially a lottery, and an expectimax search
+is a large recursive lottery. The prizes are essentially representative of the utilities.
+
+We want to put some constraints on preferences before we call them rational.
+
+- Transitivity: (A > B) and (B > C), then A > C
+- Orderability: A > B or B > A or A ~ B
+- Continuity: A > B > C then there exists a lottery [p, A: 1-p, C] ~ B
+- Substitutability: A ~ B then there exists a lottery [p, A; 1-p; C] ~ [p,
+  B; 1-p, C]
+- Monotonicity: A ~ B then p >= q then [p, A; 1-p, B] >= [q, A; 1-q, B]
+
+If preferences satisfy these axioms we call them rational. Given any preferences satisfying these constraints there exists a real valued function U such that values assigned by U preserve preferences of both prizes and lotteries.
+
+## Non Deterministic Search - Markov Decision Properties
+__Non-deterministic search__ is a search problem when the outcome of our actions
+are uncertain. An example of this search problem is Grid World. Grid World is a maze 
+like world. The agent lives in a grid and walls blck the gent's path. Actions do not 
+always go as planned. The agent receives a reward each time step. There's a small "living" 
+reward each step and a big reward at the end of the game. Note that we use 
+"reward" to mean some feedback. Reward can be negative (bad). 
+
+We solve these kinds of problems using a __Markov Decision Process (MDP)__. 
+A Markov Decision Process is defined by:
+
+- A set of states: $s \in S$
+- A set of actions: $a \in A$
+- A transition function: $T(s, a, s')$
+	- This defines the probability that action $a$ from state $s$ leads to 
+	state $s'$. 
+	- Alo called the model or dynamics. 
+- A reward function: $R(s)$ or $R(s')$
+- A start state: $s_0$
+- An (optional) terminal state. 
+	- MDPs can be infinite
+
+The __Markov principle__ is that the future only depends on the present, not the past. 
+Unlike in a regular search problem where our functions return a plan or path
+to reach the goal, in an MDP we return an optimial "policy", represented by the 
+function $\pi* \ : S \to A$. Generaly, a policy $\pi$ gives an action for each state. 
+and an optimal policy is a policy that maximizes expected utiltiy if followed. 
+An explicit policy defines a reflex agent. Expectimax follows a similar idea but it 
+only computed an action for the current state. It doesn't compute an explicit policy. 
+
+When constructing MDPs we have to consider how to optimize our reward. Ie
+should the agent prefer to obtain a reward sooner or later? Typically we 
+want the agent to prefer rewards sooner - to do this we add a factor $\gamma$ 
+into our functions which actus to reduce the reward value for later rewards. 
+This is called discounting. 
+
+These games could also last forever so we need to find a way to terminate the 
+game. We could set finite horizons (depth limited search), use discounting, or
+create an __absorbing state__ - a garuntee that every state will eventually result
+in a terminal state. 
+
+A __queue state__ $(s,a)$ is an action we've comitted to from some state s, but 
+that hasn't been carried out yet. The __utility of a state__ $V* (s)$ is the
+expected reward starting in s and acting optimally. This is the same as 
+expectimax utility. The __utility of a queue state__ $Q* (s,a)$ is the 
+expected reward starting out having taken action a from state s and 
+then acting optimally. The __optimal policy__ $\pi* (s)$ is the optimal 
+action from state s. 
+
+We define the optimal utility of a state as:
+$$V* (s) = max_{a} {Q* (s,a)}$$
+$$Q* (s,a) = \sum_{s'} { T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') ] }$$
+
+This is called the Bellman equation. 
+
+Observe that $\sum_{s'}{T(s, a, s') * [ R(s, a, s') + \gamma * V* (s') 
+]}$ is effectively finding the expected value of the action $a$. 
+
+$V_k$ is the optimal value of s if the game ends in k more time steps. 
+We call this time limited but it's really depth limited. 
+
+### Value Iteration
+We can determine the value of a state using __value iteration__. Value
+iteration is an expectation maximization algorithm used to calculate state
+values. 
+
+1. Set $V_{0} = 0$ for all states. Ie $V_{0}[s] = 0 \ \forall s \in S$
+2. Then $V_{k+1} = \max_{a} { \sum_{s'}{T(s,a,s') [R(s,a,s') + \gamma V_{k} 
+(s')]}}$. 
+3. Repeat until convergence. 
+
+__Example:__ Consider the following racecar. If the car drives slowly he cannot
 overheat. However he get's more reward (has a higher chance of winning the
 race) if he drives fast. From any state he can either accelerate or decelerate.
 
-```
+---------------------------------------------------------
 |States->| Cool          |      Hot      |  Overheated  |
 |--------|---------------|---------------|--------------|
 |Actions |   P(s')  | R  |   P(s')  | R  |   P(s')  | R | 
@@ -722,12 +742,12 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 |        | 0.0 Hot  | +0 | 0.5 Hot  | +1 |          | 0 |
 |Go Fast | 0.5 Cool | +2 | 1.0 OH   | -10| 1.0 OH   | 0 |
 |        | 0.5 Hot  | +2 |          |    |          | 0 |
-```
+---------------------------------------------------------
 
  We can use this table and the Bellman equation to calculate the optimal policy
  for this situation. 
 
-```
+----------------------------------------------------------------------
 |      | Cool               | Hot                | Overheated        |
 |------|--------------------|--------------------|-------------------|
 |      | Value | Opt Action | Value | Opt Action | Value | Opt Action| 
@@ -735,7 +755,7 @@ race) if he drives fast. From any state he can either accelerate or decelerate.
 | V_2  |  3.5  |  Go Fast   |  2    | Go slow    | 0     | NA        |
 | V_1  |   2   |  Go Fast   |  1    | Go slow    | 0     | NA        |
 | V_0  |   0   |  NA        |  0    | NA         | 0     | NA        |
-```
+----------------------------------------------------------------------
 
 We can calculate 
 $$V_1 (cold) = max_{a} {\sum_{s'}{T(s,a,s')[R(s,a,s') + V_0{s'}]}}$$
@@ -746,115 +766,112 @@ $$V_1 (cold) = max(T_(cool, slow, cool) [R(cool, slow, cool) + V_0 (cool)] + T_
 
 This example doesn't include the $\gamma$ (discount) parameter. 
 
-- Policy Evaluation. We don't always have the optimal oplicy - sometimes our
-policy is fixed. Calculating the values for a fixed policy is pretty easy. 
-- $V^{\pi} (s)$ is the expected total discounted reward starting in $s$ and
-following policy $\pi$. 
+__Policy Evaluation__ is the process of calculating the values of states
+given a fixed policy is pretty easy. $V^{\pi} (s)$ is the expected total 
+discounted reward starting in $s$ and following policy $\pi$. 
 $$V^{\pi} (s) = \sum_{s'}{T(s, \pi (s), s') [R(s, \pi (s), s') + \gamma V^
 {\pi} (s')]}$$ 
-- This is effectively the original Bellman equation, but without maxing over 
-the different actions (since $\pi (s)$ is a fixed action). 
-	- We compute the values in the same way.
-	- Set $V_0 (s) = 0 \forall s \in S$. 
-	- $V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s') + V_
-	{k}^{\pi} (s')]$
-	- This computation is $A$ times more efficient than computing the optimal
-	policy (since we don't need to max over all actions). 
-- Without the max, the system of equation just turns into a system of linear
+
+This is effectively the original Bellman equation, but without maxing over 
+the different actions (since $\pi (s)$ is a fixed action). We compute the values in the same way.
+
+1. Set $V_0 (s) = 0 \forall s \in S$. 
+2. $V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s') + V_
+{k}^{\pi} (s')]$
+- This computation is $A$ times more efficient than computing the optimal
+policy (since we don't need to max over all actions). 
+
+Without the max, the system of equation just turns into a system of linear
 equations - so we can also solve the system using any linear equation solving
 method. 
-- Given the optimal values how can we figure out the policy?
-	- Use expecimax, but only for one step. 
-	- $\pi* (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
-	(s')]}$.
-	- "action selection from values is kinda a pain in the butt" - Dan Klein 
-- Knowing the optimal Q values make it trivial to find the optimal action. 
-	- $\pi* (s) = argmax_{a} Q(s, a)$. 
-- Policy Iteration. How do we iteratively improve a given policy. 
-	- Value iteration is a pretty slow process. $O(S^2 A)$ per iteration.
-	- The max at each state rarely changes so we end up doing a lot of work. 
-	- The policy often converges long before the values.
-- Policy iteration algorithm 
-	1. Policy Evaluation: calculate utilities for some fixed policy (not 
-	optimal utilities) until convergence. 
-		- Let $\pi (s)$ be the policy calculated in step 2 (or the initial). 
-		- Do until values converge
-		$$V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s'+
-			V_{k}^{\pi} (s')]$$
-	2. Policy Improvement: update policy using one-step look ahead with r
-	resulting converged (but not optimal) utilities at future values. 
-		- Let V(s) be the values calculated in step 1. 
-		$$\pi (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
-		(s')]}$$
-	3. Repeat steps 1 and 2 until policy converges. 
-	- THis is an EM algorithm - ML is everywhere bitches. 
-	- The improvement step is not faster than value iteration. The evaluation 
-	step is significantly faster and happens many times before an improvement 
-	step. That's where we see our speedup. 
-- Value iteration and policy iteration do the same thing. Both provide optimal
-values and policies (if you do it right). 
-	- Value iteration: every iteeration updates both the values and (
-	implicitly) the policy.
-	- Policy improvement: we do several passes that updates the utilities and 
-	then update the policy
-	- Both are dynamic programming algorithms / EM algorithms. 
+
+Given the optimal values we can figure out the policy by using a one step expecimax. 
+
+$$\pi* (s) = argmax_{a}(\sum_{s'}{(T(s, a, s') [R(s, a, s') + \gamma V* (s')])})$$
+
+"Action selection from values is kinda a pain in the butt" - Dan Klein. However, knowing the optimal Q values make it trivial to find the optimal action. 
+$$\pi* (s) = argmax_{a} Q(s, a)$$
+
+__Policy iteration__ is an iterative, EM algorithm for finding an optimal policy. 
+
+1. Policy Evaluation: calculate utilities for some fixed policy (not 
+optimal utilities) until convergence. 
+	- Let $\pi (s)$ be the policy calculated in step 2 (or the initial). 
+	- Do until values converge
+	$$V_{k+1}^{\pi}(s) = \sum_{s'} T(s, \pi (s),s') [R(s, \pi (s), s')+
+		V_{k}^{\pi} (s')]$$
+2. Policy Improvement: update policy using one-step look ahead with r
+resulting converged (but not optimal) utilities at future values. 
+	- Let V(s) be the values calculated in step 1. 
+	$$\pi (s) = argmax_{a}\sum_{s'}{T(s, a, s') [R(s, a, s') + \gamma V* 
+	(s')]}$$
+3. Repeat steps 1 and 2 until policy converges. 
+
+The improvement step is not faster than value iteration. The evaluation 
+step is significantly faster and happens many times before an improvement 
+step. That's where we see speedup relative to value iteration. 
+Value iteration and policy iteration do the same thing. Both provide optimal
+values and policies (if you do it right). In value iteration, every iteeration 
+updates both the values and (implicitly) the policy. In policy iteration we do 
+several passes that updates the utilities and then update the policy
 
 ### Reinforcement Learning
-- Basic concept of reinforcement learning:
-	- There is an agent who does an action in an environemtn
-	- The agent performs some action in the environment 
-	- The environment sends back a reward and a "percept" (a state). 
-		- We want to maximize the reward, but we don't know how the world works.
-- In reinforcement learning we assume that hte world is a Markov Decision
+__Reinforcement learning__ is an extrememly powerful technique in machine learning
+and artificial intelligence. Reinforcement learning uses the result of an agent's actions
+in the environment to learn an optimal policy. When an agent performs an action, the 
+environment returns a reward adn a "percept" (aka a state). A reinforcement learning
+algorithm wants to maximize this reward as the number of actions performed approaches
+infinity - that is, we can use early actions to learn, but eventualy we should be 
+able to perform the actions that lead to the highest reward. In reinforcement learning 
+we assume that hte world is a Markov Decision
 Process (MDP). We're still trying to learn a policy, state values, etc. But we
-don't know the probability distribution. So we need to try a bunch of thinge,
+don't know the probability distribution. So we need to try a bunch of actions,
 learn from our successes and failures, and eventually learn the distribution of
 the MDP and thereby find the optimal policy. 
-- Offline vs Online 
-	- Offline = learning by simulating 
-	- Online = learning by doing in the real world 
-- Model based learning - learn an approximate model of the MDP based on our
-experiences. Then use that model to generate a policy. 
-	- In state $s$ we take action $a$, count outcomes $s'$. 
-	- Normalize to get an estimate for $T(s, a, s')$. 
-	- Discover each $R(s, a, s')$ when we experience $(s, a, a')$. 
-- Model free approach - Instead of generating a probability distribution based
-on experiences, calculate the expected value of a state directly using the
-experiences. 
-- Passive reinforcement learning - some agent is acting in the real world and 
-we have no control over its actions. We are essentially watching a fixed policy
-and are trying to learn that policy. 
-	- Direct Evaluation - Watch an action unfold, act according to pi. Every 
-	time you visit a state note what the sum of discounted rewards was. Average
-	those samples. If we do this long enough we'll be able to estimate the policy. 
-		- This works out in the end. However it can result in odd intermediate 
-		results because we don't take into account state connection. Each 
-		state is learned separately and therefore takes a long time to learn. 
-	- Sample based policy evaluation - an approximation of the policy 
-	evaluation algorithm using sample averages as opposed to known transition
-	functions / rewards. 
-		- Every time you're at $s$, take sample of outcomes $s'$ by doing the 
-		action and average. 
-		$$sample_1 = R(s, \pi(s), s_{1}') + V_k^{\pi}(s_1')$$
-		$$sample_2 = R(s, \pi(s), s_{2}') + V_k^{\pi}(s_2')$$
-		...
-		$$sample_n = R(s, \pi(s), s_{n}') + V_k^{\pi}(s_n')$$
-		take the average of n samples 
-		- The big problem is that we can't garuntee we'll get back to $s$.
-	- Temporal difference learning 
-		- Learn from every experience. Update V(s) each time we experience a
-		transition. Likely outcomes $s'$ will contribute to updates more 
-		often. 
-		$$sample = R(s, \pi(s), s') + \gamma V^{\pi}(s')$$
-		$$V^{\pi}(s) = (1 -\alpha) V^{\pi}(s) + \alpha * sample$$
-		or
-		$$V^{\pi}(s) =  V^{\pi}(s) + \alpha(sample - V^{\pi}(s))$$
-		- $\alpha$ is called the learning rate. 
-		- The learning rate creates an "exponential moving average" which 
-		weights more recent samples more heavily. 
-		- This works for passive learning, but not active. 
-		- Active reinforcement learning - we need to learn the Q values as 
-		well as the state values. 
+
+Reinforcement learning can be __online__ or __offline__. Online learning is "learning by
+doing" in the actual environment whereas offline learning occurs in a simulated 
+environment. Reinforcement learning can also be __model based__ or __model free__. 
+A model based learning approach learns an approximate model of the MDP based on 
+the actions taken. This model is used to generate a policy. A model free approach 
+calculates the expected value of each state directly using past experiences rather than 
+explicitly defining a model. 
+
+__Passive reinforcement learning__ is a reinforcement learning model where an  
+agent is acting in the real world and we have no control over its actions. 
+We are essentially watching a fixed policy and are trying to learn that policy. 
+Passive reinforcement learning has two main subcategories:
+- __Direct Evaluation__ is a passive reinforcement learning process where we note
+the result of the actions at each state and use the long term average to estimate
+the policy. This works out in the end. However it can result in odd intermediate 
+results because we don't take into account state connection. Each 
+state is learned separately and therefore takes a long time to learn. 
+- Sample based policy evaluation - an approximation of the policy 
+evaluation algorithm using sample averages as opposed to known transition
+functions / rewards. 
+	- Every time you're at $s$, take sample of outcomes $s'$ by doing the 
+	action and average. 
+	$$sample_1 = R(s, \pi(s), s_{1}') + V_k^{\pi}(s_1')$$
+	$$sample_2 = R(s, \pi(s), s_{2}') + V_k^{\pi}(s_2')$$
+	...
+	$$sample_n = R(s, \pi(s), s_{n}') + V_k^{\pi}(s_n')$$
+	take the average of n samples 
+	- The big problem is that we can't garuntee we'll get back to $s$.
+- Temporal difference learning 
+	- Learn from every experience. Update V(s) each time we experience a
+	transition. Likely outcomes $s'$ will contribute to updates more 
+	often. 
+	$$sample = R(s, \pi(s), s') + \gamma V^{\pi}(s')$$
+	$$V^{\pi}(s) = (1 -\alpha) V^{\pi}(s) + \alpha * sample$$
+	or
+	$$V^{\pi}(s) =  V^{\pi}(s) + \alpha(sample - V^{\pi}(s))$$
+	- $\alpha$ is called the learning rate. 
+	- The learning rate creates an "exponential moving average" which 
+	weights more recent samples more heavily. 
+	- This works for passive learning, but not active. 
+	- Active reinforcement learning - we need to learn the Q values as 
+	well as the state values. 
+
 - Full reinforcement learning - we want to learn optimal policies	
 	- We don't know transitions or rewards. However we can choose the actions. 
 	- This is an online process. 

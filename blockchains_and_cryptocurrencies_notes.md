@@ -1594,6 +1594,217 @@ __Bitcoin as a Platform for Secure Computation__
 	- Secret share z into n additional shares $sh_1 ... sh_n$
 	- Computes commitments on shares $c_i = com(sh_i, w_i) \ \forall \ i=1...n$. 
 	- Delivers output $((c_1...c_n), T_i = (sh_i, w_i))$ to party $P_i$. 
-	- This converts g
 
+
+# Etherium Smart Contracts
+An etherium smart contract is a program that can be used to build decentralized applications (DApps). Smart contracts are written in Solidity, a specific language designed for Etherium. 
+
+## CryptoZombies Lesson 1
+Every Solidity program starts with a `pragma` line that declares the version of Solidity to use. 
+
+```Solidity
+pragma solidity ^0.4.19;
+```
+
+The usable part of a Solidity program must be contained inside of a contract. Inside a contract we can declare
+- variables
+- structs
+- functions
+- events
+
+Solidity is strongly typed (each variable must be given a type). We can also declare arrays whose length is optionally predefined at the variable declaration. Functions and variables can also be declared `public` or `private` - public variables and functions can be accessed by other contracts whereas private members cannot. 
+
+We declare a function in Soliidty using the syntax
+
+```
+function <functionName>(<args>) [public / private] [view / pure] [return (<return type>)] {
+	// body
+}
+``` 
+
+A `view` function views members in the contract but doesn't modify them. A `pure` function doesn't access any contract members. In Solidity we use the naming convention that function arguments begin with an underscore as do the names of private functions. 
+
+Events are used to notify application frontends about occurances in the smart contract. They are essentially ways of triggering events and passing data to other parts of the application. We can declare an event using the syntax
+
+```
+event <eventName>(<args>);
+```
+
+And we trigger the event by calling `eventName` as though it were a function. 
+
+__Example__
+
+```Solidity
+pragma solidity ^0.4.19;
+
+contract ZombieFactory {
+
+	// creates a new event
+    event NewZombie(uint zombieId, string name, uint dna);
+
+    // definines some constant variables
+    uint dnaDigits = 16;
+    uint dnaModulus = 10 ** dnaDigits;
+
+    // defines a struct
+    struct Zombie {
+        string name;
+        uint dna;
+    }
+
+    // defines a variable length array
+    Zombie[] public zombies;
+
+    // private helper function that creates a zombie and adds
+    // it to the list
+    function _createZombie(string _name, uint _dna) private {
+        uint id = zombies.push(Zombie(_name, _dna)) - 1;
+        NewZombie(id, _name, _dna);
+    } 
+
+    // private helper function that generates random DNA from the 
+    // hash of a string
+    function _generateRandomDna(string _str) private view returns (uint) {
+        uint rand = uint(keccak256(_str));
+        return rand % dnaModulus;
+    }
+
+    // public function that creates a random zombie based on a name. 
+    function createRandomZombie(string _name) public {
+        uint randDna = _generateRandomDna(_name);
+        _createZombie(_name, randDna);
+    }
+}
+```
+
+## CryptoZombies Lesson 2
+
+__Mapping__: We can create a mapping (key-value store) using the syntax `mapping (keyType => valueType) [public] mapName;`. Note that Solidity has a special type `address` that can be used to designate Etherium addresses. We can use `msg.seder` to refer to the address of the contract calling a specific function. 
+
+__Assert__: Solidity has a assert-like function called `require` which will throw an error if some condition is not true. We can use `require` to ensure that inputs to a function are correct, that a specific `msg.sender` can only call the function a specific number of times, etc. 
+
+__Inheritance__: Solidity contracts are pseudo-objects. Contracts can extend other contracts. We use the syntax 
+
+```
+contract Doge {
+  function catchphrase() public returns (string) {
+    return "So Wow CryptoDoge";
+  }
+}
+
+contract BabyDoge is Doge {
+  function anotherCatchphrase() public returns (string) {
+    return "Such Moon BabyDoge";
+  }
+}
+```
+
+To denote that `BabyDoge` extends `Doge`. As in standard object oriented languages, the sub-contract can access any public members of the super-contract. 
+
+__Import__: Solidity also has import statements which allow us to use string paths to import `.sol` files into solidity projects. This allows us to split large files and create libraries. 
+
+__Memory Management__: There are two types of memory in Solidity - permanent memory (storage) which is stored on the blockchain and temporary memory (memory) which only lasts for the scope of the function. By default global variables are given storage status whereas function variables are given memory status. We can explicitly define a variable's memory type by using the keyword `memory` or `storage` in the declaration. 
+
+```Solidity
+contract SandwichFactory {
+  struct Sandwich {
+    string name;
+    string status;
+  }
+
+  Sandwich[] sandwiches;
+
+  function eatSandwich(uint _index) public {
+    // Sandwich mySandwich = sandwiches[_index];
+
+    // ^ Seems pretty straightforward, but solidity will give you a warning
+    // telling you that you should explicitly declare `storage` or `memory` here.
+
+    // So instead, you should declare with the `storage` keyword, like:
+    Sandwich storage mySandwich = sandwiches[_index];
+    // ...in which case `mySandwich` is a pointer to `sandwiches[_index]`
+    // in storage, and...
+    mySandwich.status = "Eaten!";
+    // ...this will permanently change `sandwiches[_index]` on the blockchain.
+
+    // If you just want a copy, you can use `memory`:
+    Sandwich memory anotherSandwich = sandwiches[_index + 1];
+    // ...in which case `anotherSandwich` will simply be a copy of the 
+    // data in memory, and...
+    anotherSandwich.status = "Eaten!";
+    // ...will just modify the temporary variable and have no effect 
+    // on `sandwiches[_index + 1]`. But you can do this:
+    sandwiches[_index + 1] = anotherSandwich;
+    // ...if you want to copy the changes back into blockchain storage.
+  }
+}
+```
+
+__Function access management__: In addition to public and private, Solidity has modifiers `internal` and `external`. An internal function is private, but accessible to all contracts that inherit from the base. An external function is public but not accessible to the contract itself (only accesible from outside the contract). 
+
+__Calling external contracts__: We often want to interact with external contracts that exist on the etherium blockchain. We can do this in two steps
+1. We define an __interface__ which declares the functions we want to use from the external contract. 
+An interface in Solidity is similar to an interface in Java. We declare it using the `contract` keyword, but hte contents are just declarations of functions (function headers) as opposed to function definitions. \
+Given the LuckyNumber contract
+```Solidity 
+contract LuckyNumber {
+  mapping(address => uint) numbers;
+
+  function setNum(uint _num) public {
+    numbers[msg.sender] = _num;
+  }
+
+  function getNum(address _myAddress) public view returns (uint) {
+    return numbers[_myAddress];
+  }
+}
+```
+If we only want to get numbers we can create an interface:
+```Solidity
+contract NumberInterface {
+  function getNum(address _myAddress) public view returns (uint);
+}
+```
+2. In our main contract we use the address of the external contract to define the interface. 
+```Solididty
+contract MyContract {
+  address NumberInterfaceAddress = 0xab38... 
+  // ^ The address of the FavoriteNumber contract on Ethereum
+  NumberInterface numberContract = NumberInterface(NumberInterfaceAddress);
+  // Now `numberContract` is pointing to the other contract
+
+  function someFunction() public {
+    // Now we can call `getNum` from that contract:
+    uint num = numberContract.getNum(msg.sender);
+    // ...and do something with `num` here
+  }
+}
+```
+
+__Multiple returns__: Functions in solidity can return multiple values. This can either be done in a pythonic tuple way or in a Matlab assignment way. 
+
+```Solidity
+function returnMultiple() public return (uint, uint) {
+	return (1, 2);
+}
+```
+or
+```Solidity
+function returnMultiple() public return (uint a, uint b) {
+	a = 1;
+	b = 2;
+}
+```
+
+We can use tuples to store the output of multiple return functions
+
+```Solidity
+(x,y) = returnMultiple();
+```
+
+If we only care about one of the outputs we can use empty commas to ignore the other outputs
+
+```Solidity
+(,y) = returnMultiple();
+```
 

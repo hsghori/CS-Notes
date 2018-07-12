@@ -1,5 +1,5 @@
 ---
-title: Introductory Programming in Java Notes
+title: Python Notes
 author: Haroon Ghori
 output:
   pdf_document: default
@@ -79,376 +79,154 @@ interpreters are built to convert the source code based on architecture,
 and they are less secure since the source code is shipped out as part of
 the software.
 
-## Java
+## Pyhton
 
-Java is a multi-purpose programming language developed by Sun
-Microsystems (bought by Oracle) in 1995. It is the most used programming
-language in the world. Java is a high level
-language and is a hybrid compiled / interpreted language. Java source
-code is compiled into Java byte code which is then run on top of a Java
-Virtual Machine (JVM). The JVMs are architecture specific, but the byte
-code is not which means Java can be shipped out in its compiled state.
-This means that Java source code can run on any platform and is faster
-than a standard interpreted language. However, Java is still slower than pure
-compiled languages like C and C++.
+Python is a general-purpose programming language developed by Guido van Rossum in 1991. Python was designed to be easily learnable / readable and to accomplish tasks in fewer lines of code than other languages like C++ or Java. It is a high level, interpreted language and is significantly slower than other languages but has remained popular with students, researchers, and software developers for whom readability and ease of use outweighs concerns about efficiency. 
+
+Modern Python is available in two versions, 2.7+ and 3.5+ (we call these python2 and python3 respectively). Here we'll be using python3, but all general concepts should work in python2 with some syntax alterations. You may find that some libraries (particularly when we cover scientific computing) don't work in python2. 
 
 # Configuring Your System
 
-Before you can start programming in Java you need to have the Java Developer Kit (JDK)
-installed on your computer. For this class we use Java 8, but for general 
-use you should install the most up to date version. \
-Once you've installed the JDK, you need to install an IDE to write, compile, 
-and run your Java programs. In this class we use JGrasp which is a really bare bones
-and (quite honestly) low quality IDE. We use JGrasp because it gets the job done
-without any added complexity that come with other IDES. Feel free to use another IDE like 
-IntelliJ or Eclipse (which are more commonly used by professionals) if you so choose. 
+The first thing you need to do before programming anything is set up the right programming environment on your computer. As you become more experienced setting up the right environment can make your programming experience a lot easier, but when you're just starting out it's best to go with the most bare-bones environment. \
+The first thing you need to do is [download Python](https://www.python.org/downloads/) (if you haven't done so already). Keep in mind that some operating systems have Python pre-installed, but even so it's a good idea to install the latest version. Once you've installed Python there are three major types of environments you can choose for Python programming.
 
-[JDK download](http://www.oracle.com/technetwork/java/javase/downloads/index.html) \
-[JGrasp download](http://spider.eng.auburn.edu/user-cgi/grasp/grasp.pl?;dl=download_jgrasp.html)
+- Text Editor / Terminal \
+This is the most bare-bones environment, but also (in my opinion) the best environment for the beginner. Basically you write your code in a text editor (like Notepad, Notepad++, Sublime Text, Vim, Emacs, etc) and use the terminal to execute the code. I've included a brief introduction to using the terminal below. 
+- Integrated Development Environment \
+An IDE is an all in one programming suite. They come in many different langauges and flavors but their main features are that they have built in tools like syntax hilighting, autocompletion, automation of "boilerplate" code, and a compiler / interpreter. Beginners typically like IDEs, but if used incorrectly they can become something of a crutch. For Python I recommend Spyder or PyCharm. 
+- Jupyter Notebook \\
+A Jupyter Notebook is a tool used in scientific computing and education which allows for inline output and documentation. Basically it allows you to write code and text together in a "notebook" style. It is very similar to the Text Editor / Terminal option in terms of features, but it can be a bit messy to start up. Note that you need to use the terminal to launch a jupyter notebook though you don't need it for anything else in this environment. 
 
-When you open JGrasp, create a new Java file by clicking `File -> new -> Java`. You should see
-a screen that looks like the figure below.
+The text editor / terminal and IDE options are available for all mainstream languages - the Jupyter notebook is limitted to a few languages and is mainly used for Python. 
 
-![](src/jgrasp.png){width=300px} 
-
-You can write code in the main editor. Click the green plus button in the upper toolbar to 
-compile your code and click the red "running man" button to run your code. The output 
-of your code should appear in the console at the bottom of the screen. 
-
-# Basics of Java Syntax
+# Basics of Python Syntax
 
 ## The Hello World Program
 
-```Java
-public class Hello {
+Hello world is the first thing most people will write in any language. The goal of this program is to print "Hello World!" to the screen. This is very easy to do in Python.
 
-   public static void main(String[] args) {
-        System.out.println("Hello World");
-   }
-}
+```Python 
+print('Hello World!')
 ```
-The first line defines a Java **class** named \"Hello\". The entire
-class is contained in the first set of curly brackets. All java programs
-must be self contained in a class.\
-The second line is the **header** for the **main method**. The main
-method is the place where the computer begins running the program. For the
-first few sections, we will write all of our code in the main method. The
-entire method is contained within the second set of curly brackets. The
-third line is a print command.\
 
 ## Printing
 
-There are three major ways to print output to the screen in Java.
--   `System.out.println("Hello World");`\
-    Prints the argument (in this case the string Hello World, but could
-    be an integer, character, float, double, etc) and moves the cursor
-    to a new line.
--   `System.out.print("Hello World");`\
-    Prints the argument and doesn't move the cursor to a new line.
--   `System.out.printf("%s", "Hello World");`\
-    Prints a string containing format commands (the first argument) and
-    doesn't move the cursor to a new line. A formatted command has the
-    structure: %\[flags\]\[width\]\[.precision\]conversion-character.
-    See the below cheat sheet for a quick reference to the different
-    printf commands.\
-    <http://web.cerritos.edu/jwilson/SitePages/java_language_resources/Java_printf_method_quick_reference.pdf>
+Python has one print function that can be used in different ways depending on what you want to do.
+- `print('Hello World!')`{.python} \
+Prints the argument (in this case the string "Hello World", but this could be an integer, float, etc) and moves the cursor to the next line.
+- `print('Hello', 'World', '!')` \
+Prints the arguments with a space seperating each argument.
+- `print('%s %s!' % ('Hello', 'World'))` \
+Prints a string containing format commands (the first argument) and doesn't move the cursor to a new line. A formatted command has the structure: `\%[flags][width][.precision]`conversion-character. See the below cheat sheet for a quick reference to the different printf commands.
+
+__Examples__
+
+```Python
+print('Hello World') # prints the string "Hello World"
+print("Hello World") # prints the string "Hello World" (note that single vs double quotes do the same thing)
+print('I have ' + str(1) + ' number to print') # prints "I have 1 number to print"
+printf('I have %d number to print' % (1)) # prints "I have 1 number to print"
+```
+
+## Comments
+
+The point of a programming language is to be easy to read, but sometimes it's hard to keep track of why you used a specific statement or code block. So programming languages have a feature called "comments" which allows us to write english comments in our code. Comments are ignored by the interpreter and are just for human use. In Python, we can create a comment using the \# sign. Anything on a line after a \# is a comment and will be ignored by the interpreter. 
 
 ## Data Types
 
-Java technically has an infinite number of data types since Java
-programmers can create their own data types. However, all Java data
-types are build around a set of basic, **primitive** data types.
--   boolean: represents true or false. Example:
-    `boolean b1 = true; boolean b2 = false;`.
--   byte: represents a single 8 bit value (any integer between $-2^7$
-    and $2^7$)\
-    Example: `byte b1 = 8; byte b2 = 127;`.
--   char: a single Unicode character - in non-programming speak, this is
-    a data type that holds a single letter or symbol found in text.
-    Example: `char c1 = 'a'; char c2 = '1'; char c3 = '\n';`.
--   short: a 16 bit integer value (any integer between $-2^15$ and
-    $2^15$). Example: `short s1 = 8; short s2 = 32767; short s3 = -5;`
--   int: a 32 bit integer value (any integer between $-2^31$ and
-    $2^31$). Example: `int i1 = 8; int i2 = 2147483647; int i3 = -20;`
--   long: a 64 bit integer value (any integer between $-2^63$ and
-    $2^63$). Example: `long l1 = 8; l2 = 2147483647; long l3 = -10;`
--   float: a 32 bit floating point value. Example
-    `float f1 = 10.0; float f2 = 100.323423; flaot f3 = -2132.343;`
--   double: a 64 bit floating point value. Example
-    `double d1 = 1.0; double d2 = 1123.3432432; d3 = -4234.324;`
-
-Java - and most other programming language - have a more complex data
-type used to hold text. These are called **Strings**. Strings are
-\"strings' of characters - essentially the representation of text in a
-computer program. Strings are an example of a **non-primitive** data
-type. A non-primitive data type is a data type that is made up of
-primitive (and other non-primitive data types). Non-primitive data types
-are more complex than primitives and are named with their first letter
-capitalized. We define a string useing quotation marks:
-`String s = "Hello world.";`.
+Python technically has an infinite number of data types since Python programmers can create their own data types. But Python has a few built in data types which all other data types are built off of. 
+- int : A 32 bit integer value
+- float : A 32 bit floating point value
+- str : A collection of ascii characters (represents text)
+- list : An ordered collection of values (of mixed data types)
+- set : An unordered collection of values (of mixed data types)
+- dict : An unordered collection of key-value pairs (of mixed data types)
 
 ## Variables
 
-A variable is a container or storage location for a value. These
-variables only exist while the program is running. A variable has three
-components, a type, name and value.
+A variable is a container or storage location for a value. A variable has two components, a name and a value. 
 
-```Java
-public class VarExample {
-
-    public static void main(String[] args) {
-        int luckyNumber = 13;
-        System.out.println("the lucky number is " + luckyNumber);
-        System.out.println("and twice that is " + 2*luckyNumber);
-    }
-}
-
+```Python
+num = 13;
+print('the lucky number is %d' % (num))
+print('and twice that is %d' % (2*num))
 ```
 
-In line 1 we define a variable (luckyNumber) as an integer (int) which
-we can call later in the program.\
-We can define a constant or final variable as a variable that cannot be
-changed throughout the program. This can be useful for mathematical
-constants or specific numbers that aren't changeable. For example, if we
-want to create a named constant integer set to the value $1$ we say
-`final int one = 1;`
+Variables are very useful for keeping track of data values - especially in longer calculations with user input. Python is known as a __dynamicaly typed__ language. This means that we don't need to explicitly define a variable's type - the interpreter decides the variable type based on the associated value. 
 
-## Keyboard Input
+You can check the variable type using the `type`{.python} function. 
 
-Taking in user input is a crucial part of a computer program since we usually want our programs to make computations and decisions based on
-user input.
-```Java
-import java.util.Scanner; 
-
-public class Variable {
-
-   public static void main(String[] args) {
-      Scanner keyboard = new Scanner(System.in); 
-      System.out.print ("Please enter your lucky number ");
-      int luckyNumber = keyboard.nextInt();
-      System.out.println ("the lucky number is " + luckyNumber);
-      System.out.println ("And twice that is " + 2*luckyNumber);
-    }
-}
+```Python
+num = 13
+dec = 1.0
+word = 'hello'
+print(type(13)) # outputs int
+print(type(dec)) # outputs float
+print(type(word)) # outputs str
 ```
-Line 1 imports the Scanner class from the java library.\
-Line 4 defines a new variable \"keyboard\" which is a variable of type Scanner.\
-Line 6 defines a new integer as the next integer entered by the user.
-This vari able can be called later on in the program.\
-You can think of a Scanner as a pipe that we can use to read input and files from different sources. When we set up a Scanner as we did above, the pipe is connected to the Computer's "standard input" (aka the keyboard) and will read input at that location. 
-The Scanner object has a few built in methods that can be used to take
-in specific types of input. If we declare
-`Scanner keyboard = new Scanner(System.in);`:
--   `keyboard.next();`\
-    Returns the next word (String up until the next whitespace or
-    newline) entered at the console. The `next()` method strps any whitespace
-    preceeding the next word but does not include the whitespace after the
-    word. 
--   `keyboard.nextLine();`\
-    Returns the next line (String up until the next newline including
-    any other whitespace) entered at the console. The `nextLine()` method
-    does not strip any whitespace preceeding the words in the line, but 
-    does strip the new line character (`\n`) at the end of the line. 
--   `keyboard.nextInt();`\
-    Returns the next integer entered at the console ignoring whitespace.
--   `keyboard.nextDouble();`\
-    Returns the next double entered at the console ignoring whitespace. 
--   `keyboard.hasNext();`\
-    Returns whether or not there is an unprocessed word entered at the
-    console.
--   `keyboard.hasNextLine();`\
-    Returns whether or not there is an unprocessed line entered at the
-    console.
-
-Here is a more complex example of how a scanner works
-```Java
-import java.util.Scanner;
-
-public class AdvancedScannerExample {
-
-    public static void main(String[] args) {
-        Scanner kb = new Scanner(System.in);
-        System.out.println(kb.next());
-        System.out.println(kb.nextLine());
-        System.out.println(kb.nextInt());
-        System.out.println(kb.next());
-    }
-}
-```
-
-If we input
-
-```
-hello    my name is George.
-     10     !
-```
-
-The program will print
-
-```
-hello
-    my name is George.
-10
-!
-```   
-
-For more Scanner commands see
-<https://docs.oracle.com/javase/7/docs/api/java/util/Scanner.html>.
-
-## Basic Value Manipulation
-
-One of the main purposes of computers is to perform calculations more
-quickly than humans. Java has many operations which can be used to
-perform arithmetic, manipulate data, etc.
-
-**Arithmetic Operations**
-
-The arithmetic operations in Java are
-
--   \+ addition
--   \- subtraction
--   \* multiplication
--   / division
--   \% modulus (remainder)
-
-**Integer Division**
-
-When a value or variable is stored a certain ammount of memory is
-allocated based on the type. Thus integers, doubles, floats, strings,
-etc cannot be simply interchanged. This doesn't present as a problem
-when undergoing addition, subtraction, or multiplication since adding,
-subtracting, and multiplying two integers will yield an integer. However
-when dividing integers we encounter a problem. Dividing two integers can
-yield a decimal number which does not \"fit\" in the memory allocated
-for the integers. Thus the computer truncates the number at the decimal
-point to ensure that the new number will be stored.\
-Thus if we have two integers 3 and 7. According to the compiler 7/3 = 2
-However if we want to obtain the \"real\" answer we can say
-`7/ (double) 3 = 2.33333`
-
-## The Math Library
-
-Java also has a built in Math package for more complicated mathematical
-operations. You're not expected to know the entirity of the Math
-package, but there are a few methods which you should know off the top
-of your head. Note that while I'm writing these functions with a very
-specific set of input arguments, there are equivalent functions for
-variables of different data types. For example there is a
-`Math.abs(int a)`, a `Math.abs(double a)`, a `Math.abs(long a)`, etc all
-of which return the absolute value of the argument / parameter (a).
--   `Math.pow(int a, int b);`\
-    Returns $a^b$.
--   `Math.sqrt(int a);`\
-    Returns $\sqrt(a)$.
--   `Math.log(double a);`\
-    Returns $\log_{e}(a)$.
--   `Math.log10(double a);`\
-    Returns $\log_{10}(a)$.
--   `Math.max(int a, int b);`\
-    Returns the larger of the two parameters.
--   `Math.min(int a, int b);`\
-    Returns the smaller of the two parameters.
--   `Math.abs(double a);`\
-    Returns the absolute value of the parameter.
--   `Math.floor(double a);`\
-    Returns the largest integer less than the parameter. For example if
-    `double a = 4.5`, `Math.floor(a)` returns 4.0.
--   `Math.ceil(double a);`\
-    Returns the smallest integer greater than the parameter. For example
-    if `double a = 4.5`, `Math.ceil(a)` returns 5.0.
-
-A full list of Math methods can be found at
-<https://docs.oracle.com/javase/8/docs/api/java/lang/Math.html>.
-
-## String Manipulation
-
-Java maintains a list of String manipulation methods on their website.
-If we have a `String myString = "This is my string!";`:
--   `myString.charAt(2);`\
-    Returns the character at index 2 (3rd character) in myString.
--   `myString.substring(5);`\
-    Returns the string from index 5 till the end.
--   `myString.substring(1, 5);`\
-    Returns the string from index 1 (inclusive) to index 5 (exclusive).
--   `myString.toLowerCase();`\
-    Converts the string to lower case.
--   `myString.toUpperCase();`\
-    Converts the string to upper case.
--   `myString.contains(str);`\
-    Returns true if myString contains str, false if not.
--   `myString.indexOf(str);`\
-    Returns the index of the first incidence of the string str in
-    myString or -1 if str is not in myString. Can also be called on a
-    character.
--   `myString.length();`\
-    Returns the length of the string.
-
-A full list of String methods can be found at
-<http://docs.oracle.com/javase/7/docs/api/java/lang/String.html?is-external=true>.
-
-
-## Random Numbers
-
-Sometimes we may want to generate a random number as part of our program
-(we could be writing a board game that uses a dice, simulating a
-biological process, or testing another program). Java has a specific
-module designed to handle random number generation.\
-To use this module we must import the Random class and declare a new
-Random object - keep in mind you only need to declare one random object
-even if you want to generate multiple random variables. If we have
-`Random gen = new Random();`
-
--   `gen.nextInt();`\
-    Returns a random integer.
--   `gen.nextInt(x);`\
-    Returns a random integer between 0 and x (not including x).
--   `gen.nextDouble();`\
-    Returns a random double between 0 and 1.
--   `gen.nextBoolean();`\
-    Returns a random boolean value (true or false).
--   `gen.nextGaussian();`\
-    Returns a random double from the Gaussian (Normal) distribution with
-    mean 0 and standard deviation 1.
-
-We can use these methods to generate random integers and floats between
-L (inclusive) and H (exclusive).
--   `gen.nextInt(H-L+1) + L`\
-    Returns a random integer between L and H (inclusive).
--   `gen.nextDouble()*(H-L) + L`\
-    Returns a random double between L and H (inclusive).
-
-The complete list of random number generation methods can be found at
-<https://docs.oracle.com/javase/7/docs/api/java/util/Random.html>.
 
 __Example__
 
-The following program takes two doubles as inputs (high and low) and
-prints two random numbers - the first is a random integer between high
-and low (inclusive) and the ssecond a random double between high and low
-(inclusive).
-
-```Java
-import java.util.Random;
-import java.util.Scanner;
-
-public class RandomExample {
-
-    public static void main(String[] args) {
-        Scanner kb = new Scanner(System.in);
-        Random gen = new Random();
-        System.out.print("High: ");
-        double high = kb.nextDouble();
-        System.out.printf("Low: ");
-        double low = kb.nextDouble();
-        // note that (int) high casts the double variable "high" to an integer
-        int randInt = gen.nextInt((int) high - (int) low + 1) + (int) low;
-        double randDouble = gen.nextDouble() * (high-low) + low;
-        System.out.printf("A random number between %d and %d is %d\n", (int)low, (int)high, randInt);
-        System.out.printf("A random double between %f and %f is %f\n", low, high, randDouble);
-    }
-    
-}
+```Python
+x = 7 # defines an integer
+y = 10.23 # defines a float
+s = 'Hi' # defines a string
+print(2*x)
+print(s)
 ```
+
+## Keyboard Input
+
+Taking in user input is a crucial part of a computer program. We generally want our programs to make computations and decisions based on user input. Python has a very useful "input" function which can be used to input a string entered by the keyboard.
+
+```Python
+x_in = input('Some input message: ')
+```
+
+The input function is less flexible than techniques in other languages (Java's Scanner, C's scanf, C++'s cin, etc). The input function stores everything before a newline as a String in the variable `x_in`. It's up to the programmer to properly process and store the user input. \
+Since the `input`{.python} function stores everything as a string, we may need to convert the input to other data types (usually float or int) before we can use it. This process is called casting.
+
+```Python
+x = input('Enter a value: ') # user enters an integer 
+x = int(x) # converts the string to an integer. This will crash if the user entered a non-integer.
+y = '10.324' # y is a string representation of a float
+z = float(y) # now z is the actual float
+```
+
+## Basic Value Manipulation
+One of the main purposes of computers is to perform calculations more quickly than humans. Python has many operations which can be used to perform arithmetic, manipulate data, etc.
+\subsubsection{Arithmetic Operations}
+The arithmetic operations in Python are:
+
+- `+` addition 
+- `-` subtraction
+- `*` multiplication
+- `/` division 
+- `//` integer division
+- `**` exponent
+- `%` modulus
+
+Iteger division is a division technique that can be useful for certain algorithms. We would usually expect that $2 / 3 \to 0.66666667$, but sometimes we only want the whole number approximation - ie the integer version of this value. Python has a built in operator (`//`) that can be used for "integer division". 
+
+```Python
+2 / 3   # 0.6666667
+2 // 3  # 0
+10 / 4  # 2.5
+10 // 4 # 2
+```
+
+## Random Numbers
+Sometimes we may want to generate a random number as part of our program (we could be writing a board game that uses a dice, simulating a biological process, or testing another program). Java has a specific module designed to handle random number generation. \
+To use this module we must import the random module and declare a new Random object (see the section below on importing modules). If we've called `import random`{.python}. 
+
+- `random.choice(seq)`\
+Returns a random element from the sequence seq. 
+- `randy.random()`\
+Returns a random double between 0 and 1.
+- `randy.uniform(a, b)`\\
+Returns a random floating point value from the uniform distribution from a to b.
+
+The complete list of random number generation methods can be found [here](https://docs.python.org/3.6/library/random.html).
 
 # Control Flow
 
@@ -457,231 +235,174 @@ public class RandomExample {
 Boolean is one of the primitive data types in Java. A boolean variable
 can take on two values, true or false and can be created using
 combinations of relational statements and boolean variables chained
-together by logical operators.
+together by logical operators.\
 
 **Relational Operators**
-- < less tha
-- \> greater than
-- \<= less than or equal to
-- >= greater than or equal to
-- == check for equality
-- != not equal
+
+-   $<$ less than
+-   $>$ greater than
+-   $<=$ less than or equal to
+-   $>=$ greater than or equal to
+-   $==$ check for equality
+-   $!=$ not equal
 
 **Logical Operators**
-- && and
-- || or
-- ! not
 
-A && B is true if A and B both evaluate to true. Otherwise
-A && B is false.
+- `and`{.python} : logical and
+- `or`{.python} : logical or
+-  `not`{.python} : logical not
 
-A || B is true if either A or B or both A and B are true.
-Otherwise A || B is false.
+A and B is true if and only if, A and B both evaluate to true. Otherwise
+A && B is false.\
+A or B is true if and only if, either A or B or both A and B are true.
+Otherwise A $||$ B is false.\
+not A is true if and only if A is false. Otherwise !A is false.\
+These statements can be summarized by the following tables\
 
-!A is true if A is false. Otherwise !A is false.
+**AND**\
 
-```
-AND
-True  &&  True  = True 
-True  &&  False = False 
-False &&  True  = False 
-False &&  False = False  
+  ------- ------- ---------
+     A       B     A and B
+   false   false    false
+   true    false    false
+   false   true     false
+   true    true     true
+  ------- ------- ---------
 
-OR
-True  ||  True  = True 
-True  ||  False = True 
-False ||  True  = True 
-False ||  False = False  
+**OR**\
 
-NOT
-!True           = False 
-!False          = True
-```
+  ------- ------- --------
+     A       B     A or B
+   false   false   false
+   true    false    true
+   false   true     true
+   true    true     true
+  ------- ------- --------
+
+**NOT**\
+
+  ------- -------
+     A     not A
+   false   true
+   true    false
+  ------- -------
 
 For example
 
-```Java
-bool x = 5 < 10; // true
-bool y = 5 > 10; // false
-bool z = x && y; // false
-bool z = x || y; // true
-```
-
-The not (!) operator can be distributed using De Morgan's Laws:
-```
-!(A && B) = !A || !B 
-!(A || B) = !A && !B 
+```Python
+x = 5 < 10; // true
+y = 5 > 10; // false
+z = x and y; // false
+z = x or y; // true
 ```
 
 ## If, Else If, and Else
 
-If/Else if/Else blocks are used to execute specific lines of code based
-on a set of conditions. There are several ways to use these blocks.\
-If I want to execute a block of code only if a condition is true I would
-use an if statement. An if statement is paired with a specific boolean
-expression (condition). If that boolean expression evaluates to true,
-the code inside the if block is executed. Otherwise, the code is not
-executed.
+We can direct Python to execute specific code based on boolean
+conditions. This is accomplished using if/elif (else if)/else blocks -
+usually abbreviated to if/else blocks. Structuring if/else blocks can be
+a bit tricky so it's important to understand how they work. **Note:** In
+Python indentation matters. Anything \"inside\" a block must be indented
+more than the block header. An if/else block must contain an \"if
+block\".
 
-```Java
-int val = kb.nextInt();
-if (val > 5) {
-    // inside the if block
-    System.out.println("val was greater than 5");
-}
+```Python
+if boolean_expression:
+    # statements inside if block
+# statements after if block
 ```
 
-If I want to execute a block of code if a condition is true and a
-completely different block if the condition is false I would use an if
-block paired with an else block. An else block comes after an if (or
-else if, see below) and is executed if the if statement's boolean
-condition evaluates to false. In the example below, we want to print one
-statement if the user entered a value greater than 5 and a completely
-different statement otherwise.
+If the boolean expression evaluates to true, the statements inside the
+if block are executed and then the statements after the if block are
+executed. If the boolean expression evaluates to false, only the
+statements after the if block are executed.\
+Sometimes we want to execute a set of statements if an expression is
+true and a whole other set of statements if the expression is false. For
+example, consider a simple program that assigns grades - a student earns
+an S (satisfactory) if their overall score is greater than or equal to
+60 and an F if not. In this situation we would use an \"if\" and an
+\"else block\". If the boolean condition associated with the if block is
+true, the statements inside the if block are executed. If not, the
+statements inside the else block are executed.
 
-```Java
-int val = kb.nextInt();
-if (val > 5) {
-    // inside the if block
-    System.out.println("val was greater than 5");
-}
-else {
-    // inside the else block
-    System.out.println("val was less than or equal to 5");
-}
+```Python
+# some statements where a variable called grade_points is defined and set
+if grade_points >= 60:
+    print('S')
+else:
+    print('F')
 ```
 
-If I want to execute a different block of code based on more than two
-possible outcomes (ie one block if condition\_1 is true, another if
-condition\_2 is true, another if condition\_3 is true, etc) I would use
-an if block paired with else if blocks and optionally a final else
-block. A set of else if block comes after an if block. Each individual
-else if is paired with a boolean conditions - if none of the conditions
-above were true and the else if's condition is true, that block of code
-gets executed. If none of the if or else if blocks get executed, the
-else block is executed.
+Note that only one of these blocks will be executed. We can add even
+more complexity using \"elif\" blocks. For example if we were assigning
+letter grades, we could use several \"elif\" blocks with associated
+boolean conditions to assign one of five letter grades (A, B, C, D, F).
+Keep in mind that only one set of statements will be executed - the
+first block whose statement evaluates to true will be executed.
 
-```Java
-double grade = kb.nextDouble();
-if (grade > 90) {
-    System.out.println("A");
-}
-else if (grade > 80) {
-    System.out.println("B");
-}
-else if (grade > 70) {
-    System.out.println("C");
-}
-else if (grade > 60) {
-    System.out.println("D");
-}
-else {
-    System.out.println("F");
-}
+```Python
+if grade_points >= 90:
+    print('A')
+elif grade_points >= 80:
+    print('B')
+elif grade_points >= 70:
+    print('C')
+elif grade_points >= 60:
+    print('D')
+else:
+    print('F')
 ```
 
-## Switch
+In general an if/else block must contain one if block, may contain any
+number of elif blocks, and may contain an else block. The blocks must be
+in order (if, elif, else) and the order of the boolean statements does
+matter.
 
-A switch statements is used when we want to perform a specific action if
-a primitive variable or String is equal to a specific value. Instead of
-writing:
+# Loops
 
-```Java
-if (x == value1) {
-    // statements
-}
-else if (x == value2) {
-    // statements
-}
-else {
-    // statements
-}
-```
+One of the major benefits of a computer is the computer's ability to
+quickly complete repetitive tasks. Programming languages like Python
+have built in structures called loops which we can use to condense
+repetitive statements. The two types of loops in Python are
+-   while loop : The while loop is the most basic kind of loop. It
+    repeats so long as a boolean condition is true.
 
-We can write:
+    ```Python
+    while boolean_expression:
+        # statements
+    ```       
 
-```Java
-switch (x) {
-    case value1: 
-        // statements
-        break;
-    case value2: 
-        // statements
-        break;
-    default: 
-        // statements
-        break;
-}
-```
+    When writing while loops you must make sure that the boolean
+    condition will eventualy evaluate to false - ie the boolean needs to
+    be recomputed or modified inside the loop. Otherwise, the loop will
+    run forever.
 
-Note that the default case corresponds to the \"else\" block in an if /
-else if / else structure. The `break` keyword breaks out of the switch
-structure. If you don't end a case with a `break`, the program will
-simply move on through to the next case. This behaviour gives us a bit
-more flexibility than if/else if statements when it comes to \"or\"
-behaviors. If you want to have an \"or\" type statements with mutliple
-variables (ie if x == X or x == Y) we can exclude the break statement
-and let the cases merge.
+-   for loop : A for loop in Python is the same as a for-each loop in
+    other languages (like Java or C++). It iterates over the elements in
+    an iterable data type (list, string, set, etc) and repeats the
+    statements inside the loop using each element in the list.
 
-```Java
-switch (x) {
-    case value1: 
-    case value2: 
-        // statements
-        break;
-    default: 
-        // statements
-        break;
-}
-```
+    ```Python
+    for i in some_list:
+        # statement
+    ```    
 
-Is the same as
+    For exmaple:
 
-```Java
-if (x == value1 || x == value2) {
-    // statements
-}
-else {
-    // statements
-}
-```
+    ```Python
+    some_list = ['a', 'b', 'c', 'd']
+    for x in some_list:
+        print(x)
+    ```
+            
+    prints 'a' 'b' 'c' 'd'\
+    A more traditional for loop iterates over some range of integers.
+    This can be accomplished using the range method in Python.
 
-Or say we have three possible actions A, B, and C. If the user enters
-'a' we want to perform 'Action A', if the user enters 'b' we want to
-perform 'Action B' and then 'Action A', and if the user enters anything
-else we want to perform 'C'. Below are examples of how you could do this
-with a switch and an if/else if/else structure. Notice how the switch
-statement is syntactically cleaner than the if/else if/else (though both
-are technically right).
-
-```Java
-// switch example
-char choice = kb.nextInt().charAt(0);
-switch (choice) {
-    case 'b':
-        // do B
-    case 'a':
-        // do A 
-        break;
-    default:
-        // do C
-}
-```
-
-```Java
-// if / else if / else example
-char choice = kb.nextInt().charAt(0);
-if (x == 'a') {
-    // do A
-}
-else if (x == 'b')
-    // do A 
-    // do B
-}
-eles {
-    // do C
-}
-```
+    ```Python
+    for i in range(lower_bound, upper_bound, step):
+        print(i)
+    ```
 
 # Loops
 
