@@ -125,7 +125,7 @@ __Examples__
 print('Hello World') # prints the string "Hello World"
 print("Hello World") # prints the string "Hello World" (note that single vs double quotes do the same thing)
 print('I have ' + str(1) + ' number to print') # prints "I have 1 number to print"
-printf('I have %d number to print' % (1)) # prints "I have 1 number to print"
+print('I have %d number to print' % (1)) # prints "I have 1 number to print"
 ```
 
 ## Comments
@@ -193,7 +193,7 @@ y = '10.324' # y is a string representation of a float
 z = float(y) # now z is the actual float
 ```
 
-## Basic Value Manipulation
+## Arithmetic Operations
 One of the main purposes of computers is to perform calculations more quickly than humans. Python has many operations which can be used to perform arithmetic, manipulate data, etc.
 \subsubsection{Arithmetic Operations}
 The arithmetic operations in Python are:
@@ -205,6 +205,20 @@ The arithmetic operations in Python are:
 - `//` integer division
 - `**` exponent
 - `%` modulus
+
+When working with "number types" these operations do about what you'd expect
+
+```Python
+x = 1 + 2.5 # now x = 3.5
+```
+
+However, these operations have different meanings when used on non-number types. Specificaly, the `+` operation has a very differnet function when used with two strings - string concatination. Assuming `A` and `B` are two strings, the statement `A + B` returns the string `A | B` where `|` is the concatination operator. 
+
+```Python
+A = 'hello'
+B = 'world'
+C = A + B # now C = 'helloworld'
+```
 
 Iteger division is a division technique that can be useful for certain algorithms. We would usually expect that $2 / 3 \to 0.66666667$, but sometimes we only want the whole number approximation - ie the integer version of this value. Python has a built in operator (`//`) that can be used for "integer division". 
 
@@ -221,10 +235,12 @@ To use this module we must import the random module and declare a new Random obj
 
 - `random.choice(seq)`\
 Returns a random element from the sequence seq. 
-- `randy.random()`\
+- `random.random()`\
 Returns a random double between 0 and 1.
-- `randy.uniform(a, b)`\\
+- `random.uniform(a, b)`\
 Returns a random floating point value from the uniform distribution from a to b.
+- `random.randrange(a, b)`\
+Returns a random integer from the univorm distribution from a to b (exclusive upper bound)
 
 The complete list of random number generation methods can be found [here](https://docs.python.org/3.6/library/random.html).
 
@@ -252,11 +268,11 @@ together by logical operators.\
 - `or`{.python} : logical or
 -  `not`{.python} : logical not
 
-A and B is true if and only if, A and B both evaluate to true. Otherwise
-A && B is false.\
-A or B is true if and only if, either A or B or both A and B are true.
-Otherwise A $||$ B is false.\
-not A is true if and only if A is false. Otherwise !A is false.\
+`A and B` is true if and only if, `A` and `B` both evaluate to true. Otherwise
+`A and B` is false.\
+`A or B` is true if and only if, either `A` or `B` or both `A` and `B` are true.
+Otherwise `A or B` is false.\
+`not A` is true if and only if `A` is false. Otherwise `not A` is false.\
 These statements can be summarized by the following tables\
 
 **AND**\
@@ -334,7 +350,7 @@ else:
 ```
 
 Note that only one of these blocks will be executed. We can add even
-more complexity using \"elif\" blocks. For example if we were assigning
+more complexity using \"elif\" (short for "else if") blocks. For example if we were assigning
 letter grades, we could use several \"elif\" blocks with associated
 boolean conditions to assign one of five letter grades (A, B, C, D, F).
 Keep in mind that only one set of statements will be executed - the
@@ -360,52 +376,6 @@ matter.
 
 # Loops
 
-One of the major benefits of a computer is the computer's ability to
-quickly complete repetitive tasks. Programming languages like Python
-have built in structures called loops which we can use to condense
-repetitive statements. The two types of loops in Python are
--   while loop : The while loop is the most basic kind of loop. It
-    repeats so long as a boolean condition is true.
-
-    ```Python
-    while boolean_expression:
-        # statements
-    ```       
-
-    When writing while loops you must make sure that the boolean
-    condition will eventualy evaluate to false - ie the boolean needs to
-    be recomputed or modified inside the loop. Otherwise, the loop will
-    run forever.
-
--   for loop : A for loop in Python is the same as a for-each loop in
-    other languages (like Java or C++). It iterates over the elements in
-    an iterable data type (list, string, set, etc) and repeats the
-    statements inside the loop using each element in the list.
-
-    ```Python
-    for i in some_list:
-        # statement
-    ```    
-
-    For exmaple:
-
-    ```Python
-    some_list = ['a', 'b', 'c', 'd']
-    for x in some_list:
-        print(x)
-    ```
-            
-    prints 'a' 'b' 'c' 'd'\
-    A more traditional for loop iterates over some range of integers.
-    This can be accomplished using the range method in Python.
-
-    ```Python
-    for i in range(lower_bound, upper_bound, step):
-        print(i)
-    ```
-
-# Loops
-
 One of the major benefits of a computer is its ability to quickly
 complete repetitive tasks. Programming languages like Java have built in
 structures called loops which we can use to condense repetitive
@@ -413,20 +383,38 @@ statements.
 
 ## For Loops
 
-For loops are the most straight forward and intuitive type of loop. A
-for loop is defined in three stages:
-1.  initialization: define a variable (var) to a specific value.
-2.  ending condition: define a condition (typically based on the value
-    of var) for which you want the loop to continue.
-3.  assignment: define how var changes for each iteration of the loop.
+Say you're writing a program that plays some kind of dice game where you need 
+to roll a six sided di 5 times and print the sum of the rolls. You could easily accomplish
+this using about 7 lines of code:
 
-This is best seen illustrated by an example.
-
-```Java
-for (int i = 0; i < 10; i++) {
-    System.out.print(i + " ");
-}
+```Python
+import random 
+total = 0
+total = total + random.randrange(1, 7)
+total = total + random.randrange(1, 7)
+total = total + random.randrange(1, 7)
+total = total + random.randrange(1, 7)
+total = total + random.randrange(1, 7)
+print(total)
 ```
+
+Not only does that look repetitive, it's a bit messy. Now imagine if you wanted to change the number
+of dice rolls programatically - maybe you want the user to be able to enter the number of dice
+he wants rolled. In that use case, this strategy does not work. 
+
+A for loop is a type of loop that is built to handle situations like this. For 
+
+```Python
+for i in some_list:
+  # actions
+```
+
+The `some_list` variable is a __list__ type which is a specific Python
+data type that stores an ordered list of values. We'll discuss lists in depth later on. 
+
+For now, we use the `range` function to  
+
+
 
 In this example, 
 1. the variable i is initialized to 0, 
@@ -450,9 +438,7 @@ Outputs:
 
 ```
 1 2 4 8 16 32 64 128 256 512 1024 2048
-```
-
-We typically use a for loop when we know exactly how many times a loop
+``` 
 should run or we know the exact range over which we need to loop. For example, 
 we can use a for loop to check if a two Strings are equal by iterating over
 the number of characters in the string. 

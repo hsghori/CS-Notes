@@ -253,7 +253,7 @@ have different performance, capacity, sharing, semantics, etc.
 The cache hierarchy is structured in a pyramid like scheme. The closer locations are smaller
 but can be accessed more easily. 
 
-![](src/cache-hierarchy.png){width=400px}
+![](src/parallel-prog/cache-hierarchy.png){width=400px}
 
 - L1 - on chip 
 	- One per processor
@@ -436,7 +436,7 @@ critical section
 b[1] = false
 ```
 
-![](src/petersons-algo.png){width=200px}
+![](src/parallel-prog/petersons-algo.png){width=200px}
 
 - b[x] indicates process x wants to enter the critical section. 
 - Write to victim indicates who got there first
@@ -471,7 +471,7 @@ y = 0
 b[i] = false
 ```
 
-![](src/lamparts-algo.png){width=250px}
+![](src/parallel-prog/lamparts-algo.png){width=250px}
 
 - This algorithm has fast MutEx properties. However, starvatio nis 
 possible since the wait time is unbounded. 
@@ -572,7 +572,7 @@ function by splitting the intermediate map into R shards and processing
 those on different machines. This process is overseen by a master thread 
 which manages the partitioning of tasks. 
 
-![](src/map-reduce.png){width=400px}
+![](src/parallel-prog/map-reduce.png){width=400px}
 
 ## Applications of Map Reduce
 
@@ -721,7 +721,7 @@ __Compute Unified Device Architecture__ (CUDA) is a system released by NVIDIA to
 
 The CUDA programming model uses a data decomposition approach. The grid is the data domain (1D, 2D, or 3D) and is decomposed into thread blocks. A thread block is decomposed into threads. Thread blocks and threads are given unique identifiers which are used by the kernel to identify which part of a problem to work on. 
 
-![](src/cuda-memory.png){width=300px}
+![](src/parallel-prog/cuda-memory.png){width=300px}
 
 A __thread block__ contains a multiple of 32 threads and may have up to 512 threads. All threads in a thread block time are run on the same multi-processor. This allows threads in a thread block to communicate via shared memory and synchronize. Threads of a block are multiplexed onto a multi-processor as warps. __Warps__ are the fundamental scheduling unit of the processor. They are groups of 32 threads that are dispatched two at a time to 16 processors each. Each warp forms a SIMD group. A __kernel__ is a function that processes a single data element. 
 
@@ -940,7 +940,7 @@ for (unsigned int s = 1; s < blockDim.x; s*=2) {
 }
 ```
 
-![](src/cuda-reduction-1.png){width=400px}
+![](src/parallel-prog/cuda-reduction-1.png){width=400px}
 
 This introduces a problem of __thread divergence__. This occurs when threads in a single warp need to do different things (ie they diverge). This can lead to a large loss in performance. We want to avoid conditioning on `tid`. 
 
@@ -971,7 +971,7 @@ for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
 }
 ```
 
-![](src/cuda-reduction-2.png){width=400px}
+![](src/parallel-prog/cuda-reduction-2.png){width=400px}
 
 This reduction is conflict free but leaves a lot of idle threads which isn't particularly efficient. 
 
