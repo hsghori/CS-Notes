@@ -8,7 +8,7 @@ takes up a lot of data.
 
 In this course we talk about three major healthcare applications:
 
-__Predictive modeling__  ses historical data to build a model to predict future 
+__Predictive modeling__  uses historical data to build a model to predict future 
 outcomes. Basically predictive modeling is machine learning. There are a lot of 
 challenges associated with predictive modeling - just building a pipeline to begin 
 predictive modeling is a daunting task.
@@ -55,7 +55,7 @@ and powerful parallel programming paradigm.
 
 Predictiv modeling is a computational pipeline with several steps. 
 
-![](src/big-data-for-health/predictive-model-pipeline)
+![](src/big-data-for-health/predictive-model-pipeline.png)
 
 1. Define your predictive target (ex: patients who will develop heart failure)\
 Not all predictive targets are actually possible to answer using data - some
