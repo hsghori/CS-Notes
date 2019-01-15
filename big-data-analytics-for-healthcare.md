@@ -53,7 +53,7 @@ and powerful parallel programming paradigm.
 
 # Predictive Modeling
 
-Predictiv modeling is a computational pipeline with several steps. 
+Predictive modeling is a computational pipeline with several steps. 
 
 ![](src/big-data-for-health/predictive-model-pipeline.png)
 
@@ -85,7 +85,7 @@ precitive model can either solve a regression problem or classification problem.
 6. Evaluate the model\
 When we create a model we need to evaluate whether or not it's actually succesful. Typically we will train the model on some "training" data set then test it on a "validation" data set - which is seperate from the training data. We want to do this iteratively to make sure that the validation accuracy increases as time goes on. If the validation accuracy flatlines while training data increases we know that additional training is not very useful. This is called Cross Validation.
 	- In "leave one out" cross validation, the validation set is only one sample (which changes for each iteration). 
-	- In "k fold" cross validation we split the data into k folds and use different folds as the validation set on each iteration. 
-	- In "randomized" cross validation we randomly split the data into training and validation for each iteration. The disadvantage of this method is that we can't garuntee that all hte data will be tested in the validation step. 
+	- In "k fold" cross validation we split the data into k folds (sections) and use different folds as the validation set on each iteration. 
+	- In "randomized" cross validation we randomly split the data into training and validation for each iteration. The disadvantage of this method is that we can't garuntee that all the data will be tested in the validation step. 
 7. Repeat until you're satisfied
 

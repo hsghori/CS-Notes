@@ -412,59 +412,48 @@ for i in some_list:
 The `some_list` variable is a __list__ type which is a specific Python
 data type that stores an ordered list of values. We'll discuss lists in depth later on. 
 
-For now, we use the `range` function to  
+For now, we use the `range` function to make the for loop "iterate" over a range of values that we can define. 
+For example, the statement `range(1, 10)` creates the list of values `[1, 2, 3, 4, 5, 6, 7, 8, 9]`. We can use this in a for loop to create a loop that does the same thing 9 times (once for each value in the list). 
 
+```
+for i in range(1, 10):
+  print(i)
+```
 
-
-In this example, 
-1. the variable i is initialized to 0, 
-2. the for loop will continue so long as i \< 10, 
-3. at the end of each iteration of the loop i will be incrimented by one.\
+In this example, the variable `i` "iterates" over the list created by `range(1, 10)`. So that means that for each iteration of the loop (each time the loop runs), the variable `i` will be set to the next value in the list. 
 Every iteration of this loop prints the value of i. So the output will look like 
 
 ```
-1 2 3 4 5 6 7 8 9
+1
+2 
+3 
+4 
+5 
+6 
+7 
+8 
+9
 ```
 
-For loops can have a variety of variables, conditions, and assignments. For example, this loop uses a multiplicative assignment statement:
+For loops can be very powerful for iterative operations - for example, summing a list of values, finding averages, maximums, minimums, etc. The following for loop will calculate the sum of all the numbers between 0 and 99.
 
-```Java
-for (int j = 1; j <= 2048; j*=2) {
-    System.out.printf("%d ", j);
-}
+```Python
+sum = 0
+for i in range(0, 100):
+  sum = sum + i
+print(sum)
 ```
 
-Outputs:
+Looking back at the example of rolling a di multiple times, we can use a for loop to simplify our code:
 
+```Python
+total = 0
+for i in range(0, 6):
+  total = total + random.randrange(1, 7)
+print(total)
 ```
-1 2 4 8 16 32 64 128 256 512 1024 2048
-``` 
-should run or we know the exact range over which we need to loop. For example, 
-we can use a for loop to check if a two Strings are equal by iterating over
-the number of characters in the string. 
+For loops are great in cases where we have a list of values we want to do things with or we know exactly how many times we want to perform an action. 
 
-```Java
-String s1 = kb.nextLine();
-String s2 = kb.nextLine();
-boolean areEqual = True;
-if (s1.length() == s2.length()) {
-    int len = s1.length();
-    for (int i = 0; i < len; i++) {
-        if (s1.charAt(i) != s2.charAt(i)) {
-            areEqual = False;
-        }
-    }
-}
-else {
-    areEqual = False;
-}
-if (areEqual) {
-    System.out.println("The Strings are the same");
-}
-else {
-    System.out.println("The Strings are not the same");
-}
-```
 
 ## While Loops
 
