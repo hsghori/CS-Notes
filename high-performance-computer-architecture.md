@@ -292,7 +292,7 @@ architecture that maximizes performance and minimizes power.
 
 ![](src/hpca/pipeline-opt.png){width=400px}
 
-## Branches and branch prediction
+## Control hazards - Branch prediction and predication
 
 Branches and jumps are particularly expensive operations since they cause control hazards that waste many cycles.
 Therefore we need to design mechanisms to mitigate the pipeline stalls caused by these operations.
@@ -323,6 +323,9 @@ whether or not the instruction is branch let alone if we should take said branch
 story. A branch predictor also knows the history of how the branches have behaved in the past and can use that
 history to make predictions.
 
+### Branch prediction algorithms
+
+#### Branch target buffer
 The __branch target buffer__ (BTB) is the simplest branch predictor algorithm that uses history to make branch
 predictions. It keeps a lookup table which maps $PC_{curr} \to PC_{next}$. At fetch, it will use that lookup table
 to decide the next PC, carry that prediction through the pipeline, and update the lookup table in case of a
@@ -331,19 +334,21 @@ since it needs to have a one cycle latency. The mapping function uses the 10 lea
 $PC_{curr}$ (that are different among different instructions) as the index for its entry in the table. This is very
 easy to compute and allows instructions close to not override each other in the lookup table.
 
-We do _direction prediction_, predicting whether or not to use the BTB, using a very similar method. We use the
-least significant relevant bits to index into a _branch history table_ (BHT) which stores whether or not we predict
-that the instruction at the PC is a taken branch (1) or not (0). If the instruction is a taken branch we use the
-BTB to find the index of the next instruction. Otherwise we can simply iterate the PC by one. This table acts as a
-filter for the BTB. If we see that an instruction is a taken branch, we update its entry in the BHT and the BTB but
-if the instruction is not a taken branch we just set its value in the BHT to 0. This allows us to limit the BTB to
-only correspond to taken branches.
+#### N-bit predictors
+We do __direction prediction__, predicting whether or not to use the BTB, using a very similar method. We use the
+least significant relevant bits to index into a __branch history table__ (BHT) which stores whether or not we
+predict that the instruction at the PC is a taken branch (1) or not (0). If the instruction is a taken branch we
+use the BTB to find the index of the next instruction. Otherwise we can simply iterate the PC by one. This table
+acts as a filter for the BTB. If we see that an instruction is a taken branch, we update its entry in the BHT and
+the BTB but if the instruction is not a taken branch we just set its value in the BHT to 0. This allows us to limit
+the BTB to only correspond to taken branches.
 
-This _one bit prediction_ model works well for situations where branches are (almost) always taken or not taken.
+This __one bit prediction__ model works well for situations where branches are (almost) always taken or not taken.
 However, it is not good at branches which have an unextreme taken vs not taken ratio (ie if the branch is taken 60%
 of the time). Observe that each "anomaly" (ie misprediction) results in 2 mispredictions (the initial misprediction
 and the misprediction to "fix" the initial misprediction). The one bit predictor also does not work well on short
 loops (particularly when they are nested within other loops).
+
 These issues can be alleviated using a _two bit predictor_. A two bit predictor stores 2 bits in the BHT (so the
 possible values are 00, 01, 10, and 11) where the most significant bit signifies whether or not the instruction is
 a taken branch.
@@ -367,7 +372,8 @@ Increasing the number of bits in the counter is not usually worth the size cost.
 the predictor (beyond 2) is most advantageous when anomalous events happen in streaks. But this is reasonably
 uncommon so we don't usually want to do it.
 
-We can see that N-bit predictors are not good at predicting alternating patters. A _history based predictor_ is a
+#### History based predictors
+We can see that N-bit predictors are not good at predicting alternating patters. A __history based predictor__ is a
 predictor that attempts to learn these types of patterns. History based predictors look at the "history" of the
 branch (whether or not the instruction was a taken branch the last time it saw the same sequence of N resolutions).
 
@@ -377,7 +383,208 @@ prediction.
 
 If the history (the last outcome) was "taken" (or 1), the $prediction_1$ will be used as in the two bit predictor.
 We then update $predcition_1$ based on whether or not the branch was correctly predicted and update the history.
-Note that this example history is 1 bit but we can have higher bit histories, we just need to increase the size of
-the BHT by 2 bits for every 1 bit increase in the history.
+Note that this example history is 1 bit (taken vs not taken) but we can have higher bit histories, we just need to
+increase the size of the BHT by 2 bits for every 1 bit increase in the history. For example, a 2 bit history BHT
+will have a 2 bit history index and 4 prediction values.
 
+```
+       BHT                                           BTB or iterate by one (depending on onutput of BHT)
+PC -> [ history | counter 00 | counter 01 | ... ] -> next PC
+
+```
+
+An N-bit history predictor can predict patterns where $length \leq N + 1$. However, each entry costs $history \
+size * counter \ size * 2^{history \ size}$. Since we use 2 bit counters this can be generalized to:
+
+$$cost_{single \ entry} = N + 2^{N + 1}$$
+
+We can see that the total cost is equal to:
+
+$$\Sigma cost = 2^{N} * (N+2^{N+1})$$
+
+where M is the number of bits we are using from the PC to index into the PHC.
+
+N-bit predictors also waste a lot of memory. An N-bit pattern can only have N possible unique histories
+meaning it only needs N counters. However, the algorithm actually allocates $2^N$ counters for the pattern.
+
+#### PShare and GShare predictors
+We can use __shared counters__ to mitigate the waste of an N-bit history predictor. In the shared counters model,
+the PC indexes into a __pattern history table__ (PHT) which stores the history for that PC. the output of the
+PHT is combined with the PC in some way to attempt to create a relatively unique index. This index is used to
+index into a BHT with only one counter (which should correspond to the PC / history combination). The BHT
+value determines the prediction and the history and BHT counter are updated when the branch is resolved.
+
+```
+       PHT                             BHT            BTB or iterate by one depending on output from BHT
+PC -> [ history ] - PC XOR history -> [ counter ] -> next PC
+```
+
+This is not a collision proof system, but if we have a relatively large BHT we can mitigate that issue and waste
+much less space than the standard history predictor.
+
+If we index using the M least significant bits of the PC and are using N bits of history we can see that we
+need a PHT of $2^M * N$ bits and a BHT of $2^{max(M, N) + 1}$ bits (the output of the XOR will have the size
+of the larger of the PC and history). So the total cost is:
+
+$$\sigma cost = N*2^M + 2^{max(M, N) + 1}$$
+
+which is much less than that of the standard history based predictor. This type of predictor is called a
+__pshare predictor__ or a private history predictor. A pshare predictor will store a history for every
+PC. A __gshare predictor__ is a predictor that uses a single N-bit global history which is XOR-ed with the PC
+to index into the BHT. Both pshare and gshare use shared counters.
+
+Pshare predictors are good when a branch's previous behavior is predictive of its future behavior (ie if the
+resolution of a branch is only dependent on previous resolutions of the branch). This means pshare predictors
+work well with loops, alternating behaviors, etc.
+
+Gshare predictors are good when a branch's future behavior is dependent on that of other branches. For example,
+branches with contradictory or linked conditions. Gshare generally needs a larger history than pshare because
+it needs to combine more elements into the global history to get accurate predictions.
+
+#### Tournament and hierarchal predictors
+Since pshare and gshare predictors work better on different branch types, we want to incorporate both into
+our branch predictor.
+
+A __tournament predictor__ is a predictor that attempts to choose between pshare and gshare for each branch. The
+way this works is by maintaining separate gshare and a pshare predictors as well as a __meta-predictor__ which is a
+table indexed using the PC which maintains a 2 bit counter for each PC. This counter determines whether, for each
+PC, we should trust the gshare or pshare predictor.
+
+```
+PC -> gshare -------> | select between    | ---> next pc
+├---> pshare -------> | gshare and pshare |
+└---> meta-predictor -----^
+```
+
+The gshare and pshare predictors are "trained" by iterating their counters as usual and the meta predictor is
+trained using which prediction was correct a standard 2 bit direction predictor. 00 corresponds to strongly gshare
+and 11 corresponds to strongly pshare - so when gshare is right, decrement the counter and if the pshare is
+right increment the counter. If they are both correct or incorrect the meta-prediction does not change.
+
+Tournament predictors work quite well but that are resource intensive since we must maintain two large, complex
+predictors. __Hierarchal predictors__ attempt to solve that challenge by maintaining one large, complex predictor
+(which we call the good predictor) and one simple, low resource predictor (which we call the ok predictor). For
+example we may keep one pshare predictor (good) and one 2 bit counter predictor (ok). We update the ok predictor
+on every branch decision since that is very cheap but only update the good predictor when the ok predictor does
+not predict the specific PC's branch resolution well. Thus we can limit the number of entries required for the
+good predictor which allows us to create more complex, better predictors for harder-to-predict branches and
+use a lower resource predictor for the majority of branches (which are simple). Both hierarchal predictors
+and tournament predictors can have more than 2 predictors.
+
+In a hierarchal predictor the complex predictors will maintain a "tag" array which is indexed using the PC. This
+predictor indicates whether or not the PC should be predicted by the complex predictor. So if the ok predictor
+consistently mispredicts a specific branch, it will be added to the complex predictor and tagged so that prediction
+is used. If the hierarchal predictor has more than 2 predictors, each complex predictor will maintain its own
+tag array and there will be a set hierarchy of which predictions are most valuable (more complex predictions should
+be used if they exist).
+
+#### Return address stack predictors
+So far we've dealt with branches that have a binary target - either the PC is iterated by oen or it is a set
+value defined by the instruction. However, function return instructions do not work that way because a function
+can be called from any location and therefore the target is not predictable by the BTB. To deal with this issue
+we maintain a __return address stack__ (RAS) which is a very small stack data structure that stores the
+return address of the function. So when a function is called, the address that the function should return to
+is pushed onto the stack and when the return statement is hit, the PC should be set to the address popped from
+the stack.
+
+The RAS is much smaller than the program's overall stack memory and it can get full. When the RAS gets full we
+want to wrap around the stack (overriding previous entries). Wrapping around is a better approach than just not
+pushing to the RAS because programmers generally compose functions of a lot of nested functions so wrapping around
+will allow for correct prediction of more overall function (most of the small nested functions) returns even though
+the parent function returns will be mispredicted.
+
+We determine whether or not an instruction is a return in one of two ways. The first is to train a binary predictor
+to determine whether or not an instruction is a return. This can be acomplished with a single bit predictor since
+we only need to see the instruction once to know if it is a return or not. The second is through __predecoding__.
+The processor maintains a cache of instructions and, during the fetch process, will decode some of the function
+to determine whether the instruction is already in the cache or it needs to be fetched fully. So we can add logic
+to also determine whether the instruction is a return, store that in the cache (in one bit) alongside the
+instruction, and use that to determine whether or not to use the RAS. Predecoding is generally used to determine
+if the instruction is a branch or return and can be used to determine the size of the instruction (and potentially
+also fetch the next instruction if there is space in the cache).
+
+### Predication
+__Predication__ is another means of avoiding control hazards. Instead of making a prediction as to the next
+PC (whether or not to take the branch), when we predicate we do both branches' work and throw away the incorrect
+path. So when we predicate we always waste ~50\% of the instructions (assuming both paths have similar sizes). So
+the cost of predication is always $0.5 * \Sigma ic_{branch}$ whereas the cost of branch misprediction is
+`instructions per stage * stages before branch resolution`.
+
+Obviously predication is not usually better than prediction. Loops, function calls, and large if / else
+statements are better served by prediction since the cost of misprediction in these cases is usually less than
+that of predication. However, small if / else statements may be better served by predication depending on the
+number instructions in the branches and the branch predictor accuracy.
+
+Predication is built off of a compiler concept called __if conversion__. Consider the following if statement:
+
+```C
+if (condition) {
+    x = arr[i];
+    y++;
+} else {
+    x = arr[j];
+    y--;
+}
+```
+
+The compiler would convert this code into something like
+
+```C
+x1 = arr[i];
+x2 = arr[j];
+y1 = y + 1;
+y2 = y - 1;
+x = (condition) ? x1 : x2;
+y = (condition) ? y1 : y2;
+```
+
+The ternary operation (`x = (condition) ? x1 : x2 `) is handled using a __conditional move__ instruction. MIPS has
+`MOVZ` and `MOVN` instructions defined as:
+
+```MIPS
+MOVZ Rd Rs Rt  // Rd = (Rt == 0) ? Rs : Rd;
+MOVN Rd Rs Rt  // Rd = (Rt != 0) ? Rs : Rd;
+````
+
+So in the case above we could convert the C code into something like:
+
+```MIPS
+MOV R3, cond
+MOV R1, x1
+MOV R2, x2
+MOVZ x, R1, R3
+MOVN x, R2, R3
+
+MOV R1, y1
+MOV R2, y2
+MOVZ y, R1, R3
+MOVN y, R2, R3
+```
+
+x86 has a much larger set of conditional move oerators (`CMOVZ`, `CMOVNZ`, `CMOVGT`, etc).
+
+If conversion requires a compiler with the correct support. It will remove conditional branches that are hard to
+predict but comes at the cost of using more registers and requires that we use additional `movc` instructions
+to select the correct result. We can alleviate these issues using __full predication__, the process of converting
+every instruction in the ISA into a `movc` instruction. This requires extensive compiler support.
+
+An example of full predication is the intel itanium processor. Each instruction has an extra 6 bits (the least
+significant six bits) which contain the __qualifying predicate__. The qualifying predicate tells the processor
+whether or not to store the result of the instruction in the destination register. In this processor, the
+qualifying predicate is a pointer to a set of conditional registers (64 registers) which store the conditions.
+
+In general we can use the following equation to figure out whether or not we should use branch prediction or
+predication for a specific branch. We can solve this problem using the equations we have already used for
+branch prediction.
+
+$$cost_{branch\ prediction} = base + P(mispredict) * penalty$$
+
+Note that $base$ and $penalty$ should be the same units, usually $cpb_{avg}$ and $penalty_{cycles}$ or $ipb_{avg}$
+and $penalty_{instr}$. We can easily figure out the number of cycles or instructions for a predicated branch by
+simply counting the number of instructions in the converted code and converting that to cycles if need be.
+So $cost_{branch\ predication}$ is a constant and we can easily solve the linear equation:
+
+$$c_{branch\ predication} < c_{branch\ prediction}$$
+
+to determine which strategy to choose.
 
