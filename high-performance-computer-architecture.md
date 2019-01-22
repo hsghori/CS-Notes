@@ -588,3 +588,81 @@ $$c_{branch\ predication} < c_{branch\ prediction}$$
 
 to determine which strategy to choose.
 
+## Data Hazards
+Branch prediction and predication are great at eliminating control hazards. However, data dependencies can cause
+hazards which can stall the pipeline.
+
+### Instruction level parallelism (ILP)
+One obvious way of speeding up our execution is by parallelizing our execution pipeline. However, if we have
+two instructions `I1` and `I2` where there is a RAW dependency from `I1 -> I2`, these instructions cannot
+be executed in the same cycle. So we see than an ideal processor that can parallelize an infinite number of
+instructions will have a CPI from 0 to 1 where the CPI is close to 0 when the instructions are independent and
+the CPI is close to 1 if the instructions are dependent on each other.
+
+We can see that if a pipeline has forwarding, if instructions `I1` and `I2` have a RAW dependency, `I2` must be
+stalled by at least one cycle. Similarly, if `I1` and `I2` have a WAW dependency, `I2` must be stalled by at
+least one cycle (before the write stage) so that the value in `I2` is the final value in the register. Recall
+that RAW dependencies are also called __true__ dependencies whereas WAR and WAW dependencies are __false__ or
+__name__ dependencies. This is because RAW dependencies are fundamental to the program whereas WAR and WAW
+dependencies are more coincidental (we are using the same register for two unrelated actions). So we can
+increase our ILP potential by removing false dependencies from the program.
+
+We can use __register renaming__ to remove false dependencies from our programs. Processors divide registers into
+__architectural registers__ which are used by the compiler and processor and __physical registers__ which is
+everywhere a value can be stored. In register renaming, during the decode stage, the processor will rename the
+architecture registers to physical registers and uses the __register allocation table__ (RAT) which maps
+architectural registers to the physical location where their value is stored.
+
+Let's say we have a program
+
+```MIPS
+ADD R1, R2, R3
+SUB R4, R1, R5
+XOR R6, R7, R8
+MUL R5, R8, R9
+ADD R4, R8, R9
+```
+
+The processor will initially maintain a RAT like:
+
+Arch register | Physical register
+--------------|-------------------
+0             | P0
+1             | P1
+2             | P2
+3             | P3
+...           | ...
+
+When we write to a register (as in `I1`) we rename the destination register in the RAT. So `ADD R1, R2, R3`
+becomes `ADD P10, P2, P3` and the RAT becomes:
+
+Arch register | Physical register
+--------------|-------------------
+0             | P0
+1             | P10
+2             | P2
+3             | P3
+...           | ...
+
+This effectively removes WAW and WAR dependencies since different registers are being used to write the values.
+
+__Instruction level parallelism__ (ILP) is the IPC of a program under the assumptions that
+1. the processor can execute the entire pipeline in 1 cycle
+2. the processor can execute any number of instructions in parallel
+3. the processor must obey true dependencies
+
+ILP is a property of an individual program and has nothing to do with the architecture it is being run on.
+To determine the ILP of a program, we first rename the registers then calculate the IPC of the program under the
+ideal processor assumptions.
+
+When computing ILP we assume that the processor has perfect branch prediction and no structural dependencies. This
+means that we can actually treat branch instructions as No-Op instructions and treat the branch body itself as a
+regular instruction (and calculate its cycle solely based on its data dependencies).
+
+The IPC of a program on a specific processor is always less than or equal to the ILP of the program. When looking
+at IPC we often care about the "issue" of the processor (how many instructions can be issued per cycle), the
+order of the processor (whether or not instructions can be executed out of order), and the ALU limitations.
+If a processor is narrow issue and in order, the limiting factor is usually the narrow issue but if the processor
+is wide issue and in order, the order limits the IPC. So if we have a wide issue processor we should make sure
+it is out of order to benefit from the issue. 
+
