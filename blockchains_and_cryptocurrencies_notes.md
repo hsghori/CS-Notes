@@ -49,7 +49,7 @@ geometry: margin=1in
 				adversaries A, there exists a negligible function n(k), where k
 				denotes the seurity parameter, uch that $Pr(x \in {0,
 				1}^{poly(k)}, A(1^k, H(x)) \to x' \ s.t. \ H(x') = H(x)) = n(k)$
-			
+
 			__Note__: that ${0, 1}^{poly(k)}$ is a uniform distribution of
 			strings up through length $poly(k)$.
 			- Essentially preimage-resistance is the propertw where given
@@ -80,20 +80,20 @@ geometry: margin=1in
 
 			```Python
 			def commit(msg):
-				key = random() 
-				com = H(key) + msg 
+				key = random()
+				com = H(key) + msg
 				return (com, key)
 
 			def verify(com, key, msg):
 				return H(key | msg) == com
 
-			(com, key) = commit(msg) 
-			isValid = verify(com, key, msg) 
+			(com, key) = commit(msg)
+			isValid = verify(com, key, msg)
 			```
 
 			- Weak Hiding: Given com, no PPT adversary can find msg. (preimage resistance)
 			- Weak Binding: No PPT dversary can find $msg != msg'$ such that `verify(commit(msg), msg') == true`. (collision resistance)
-			- SHA-256 Hash Function 
+			- SHA-256 Hash Function
 
 			```
 						512 bit  512 bit
@@ -107,26 +107,26 @@ geometry: margin=1in
 	- Random Oracle
 		- A random oracle is a function that always maps an input to the same random output.
 
-		```Python 
+		```Python
 		def random_oracle(x):
-			''' 
+			'''
 			 oracle is a pre-defined map object.
 			'''
 			if x in oracle:
 				return oracle[x]
 			y = random()
-			oracle[x] = y 
+			oracle[x] = y
 			return x
 		```
 
-		- By definition, the answers of a random oracle are unpredictable. 
-		- Random oracles capture many secutiry properties such as preimage resistance and collision resistance. 
-		- Hash functions are often masked as a random oracle. 
+		- By definition, the answers of a random oracle are unpredictable.
+		- Random oracles capture many secutiry properties such as preimage resistance and collision resistance.
+		- Hash functions are often masked as a random oracle.
 - Hash pointer
-	- Pointer to where some info is stored that is a cryptographic hash of the info. 
+	- Pointer to where some info is stored that is a cryptographic hash of the info.
 		 H(into) -> info
-	- If we have a hash pointer we can ask to get the info back adn ask if the info has changed (by taking the hash of the retunred info). 
-	- We can also use hash pointers to create a linked list: this is essentially a blockchain. 
+	- If we have a hash pointer we can ask to get the info back adn ask if the info has changed (by taking the hash of the retunred info).
+	- We can also use hash pointers to create a linked list: this is essentially a blockchain.
 
 	```
 			 block1
@@ -134,35 +134,35 @@ geometry: margin=1in
 		   | H(block2) | -> | data2     |      block3
 							| H(block3) | -> | data3     |
 											 | H(block4) | -> ...
-	```    
+	```
 
-	- This chain is tamper resistant. If any data is tampered with we can easily tell using the previous hash pointer (which propagates up to the root hash pointer). 
+	- This chain is tamper resistant. If any data is tampered with we can easily tell using the previous hash pointer (which propagates up to the root hash pointer).
 	- Merkle Tree: a binary tree with hash pointers.
-		- We can prove membership in a Merkle tree in $O(logN)$. 
-			- Example: See the tree below. To prove that data 
-		- We can also create a sorted Merkle tree. 
+		- We can prove membership in a Merkle tree in $O(logN)$.
+			- Example: See the tree below. To prove that data
+		- We can also create a sorted Merkle tree.
 			- Using a sorted Merkle tree we can verify non-membership in $O(logN)$
 	- In generally we can use hash pointers in any pointer based data structure
 		that has no cycles.
 ```
-						Merkel Root H0 = H(H1a | H1b) 
-						 /                            \ 
-				 H1a=H(H2a|H2b)                     H1b=H(H2c|H2d) 
+						Merkel Root H0 = H(H1a | H1b)
+						 /                            \
+				 H1a=H(H2a|H2b)                     H1b=H(H2c|H2d)
 				 /            \                        /         \
-	H2a=H(H_D1|H_D2)    H2b=H(H_D3,H_D4)   2a=H(H_D5|H_D6)    H2b=H(H_D7,H_D8) 
+	H2a=H(H_D1|H_D2)    H2b=H(H_D3,H_D4)   2a=H(H_D5|H_D6)    H2b=H(H_D7,H_D8)
 		/         \          /   \            /    \                /   \
-	 H_D1         H_D2    H_D3  H_D4        H_D5  H_D6            H_D7  H_D8 
+	 H_D1         H_D2    H_D3  H_D4        H_D5  H_D6            H_D7  H_D8
 	 D1            D2      D3   D4           D5    D6              D7   D8
 ```
 
 - Digital Signitures
 	- Only you can sign, but anyone can verify
 	- Signature is tied to a particular document
-	- Even if one can see your signature on some documents he cannot forge it. 
+	- Even if one can see your signature on some documents he cannot forge it.
 	- Scheme
 
 	```Python
-		(sk, pk) = keygen(1^k) # sk = secret signing key, pk = public 
+		(sk, pk) = keygen(1^k) # sk = secret signing key, pk = public
 							 # verification key
 		sig = sign(sk, msg)
 		isValid = verify(pk, message, sig)
@@ -173,12 +173,12 @@ geometry: margin=1in
 	- UFCMA secure
 	- Note
 	- Signatures can be shorter than the message: For example we can sign the hash(message)
-	- Algorithms are randomized: they need good source of randomness - bad randomness may reveal the secret key. 
-	- Sign a hash pointer - then the signature covers the whole structure. 
+	- Algorithms are randomized: they need good source of randomness - bad randomness may reveal the secret key.
+	- Sign a hash pointer - then the signature covers the whole structure.
 	- Bitcoin uses Eliptic Curve Digital Signature Algorithm (ECDSA)
-	- ECDSSA is a close variant of Schnorr Signature scheme over Eliptic curves. 
+	- ECDSSA is a close variant of Schnorr Signature scheme over Eliptic curves.
 	- Schnorr Signature Scheme
-	- Let $g$ be a generator for a cyclic group $G$ of order $p$. (See definition of group and cyclic group above). 
+	- Let $g$ be a generator for a cyclic group $G$ of order $p$. (See definition of group and cyclic group above).
 
 	```Python
 	def keygen(s):
@@ -188,7 +188,7 @@ geometry: margin=1in
 
 	def sign(sk, msg):
 		t = random(Z_p)
-		r = g^t 
+		r = g^t
 		h = H(msg, r)
 		s = t + (h * sk)
 		return (h, s)
@@ -202,57 +202,57 @@ geometry: margin=1in
 	isValid = verify(pk, msg, sigma)
 	```
 
-	- Verify, If we're given a correct message, public key, and signiture 
+	- Verify, If we're given a correct message, public key, and signiture
 	then:
 	$$\frac{g^s}{pk^h}$$
 	$$s = t + h * sk$$
 	$$g^s = g^t * (g^sk)^h = g^t * pk^h$$
 	$$\frac{g^s}{pk^h} = \frac{g^t * pk^h}{pk^h} = g^t$$
 	$$H(msg, r) = h $$
-	Verify returns 1.  
-	- Assuming the hardness of the discrete logarithm problem, Schorr 
-	signature scheme is UF-CMA is secure in the random oracle model. 
-- Unforgeability under chosen-message attacks (UF-CMAA). 
-	- If an adversary who knows pk and gets to see signatures 
-	on messages of his choice, can't produce a verifiable 
-	signature on another message. 
+	Verify returns 1.
+	- Assuming the hardness of the discrete logarithm problem, Schorr
+	signature scheme is UF-CMA is secure in the random oracle model.
+- Unforgeability under chosen-message attacks (UF-CMAA).
+	- If an adversary who knows pk and gets to see signatures
+	on messages of his choice, can't produce a verifiable
+	signature on another message.
 	- The "game" works as follows
-	1. The algorithm runs `keygen(s) -> pk, sk`. 
-	2. The adversary $A$ is given pk and can send messages 
+	1. The algorithm runs `keygen(s) -> pk, sk`.
+	2. The adversary $A$ is given pk and can send messages
 	$m_i$ to  the game and get back $\sigma_i$ under sk.
-	3. A must output $m^{* },\ \sigma ^{* }$. 
-	- A wins the game if $\sigma ^{* }$ is a valid signature for $m^{* }$. 	
+	3. A must output $m^{* },\ \sigma ^{* }$.
+	- A wins the game if $\sigma ^{* }$ is a valid signature for $m^{* }$.
 
 # Basics of Cyptocurrencies
-- When we see a `pk` and `sigma` such that `verify(pk, msg, sigma) = True` we 
-can think of `pk` as saying the message. However, in order to speak for `pk` 
-you must know `sk` (because the message must be signed with the secret key). 
-- An identity (or address in bitcoin) is essentially a public / secret key 
-pair. 
-- Decentralized identity management means that anyone can make an identity at 
-any time - there is no central point of coordination. 
+- When we see a `pk` and `sigma` such that `verify(pk, msg, sigma) = True` we
+can think of `pk` as saying the message. However, in order to speak for `pk`
+you must know `sk` (because the message must be signed with the secret key).
+- An identity (or address in bitcoin) is essentially a public / secret key
+pair.
+- Decentralized identity management means that anyone can make an identity at
+any time - there is no central point of coordination.
 - Addresses are not directly connected to people's real-world identity.
-	- But an observer can link an addresses' activity over time and make 
-	inferences about the identity associated with an address. So, this scheme 
-	doesn't guarantee anonymity. 
+	- But an observer can link an addresses' activity over time and make
+	inferences about the identity associated with an address. So, this scheme
+	doesn't guarantee anonymity.
 - GoofyCoin
-	- One central authority (called Goofy). Goofy is the only entity that can 
-	create new coins. Any coins created by Goofy belong to goofy. 
+	- One central authority (called Goofy). Goofy is the only entity that can
+	create new coins. Any coins created by Goofy belong to goofy.
 
 	```Python
-		coin = createCoin(uniqueID) # creates a unique 
+		coin = createCoin(uniqueID) # creates a unique
 		sigma = sign(coin, pk_goofy)
 	```
 
-	- This essentially constitutes a block 
+	- This essentially constitutes a block
 
 	```
 		| signed by pk_goofy   |
 		| createCoin(uniqueID) |
 	```
 
-	- If goofy wants to pay Alice a coin, he can use a hash pointer to point 
-	to the original block, pass hat to alice and sign with Alic's public key. 
+	- If goofy wants to pay Alice a coin, he can use a hash pointer to point
+	to the original block, pass hat to alice and sign with Alic's public key.
 
 	```
 		| signed by pk_alice  |
@@ -263,144 +263,144 @@ any time - there is no central point of coordination.
 	- If Alice now wants to pay Bob she can use the same procedure.
 
 	```
-	| signed pk_bob   |    
+	| signed pk_bob   |
 	| H()             | -> | signed pk_alics  |
 			               | H()              | -> | signed by pk_goofy   |
 						                           | createCoin(uniqueID) |
 	```
 
-	- The problem with this approach is that Alice doesn't have to tell anyone 
+	- The problem with this approach is that Alice doesn't have to tell anyone
 	else's paying a coin. So she can easily pay a coin to bob, keep a copy of
-	hte coin, and then pay it to Chuck. This is called a __double spending 
+	hte coin, and then pay it to Chuck. This is called a __double spending
 	attack__ and is one of the major design challenges of cryptocurrencies.
 
 	```
-	| signed pk_bob   |    
+	| signed pk_bob   |
 	| H()             | -> | signed pk_alics  |
 			               | H()              | -> | signed  pk_goofy     |
     | signed pk_chuck | -> |                  |    | createCoin(uniqueID) |
-	| H()             |                               
-	```    
+	| H()             |
+	```
 
 - ScrougeCoin
-	- One central authority (called Scrouge). Scrouge maintains a ledger of 
-	transactions and must sign off on any transaction. 
-	- Every transaction is appended to the blockchain and signed off by 
-	Scrouge. The entire ledger is public and the final hash pointer is signed 
-	by Scrouge - the blockchain is only considered valid if it's signed by 
-	Scrouge. If an attacker were to modify an individual block (for example to 
-	give hiimself more money) the change would propogate up the blockchain - 
-	then `verify(H(), pk_scrouge)` would fail and the attack would be foiled. 
-	
-	```      
-	 sig scruge, H() ->  | transN  |      
-				          | H()     | -> | transN-1  |      
+	- One central authority (called Scrouge). Scrouge maintains a ledger of
+	transactions and must sign off on any transaction.
+	- Every transaction is appended to the blockchain and signed off by
+	Scrouge. The entire ledger is public and the final hash pointer is signed
+	by Scrouge - the blockchain is only considered valid if it's signed by
+	Scrouge. If an attacker were to modify an individual block (for example to
+	give hiimself more money) the change would propogate up the blockchain -
+	then `verify(H(), pk_scrouge)` would fail and the attack would be foiled.
+
+	```
+	 sig scruge, H() ->  | transN  |
+				          | H()     | -> | transN-1  |
 				                         | H()       | -> | transN-2  |
 							                              | H()       | -> ...
 	```
 
-	- An invalid transaction (ie a double spending attack) must be verified by Scrouge before being added to the blockchain. 
+	- An invalid transaction (ie a double spending attack) must be verified by Scrouge before being added to the blockchain.
 	- In this system Coins cannot be transfered - rather if Alice wants to pay N coins to Bob, she must:
 		- Give N coins to Scrouge
 		- Scouge verifies transaction.
-			1. Consumed coins are valid 
+			1. Consumed coins are valid
 			2. Consumed coins are in circulation (not previously consumed)
-			3. Total value to be consumed == total value to issue 
+			3. Total value to be consumed == total value to issue
 			4. Signed by owners of all consumed coins
 		- Coins are consumed by Scrouge
 		- Scrouge issues N new coins to Bob.
-	- This is reliant on Scrouge being a trusted authority. 
+	- This is reliant on Scrouge being a trusted authority.
 
-# Bitcoin 
+# Bitcoin
 - Bitcoin was the introduction of blockchain and the first decentralized,
 distributed digital currency. It introduced a lot of techniques for consensus,
-security, etc which other blockchain based applications use. 
-- Bitcoin uses a ledger based system similar to ScrougeCoin. The innovation in 
-bitcoin is the aspects of decentralization while preventing double spending. 
-	- Bitcoin is meant to be a peer to peer network. All nodes should have a 
-	direct path to all other nodes. 
-	- Mining new blocks is open to anyone, but eventually power is 
-	concentrated.  
-	- Core developers trusted in the community have a lot of power when it 
-	comes to updating the system. 
-- Distributed Consensus - maintaining the correct / same version of a database 
-over a distributed system. 
-	- Eventually the protocol terminates and all honest nodes decide on the 
-	same value. 
-	- This output value must have been proposed by some honest node. 
+security, etc which other blockchain based applications use.
+- Bitcoin uses a ledger based system similar to ScrougeCoin. The innovation in
+bitcoin is the aspects of decentralization while preventing double spending.
+	- Bitcoin is meant to be a peer to peer network. All nodes should have a
+	direct path to all other nodes.
+	- Mining new blocks is open to anyone, but eventually power is
+	concentrated.
+	- Core developers trusted in the community have a lot of power when it
+	comes to updating the system.
+- Distributed Consensus - maintaining the correct / same version of a database
+over a distributed system.
+	- Eventually the protocol terminates and all honest nodes decide on the
+	same value.
+	- This output value must have been proposed by some honest node.
 - Transactions
-	- When Alice wants to pay Bob she broadcasts the transaction to all 
-	Bitcoin nodes. 
-	- A node has a blockchain which it assumes are valid and a set of 
-	transactions it's heard about. 
+	- When Alice wants to pay Bob she broadcasts the transaction to all
+	Bitcoin nodes.
+	- A node has a blockchain which it assumes are valid and a set of
+	transactions it's heard about.
 
 ### Distributed Consensus in Bitcoin
 - At any given time:
-	- all nodes have a sequence of blocks of transactions on which they've 
-	reached consensus. 
+	- all nodes have a sequence of blocks of transactions on which they've
+	reached consensus.
 	- Each node has a set of outstanding transactions it's "heard about"
-- Innovations in bitcoin 
+- Innovations in bitcoin
 	- Introduces incentives
-	- Enbraces randomness
-		- Does away with the notion of a specific end-point 
+	- Embraces randomness
+		- Does away with the notion of a specific end-point
 		- Consensus happens over long time scales (1 hr)
-- Idea 
-	- Lottery or raffle 
-	- In ack round a random node is picked. 
-	- That node proposes the next block in the chain. 
-	- Other nodes accept or reject this block 
+- Idea
+	- Lottery or raffle
+	- In ack round a random node is picked.
+	- That node proposes the next block in the chain.
+	- Other nodes accept or reject this block
 		- Verify transactions on the block
 		- Accept -> nodes add this block to their blockchain
 			- Includes the block's hash in the next block it creates
-		- Reject -> ignoring the proposed block and extending chain from 
-		earlier block 
-	- Confirmation of a transaction can onnly happen after a few block 
-	have been mined. 
-		- Nodes extend their chain by following the longest current chain. 
-		- There must be 6 confirmations (block must be extended 6 times) 
-		before it is accepted in teh blockchain. 
-		- Double spending probability decreases exponentialy with number 
-		of confirmations. 
+		- Reject -> ignoring the proposed block and extending chain from
+		earlier block
+	- Confirmation of a transaction can onnly happen after a few block
+	have been mined.
+		- Nodes extend their chain by following the longest current chain.
+		- There must be 6 confirmations (block must be extended 6 times)
+		before it is accepted in teh blockchain.
+		- Double spending probability decreases exponentialy with number
+		of confirmations.
 
 		```
-		| H()   | \  
+		| H()   | \
 		| data  |   -> | H()  | -> | H()  | -> | H()  |
 					-> | data |    | data |    | data |
-		| H()   | / 
-		| data* | 
+		| H()   | /
+		| data* |
 
-		data* contains some kind of double spending attack or invalid 
+		data* contains some kind of double spending attack or invalid
 		transaction
 		```
 
 - Incentive
-	- Block Reward  
+	- Block Reward
 		- Block creator (node that broadcasts a proposed block on a round)
 		includes a special coin creation transaction in the block which
 		pays the creator for creating the block.
 		- Block creator gets to collect the reward only if the block ends
 		up on the long term consensus branch.
-		- This is the only way new coins are created. 
-		- The block reward value is fixed and is halved every year. In 
-		2040, the block reward will be 0 - ie no new blocks will be 
+		- This is the only way new coins are created.
+		- The block reward value is fixed and is halved every year. In
+		2040, the block reward will be 0 - ie no new blocks will be
 		created.
-	- Transaction fee 
-		- The creator of a transaction can choose to siphon off some of 
+	- Transaction fee
+		- The creator of a transaction can choose to siphon off some of
 		the money in the transaction as a transaction fee. This fee is paid
-		to the block creator. However this is voluntary - the creator of 
-		the transaction chooses whether or not to pay a transaction fee. 
-- Proof of Work - means of approximating selecting a random node. 
-	- Select node in proportion to computing power. 
+		to the block creator. However this is voluntary - the creator of
+		the transaction chooses whether or not to pay a transaction fee.
+- Proof of Work - means of approximating selecting a random node.
+	- Select node in proportion to computing power.
 		- $P(node_A) = \frac{power_A}{total \ power}$
-	- Let nodes compete for right to create block 
-	- Make it moderately hard to create new identities. 
+	- Let nodes compete for right to create block
+	- Make it moderately hard to create new identities.
 		- Defeat Sybil attacks (creating a bunch of identities to increase
 			presence in the network).
 	- To create a block find $nonce$ such that: $H(nonce | block) < D$
 		where d is small and the block contains the previous hash and all
 		transactions in the block. (the exaact implimentation is that the
 		first n bits of $D$ are $0$).
-		- This problem can only really be solved by guess and check. 
+		- This problem can only really be solved by guess and check.
 		- As of 8/2014 a computer needed to compute $10^20$ hashes /
 			bblock.
 			- Only some nodes have the hardware to compete and decide to be
@@ -412,14 +412,14 @@ over a distributed system.
 		$H(nonce | block) < D$.
 	- Proof of work security is based on the idea that > 50% of the network
 	is controlled by honest nodes. If a dishonest party controlls >50 % of
-	the network he is able to perform some specific attacks. Specifically, 
+	the network he is able to perform some specific attacks. Specifically,
 	a 51% attacker can suppress transactions from the blockchain (
 	essentially by only broadcasting his own blocks and removing
-	transactions). 
+	transactions).
 		- A 51% attacker __can't__ steal coins from existing addresses,
 		suppress transactions from the network itself, or change the block
-		reward. 
-- Proof of stake - picking node in proportion to ownership 
+		reward.
+- Proof of stake - picking node in proportion to ownership
 
 ### Asynchronous Networks
 - Adversary controls scheduling delivery of messages between honest parties
@@ -428,22 +428,22 @@ over a distributed system.
 	- If an adversary can delay the messages of the honest parties he could
 		give himself more computation time. This allows him to create a longer
 		dishonest chain which allows him to mount an attack without a majority of
-		computing power. 
-- An adversary can corrupt up to $p$ fraction of the total participants. 
+		computing power.
+- An adversary can corrupt up to $p$ fraction of the total participants.
 - Let's model the btcoin hash function as two random oracles.
-	- $H$ is a hash function such that $H(x) -> x'$. 
-	- $H_{ver}$ is a function such that $H_ver(x, y) -> 1$ if $H(x) == y$ and 
-	$H_{ver}(x, y) -> 0$ otherwise. 
-	- We separate these oracles to give parties asymmetric access to them. 
+	- $H$ is a hash function such that $H(x) -> x'$.
+	- $H_{ver}$ is a function such that $H_ver(x, y) -> 1$ if $H(x) == y$ and
+	$H_{ver}(x, y) -> 0$ otherwise.
+	- We separate these oracles to give parties asymmetric access to them.
 - At each round, a party is limited to a single query to $H$ and unlimited
 queries to $H_{ver}$. An adversary who corrupts $k$ parties can make $k$
-accesses to $H$. 
+accesses to $H$.
 - Each party maintains a chain of blocks as its state (blockchain). Each block
 contains a pointer to the previous record, a nonce, the transaction log, and a
 pointer to the current record. The hash value is a hash of all the data in the
-block. 
+block.
 
-``` 
+```
 | h(prev)                                      |
 | nonce                                        |
 | transactions                                 |
@@ -452,13 +452,13 @@ block.
 
 - We can easily verify if a block is valid with respect to its predecessors by
 checking if $h(curr) < D_{p}$ where $D_p$ is the difficulty parameter of the
-network (see proof of work above). 
-- Genesis block: a block with no data -> the first block in the blockchain. 
-	- Defines the start of the protocol. 
+network (see proof of work above).
+- Genesis block: a block with no data -> the first block in the blockchain.
+	- Defines the start of the protocol.
 	- A pointer to the beginning
-- We can tell if an entire state - the entire blockchain - is valid if it 
-contains the genesis block, each block is valid, and the transactions are 
-valid. 
+- We can tell if an entire state - the entire blockchain - is valid if it
+contains the genesis block, each block is valid, and the transactions are
+valid.
 - At each round a node will mine a block - ie he will package all the
 	transactions he's heard into a single block and find nonce such that $H(nonce
 	| block)$ < D$. He will then broadcast the block with the $nonce$ to the rest
@@ -470,51 +470,51 @@ valid.
 		node's current chain, the node discards it's chain in favor of the
 		received chain.
 - An adversary can delay messages on the broadcast from begin delivered by at
-most $\Delta$ rounds. This is called $\Delta$ asynchrony. 
+most $\Delta$ rounds. This is called $\Delta$ asynchrony.
 
 ### Blockchain Properties
 - Parameters:
-	- $p$ : the probability that a random nonce will lead to an accepting 
+	- $p$ : the probability that a random nonce will lead to an accepting
 	block.
 	- $\rho$ : the fraction of adversarial players.
-	- $n$ : the total number of players. 
+	- $n$ : the total number of players.
 	- $D$ the upper bound on the number of rounds a message can be delayed
-	by an adversary. 
+	by an adversary.
 	- $\alpha = 1 - (1-p)^{(1-\rho)n}$ : the probability that an honest party
-	succeeds in mining a block. 
+	succeeds in mining a block.
 	- $\beta = \rho n p$ : the expected number of blocks that the adversary can
-	mine in a given round. 
+	mine in a given round.
 	- $\gamma = \frac{\alpha}{1 + D \alpha}$
-- Chain Growth 
-	- Chain growth defines how the chains are expected to grow as time passes. 
-	- For every honest party, if the chain length in some round $r$ is $k$, 
+- Chain Growth
+	- Chain growth defines how the chains are expected to grow as time passes.
+	- For every honest party, if the chain length in some round $r$ is $k$,
 	then by round $r + \Delta$ every honest party must have a chain of length
-	$k$. 
+	$k$.
 	- For chain growth we want that every part's chain grows by some number of
-	blocks $T$ in some small $t$ rounds. 
+	blocks $T$ in some small $t$ rounds.
 	- At any points, for any $T$, the chain grows by at least $T$ in the past
-	$t=\frac{T}{\gamma(1-\delta)}$ where $\gamma$ is a tunable security 
+	$t=\frac{T}{\gamma(1-\delta)}$ where $\gamma$ is a tunable security
 	parameter.
-- Chain Quality 
-	- Chain quality is the fraction of nodes mined by honest parties. 
+- Chain Quality
+	- Chain quality is the fraction of nodes mined by honest parties.
 	- For T consecutive blocks, the fraction of honest blocks is roughly $1 -
 		(1 + \delta)\frac{\beta}{\gamma}$.
 - T-consistency
-	- For any honest party in round $r$, orher than the last $T$ blocks the 
+	- For any honest party in round $r$, orher than the last $T$ blocks the
 	rest of the chain must be a prefix to every other honest party's chain. Eg
 	once a block is $T$ blocks deep in a chain it appears on every party's
-	blockchain. 
+	blockchain.
 	- If $\alpha (1 - 2(D + 1)) \geq (1 + \delta)\beta$, then the chain
-	satisfies consistency. 
-- Public ledger: A distributed database of records. 
-	- The ledger is immutable and publicly accessible. 
-	- You cannot change the order of the records 
-	- There should be some consistent view of the ledger. 
-- Liveness 
+	satisfies consistency.
+- Public ledger: A distributed database of records.
+	- The ledger is immutable and publicly accessible.
+	- You cannot change the order of the records
+	- There should be some consistent view of the ledger.
+- Liveness
 	- If an honest party wants to add a message, it should appear on the
 		(local) ledger of every honest party after some "wait time" (some
 		sufficiently large time period of t rounds).
-		- If an honest party wants to post, it can do so. 
+		- If an honest party wants to post, it can do so.
  - Persistence
 	- If a message m gets added to the local ledger of some honest player at
 		position j, then it will appear at position j in the (local) ledger of
@@ -528,60 +528,60 @@ most $\Delta$ rounds. This is called $\Delta$ asynchrony.
 
 ### F-tree Model
 - In the F-tree model we keep track of all valid chains of recode through a
-tree. 
+tree.
 - There is some global function that keeps track of all valid chains via a
-tree. It initializes the tree with an empty root and grows with queries 
-from the parties. 
+tree. It initializes the tree with an empty root and grows with queries
+from the parties.
 - Every party now has access to a single F-tree instance instead of the two
 oracles modeled above. To extend a chain, a node can send an extend querry to
-the oracle. 
+the oracle.
 	- On receiving an extend query, the F-tree checks if the path exists in the
-	tree. 
+	tree.
 	- If the path verifies on the tree, it attempts to add the new node (the
-	node will be added with probability $p$). If it succeeds it returns 1 - 
-	else 0. 
+	node will be added with probability $p$). If it succeeds it returns 1 -
+	else 0.
 - There's also a verify query that returns whether or not a path is in the tree.
 - Basically we replace the oracle computing $H$ (in the standard bitcoin
-protocol) with the oracle $F_{tree}$. The chain now just consists of records 
-(transactions). 
+protocol) with the oracle $F_{tree}$. The chain now just consists of records
+(transactions).
 	- When a player wants to add a new record to a chain he queries the oracle
-	with his existing chain and the new record. 
-	- If the new record is successfully added to the path on the tree, the 
-	party broadcasts its chain. 
+	with his existing chain and the new record.
+	- If the new record is successfully added to the path on the tree, the
+	party broadcasts its chain.
 - Observe that the F-tree is a trie-like data structure:
 
 ```
-root 
+root
 	\
-	 m1 
+	 m1
 	   \
-		m2 
+		m2
 		/ \
 	 m3   m4
 		  / \
-		 m5  m6   
+		 m5  m6
 ```
 
 - In the F-tree model, the probability of a miner being successful is
-independent of the current chain being queried. 
-	- This is not true in the random oracle model. 
+independent of the current chain being queried.
+	- This is not true in the random oracle model.
 
-### The Public Ledger 
+### The Public Ledger
 - The public ledger is one of the core componenets of the bitcoin protocol. The
-ledger must be public, immutable, ordered, and consistent. 
-- Property 1: Liveness 
+ledger must be public, immutable, ordered, and consistent.
+- Property 1: Liveness
 	- If an honest player wnats to add a message, it should appear on the local
-	ledger of every honest player after some wait time. 
-- Property 2: Persistence 
+	ledger of every honest player after some wait time.
+- Property 2: Persistence
 	- If a message m gets added to the local ledger of some honest playerat
 	position j, then it will appear at position j in the local ledger of every
-	other honest party at all future times (after some small delay). 
+	other honest party at all future times (after some small delay).
 - Because of the T-consistency property, at any point a party's local ledger is
-determined by truncating its current view of the blockchain by T blocks. 
-	- Liveness follows from chain growth and chain quality. 
-	- Persistnece follows from consistency and chain growth. 
+determined by truncating its current view of the blockchain by T blocks.
+	- Liveness follows from chain growth and chain quality.
+	- Persistnece follows from consistency and chain growth.
 
-## Mechanics of Bitcoin 
+## Mechanics of Bitcoin
 
 ### Bitcoin transactions
 - In an account based ledger system it is very inefficient to check
@@ -609,7 +609,7 @@ really the hashes of the recipients' public keys
 |    sign(Alice)
 
 | 3. Inputs: 2[0]
-|    Outputs: 8.0 -> Carol, 7.0 -> Bob 
+|    Outputs: 8.0 -> Carol, 7.0 -> Bob
 |    sign(Bob)
 
 | 4. Inputs: 2[1]
@@ -618,21 +618,21 @@ really the hashes of the recipients' public keys
 ```
 
 - To check if transaction 4 is valid, we trace the transaction inputs
-recursively to make sure that the input provides enough bitcoin to 
-fuel the transaction and we check the ledger linearly between the current 
-point and the input transaction to make sure no double spending is 
+recursively to make sure that the input provides enough bitcoin to
+fuel the transaction and we check the ledger linearly between the current
+point and the input transaction to make sure no double spending is
 occuring.
-- A valid transaction must be signed by the person who is paying the money. 
+- A valid transaction must be signed by the person who is paying the money.
 - A transaction must use all of the input it is given - so if you only want
 to use a fraction of a transaction to pay another party you must
-explicityly pay yourself the remainder of the money. 
+explicityly pay yourself the remainder of the money.
 - A transaction can also take in multiple inputs - money can be drawn from
-multiple transactions and be used to pay multiple people. 
+multiple transactions and be used to pay multiple people.
 	- If the inputs come from different parties, each party needs to sign
-	the transaction. 
-- A transaction itself contains a hash, a "lock time", a reference to one 
+	the transaction.
+- A transaction itself contains a hash, a "lock time", a reference to one
 of more previous transactions (with a corresponding signiture), the value
-and publickey of the person being paid. 
+and publickey of the person being paid.
 
 ```
 'hash': <transaction_hasn>,
@@ -659,41 +659,41 @@ lock_time: 0,
 - The output of a bitcoin transaction specifies that "these coins can be
 redeemed by the owner of the address specified". Eg - these coins can be
 redeemed by a public key that hashes to X along with a signature by the
-owner of that public key. 
+owner of that public key.
 
 ### Bitcoin Scripts
 - The input and output addresses of a bitcoin transaction are really
 	scripts.
-- To verify a bitcoin transaction we concatenate the input script 
+- To verify a bitcoin transaction we concatenate the input script
 (scriptSig) from the new transaction with the output script (scriptPubkey)
-of the old transaction. 
+of the old transaction.
 	- scriptPubkey of the old transaction verifies that the signature and
 	public key in scriptSig (of the sender of the new transaction) are
-	valid. This effectively verifies that the sender has access to the 
-	coins from the previous transaction. 
-- Bitcoin scripting language 
-	- Built for bitcoin 
-	- Simple, compact 
-	- Support for cryptography 
-	- Stack based 
-	- Limits on time / memory 
-	- No looping 
+	valid. This effectively verifies that the sender has access to the
+	coins from the previous transaction.
+- Bitcoin scripting language
+	- Built for bitcoin
+	- Simple, compact
+	- Support for cryptography
+	- Stack based
+	- Limits on time / memory
+	- No looping
 	- Not Turing complete
 - Supports basic arithmetic, conditions, logic / data handling, and crypto.
-- OP_CHECKMULTISIG is a built in support for joint signuitures. 
-- Most scripts are simple verification scripts. 
-- Proof of burn -> lets you destroy bitcoins. 
-	- The function itself returns some arbitrary data. 
+- OP_CHECKMULTISIG is a built in support for joint signuitures.
+- Most scripts are simple verification scripts.
+- Proof of burn -> lets you destroy bitcoins.
+	- The function itself returns some arbitrary data.
 	- So this function can be used to publish arbitrary data on the
 		blockchain (for example timestamping a document).
 	- This function can also be used to require people to destroy bitcoins
 		in order to get new Altcoins (non-bitcoin cryptocurrencies).
-- Example: 
+- Example:
 
 ```
 Script:
 // ----- scriptSig (new transaction)
-<sig> // sender's signiture 
+<sig> // sender's signiture
 <pubKey> // sender's public key
 // -----
 // ----- scriptPubKey (old transaction)
@@ -706,12 +706,12 @@ OP_CHECK_SIG // verifies that a signature matches the public key
 Execution:
 
 												   <pubkeyHash?>
-					  <pubkey>      <pubkeyHash>   <pubkeyHash>    
-		 <pubkey>     <pubkey>      <pubkey>       <pubkey>        
-<sig> -> <sig>     -> <sig>      -> <sig>       -> <sig>       
+					  <pubkey>      <pubkeyHash>   <pubkeyHash>
+		 <pubkey>     <pubkey>      <pubkey>       <pubkey>
+<sig> -> <sig>     -> <sig>      -> <sig>       -> <sig>
 sig      pubkey       OP_DUP        OP_HSGH160     pubkeyHash?
 
-	 <pubkeyHash?>   
+	 <pubkeyHash?>
 	 <pubkeyHash>
 	 <pubkey>           <pubkey>
   -> <sig>           -> <sig>       -> True
@@ -719,52 +719,52 @@ sig      pubkey       OP_DUP        OP_HSGH160     pubkeyHash?
 ```
 
 - The above script essentially:
-	1. Verifies that the sender's address matches the address in the 
+	1. Verifies that the sender's address matches the address in the
 	script  (the address specified by the input transaction).
 	2. Verifies that the sender's address matches the sender's signature.
-- Bitcoin scripts also have a OP_CHECK_MULTISIG function that can be used 
+- Bitcoin scripts also have a OP_CHECK_MULTISIG function that can be used
 to check multiple signatures. This can be used for a lot of interesting
-applications (see below). 
+applications (see below).
 	- MULTISIG is similar to SIG. It verifies that one (or
-	more) signature matches one out of multiple public keys. 
-- Proof of burn 
-	- A player can "burn" a small amount of bitcoin - ie send them to some 
+	more) signature matches one out of multiple public keys.
+- Proof of burn
+	- A player can "burn" a small amount of bitcoin - ie send them to some
 	eater address (public key). This can be done to publish some data on the
 	blockchain (for
 	example to timestamp a document) or for currency exchange (you must burn
 	some bitcoins to get altcoins). Since you can't reverse construct a private
 	key (and hence a signature) from a public key, the burned coins are
 	unspendable
-- Pay to Hash Script 
-	- In a bitcoin transaction, usually the sender must specify the public key 
+- Pay to Hash Script
+	- In a bitcoin transaction, usually the sender must specify the public key
 	(address) of the receiver. However what if the receiver is expecting some
 	complicated behavior (ie multiple signatures)
 	- When creating a transaction a user can send the coins to the __hash of a
 	script__ instead of an address (hash of a public key). To redeem the coins,
 	the redeemer must provide the script (which matches the hash) and provide
 	data which makes the script evaluate to true (this should come from the
-	transaction). 
+	transaction).
 	- This is called Pay-to-Script-Hash
 - Application of Scripts / Smart Contracts
 	- Escrow Transactions (fair transactions)
 		- Suppose Alice wants to pay Bob for some product. However, Alice
-		doesn't want to pay Bob until she's received the product and Bob 
-		doesn't want to provide the product until Alice has payed. 
-		- This is a very common transaction in the real world - ie when buying 
+		doesn't want to pay Bob until she's received the product and Bob
+		doesn't want to provide the product until Alice has payed.
+		- This is a very common transaction in the real world - ie when buying
 		a house. It is called an __escrow transaction__ and can be managed in
-		bitcoin using MULTISIG and a third party. 
+		bitcoin using MULTISIG and a third party.
 		- Alice and Bob agree on a 3rd party (Judy) to arbitrate the
 		transaction. Alice creates the transaction with a 2-3 MULTISIG. This
 		means that the coins can be spent if any two out of the three parties
-		sign. This transaction is published to the blockchain. 
+		sign. This transaction is published to the blockchain.
 			- Bob can now send the product to Alice. Once ALice receives the
 			product, she and Bob will sign a transaction sending the coins from
 			escrow to Bob.
-			- If Alice is dishonest, Bob and Judy can sign a transaction 
-			which sends the coins from escrow to Bob. 
+			- If Alice is dishonest, Bob and Judy can sign a transaction
+			which sends the coins from escrow to Bob.
 			- If Bob is dishonest, Alice and Judy can sign a transaction which
-			sends the coins from escrow back to Alice. 
-	- Green addresses 
+			sends the coins from escrow back to Alice.
+	- Green addresses
 		- Suppose Alice wants to pay Bob, but Bob is offline, disconnected from
 		the Internet, or can't wait an hour for the transaction to propogate to
 		the blockchain. Alice will use a trusted third party (a bank or some
@@ -774,405 +774,405 @@ applications (see below).
 		- A green address is an address from a trusted third party (a bank or
 		exchange). Bob trusts this address and will give Alice the product
 		trusting that the bank won't double spend the money.
-	- Micropayment 
+	- Micropayment
 		- Suppose Alice wants to pay Bob in small increments for an hourly
 		service. Creating a bunch of small transactions won't work since the
 		transaction fees would add up. This type of payment can be accomplished
-		using MULTISIG. 
-		- Alice puts the money in a 2-3 escrow account (see above). At 
-		the first hour, Alice creates a multisig transaction that sends one 
-		unit from the escrow transaction to Bob and the rest back to Alice. 
+		using MULTISIG.
+		- Alice puts the money in a 2-3 escrow account (see above). At
+		the first hour, Alice creates a multisig transaction that sends one
+		unit from the escrow transaction to Bob and the rest back to Alice.
 		This transaction is not signed by Bob. At the second hour, Alice sends
-		two units from the escrow transaction to Bob and the rest back to 
+		two units from the escrow transaction to Bob and the rest back to
 		Alice. This continues in this way for as long as Alice wants the
-		service. When Alice no longer wants the service she stops paying and 
-		Bob signs the last transaction. 
+		service. When Alice no longer wants the service she stops paying and
+		Bob signs the last transaction.
 
 		```
 		n = 1
 		do {
-			Alice creates and signs 2-2 multisig 
+			Alice creates and signs 2-2 multisig
 			x = {
-					input: escrow 
+					input: escrow
 					output: n Bob, (total - n) Alice
 				}
 			n++
 		} while (Alice wants the service || n == total)
 		Bob signs x and gets the money from escrow
 		```
-- Lock time 
+- Lock time
 	- Lock time is a field in the transaction. If the lock time is not equal to
-	zero, miners will not publish that transaction until after the lock time 
+	zero, miners will not publish that transaction until after the lock time
 	has passed. If `lock_time = t`, miners will not publish the transaction
-	until after `t` rounds have passed. 
+	until after `t` rounds have passed.
 	- Lock time in multisig: In a multisig, Alice may want to get a refund if
 	Bob doesn't hold up his end of the bargain or Bob doesn't sign the last
 	transaction. So before the micropayment starts, Alice and Bob sign a 2-2
 	multisig which refunds Alice the money from the escrow. However, the refund
 	is locked until after the micropayment period should expire. So if Bob
 	doesn't sign any micropayment transactions, Alice can get a refund once the
-	lock time expires. 
+	lock time expires.
 
-### Bitcoin Blocks 
+### Bitcoin Blocks
 - In bitcoin, transactions are packaged into blocks for efficiency - if
 miners had to reach consensus on each individual transaction, confirmation
 would happen much more slowly. Also, a hash chain of blocks is much shorter
 than a hash chain of individual transactions so verifying the overall chain
-is easier with blocks than with transactions. 
-- The blockchain is a hash chain of blocks. 
-- The transactions in each block are packaged in a Merkel Tree. 
+is easier with blocks than with transactions.
+- The blockchain is a hash chain of blocks.
+- The transactions in each block are packaged in a Merkel Tree.
 	- To prove that a transaction exists in a block we can
 	provide a path in the tree (logarithmic in the number of transactions)
-	whose leaf is the transaction. 
+	whose leaf is the transaction.
 	- This makes it easy to verify a transaction is in the root without
-	having to download the entire tree. 
-- Each block has a "coinbase" transaction that signals creating coins. 
+	having to download the entire tree.
+- Each block has a "coinbase" transaction that signals creating coins.
 
-### Bitcoin Network 
+### Bitcoin Network
 - The bitcoin network is a TCP network where every node is a peer (no
 master / slave). The network itself is very dynamic - anyone can join or
-leave at any time. 
+leave at any time.
 - The purpose of the network is to maintain the blockchain. When a player
-creates a transaction, her client creates a transaction which her node 
+creates a transaction, her client creates a transaction which her node
 sends to all of its peers. If the transaction passes initial checks, the
 peers will send the transaction to their peers. If a node has already heard
-the transaction it will terminate. This is called a __flooding algorithm__. 
-- Because of the latency in the network, some nodes may hear transactions 
+the transaction it will terminate. This is called a __flooding algorithm__.
+- Because of the latency in the network, some nodes may hear transactions
 at different times than others. This becomes especially important when
-someone attempts a double spending attack. The general consensus (though 
+someone attempts a double spending attack. The general consensus (though
 not an enforced rule) is that if a node sees a double spend it should only
 keep the first transaction and not propagate it through the network.
-Different nodes will have seen different transactions first and so will 
+Different nodes will have seen different transactions first and so will
 have different blocks - however, one of the chains will eventually win out
 so only one of the two transactions in the double spending attack will be
 confirmed.
 - Announcing a block uses the same flooding algorithm as announcing a
 translation. c
-- Validating a transaction essentially means making sure the money exists 
+- Validating a transaction essentially means making sure the money exists
 an does not double spent (see above). Validating an entire block involves
 validating each transaction, validating the header, and validating the
-nonce. 
+nonce.
 
-### Anonymity 
-- Anonymous means without a name. The goal of anonymity is to allow people to 
+### Anonymity
+- Anonymous means without a name. The goal of anonymity is to allow people to
 use a service without providing their "name" - ie without others knowing thier
-real identity. 
+real identity.
 - Bitcoin addresses are public key hashes rather than real identities - in CS
-we call this pseudoanonymity since the users are not directly linked to their 
-bitcoin identities, but they could be linked to to their bitcoin identities. 
+we call this pseudoanonymity since the users are not directly linked to their
+bitcoin identities, but they could be linked to to their bitcoin identities.
 - Pseudoanonymity is the principle that your user identity is not the same as
 your real world identity (for example a user name).
 - Unlinkability is the principle that different interactions of the same user
-with the system should not be linkable to each other. 
-- Anonymity is pseudoanonymity coupled with unlikability. 
-- Unlinkability is needed because linked profiles can be deanonymized by a 
-variety of side channels. 
+with the system should not be linkable to each other.
+- Anonymity is pseudoanonymity coupled with unlikability.
+- Unlinkability is needed because linked profiles can be deanonymized by a
+variety of side channels.
 - If bitcoin identities are unlinkable they must have the following properties:
-	- It's hard to link different addresses of the same user. 
-	- It's hard to link different transactions of the same user. 
-	- It's hard to link the sender of a payment to its recipient. 
-- Anonymity set: The anonymity set of a transaction T is the set of 
-transactions which an adversary cannot distinguish from T. 
-	- To calculate the anonymity set we must define our adversary model and 
-	understand what the adversary knows, doesn't know, and cannot know. 
-	- We want to maximize the size of the anonymity set. 
-- We want our cryptocurrencies to be anonymous because the blockchain is an 
-inherently public document (the ledger is public and very easily accessible), 
-and permanent. Without anonymity a cryptocurrency would have much less privacy 
-than a traditional bank. 
-- Taint analysis: a way of calculating how related two addresses are. If 
-bitcoin sent by address S always ends up at address R (directly or after 
-passing through some intermediate addresses), then S and R will have a high taint score. 
-	- Taint analysis is not a good measure of bitcoin anonymity because it 
-	assumes that the adversary is using the same calculations to link parts of 
-	addresses. 
+	- It's hard to link different addresses of the same user.
+	- It's hard to link different transactions of the same user.
+	- It's hard to link the sender of a payment to its recipient.
+- Anonymity set: The anonymity set of a transaction T is the set of
+transactions which an adversary cannot distinguish from T.
+	- To calculate the anonymity set we must define our adversary model and
+	understand what the adversary knows, doesn't know, and cannot know.
+	- We want to maximize the size of the anonymity set.
+- We want our cryptocurrencies to be anonymous because the blockchain is an
+inherently public document (the ledger is public and very easily accessible),
+and permanent. Without anonymity a cryptocurrency would have much less privacy
+than a traditional bank.
+- Taint analysis: a way of calculating how related two addresses are. If
+bitcoin sent by address S always ends up at address R (directly or after
+passing through some intermediate addresses), then S and R will have a high taint score.
+	- Taint analysis is not a good measure of bitcoin anonymity because it
+	assumes that the adversary is using the same calculations to link parts of
+	addresses.
 - Anonymous e-cash
 	- Blind signature: a two party protocol to create digital signature without
-	the signer learning winch message is being signed. 
+	the signer learning winch message is being signed.
 
 __De-anonymizing Bitcoin__
 
-- Linking: 
+- Linking:
 	- Suppose Alice wants to buy an $8 tepaot from Bob and her bitcoin are
-	in three separate unspent addresses whose amounts are 3, 5, and 6 bitcoins. 
-	Alice must use a combination of those adresses to pay for the teapot. 
-	- Now an adversary looking at the blockchain can infer that the two 
+	in three separate unspent addresses whose amounts are 3, 5, and 6 bitcoins.
+	Alice must use a combination of those adresses to pay for the teapot.
+	- Now an adversary looking at the blockchain can infer that the two
 	addresses used in the transaction are controlled by the same party - hence
-	those addresses are linked. Furthermore, the adversary can repeat this 
+	those addresses are linked. Furthermore, the adversary can repeat this
 	process and transitively link entire clusters of transactions as belonging
-	to a single entity. 
+	to a single entity.
 - Change Address Randomization
 	- Consider the case where the teapot now casts $8.5. Alice can't pay with
-	exact change and has to pay the difference ($0.05) to a change address. 
-	An adversary can use some heuristics and assumptions about the wallet 
+	exact change and has to pay the difference ($0.05) to a change address.
+	An adversary can use some heuristics and assumptions about the wallet
 	software to make assumptions about which address is the change address
-	and therefore linking another address to Alice. 
-- Idioms of use are implementation details that are true for most wallet software. 
-It was found that wallets typically generate a fresh address when a change 
-address is required - so change addresses are generally address that have never 
-before appeared in the blockchain. An adversary can use this knowledge to 
-distinguish between chain addresses and link them with input addresses. Note 
-that this is error prone and dependent on the software. 
+	and therefore linking another address to Alice.
+- Idioms of use are implementation details that are true for most wallet software.
+It was found that wallets typically generate a fresh address when a change
+address is required - so change addresses are generally address that have never
+before appeared in the blockchain. An adversary can use this knowledge to
+distinguish between chain addresses and link them with input addresses. Note
+that this is error prone and dependent on the software.
 - Attacking real world identities to clusters
 	- Given the linking techniques above we can generate graphs of clusters of
-	addresses controlled by users. We can sometimes make educated guesses about 
+	addresses controlled by users. We can sometimes make educated guesses about
 	identities based on what we know about the Bitcoin economy. For example,
-	if we know the name of the largest Bitcoin exchange we can assume it 
+	if we know the name of the largest Bitcoin exchange we can assume it
 	controls the largest cluster. This isn't a great way to identify clusters,
-	but it can work. 
+	but it can work.
 - Tagging by Transacting
 	- Usually a merchant will create a new address to receive transactionns from
-	customers. So one way to identify a cluster is to buy something from a 
-	merchant, tag the receiving address, and wait for it to link with one of 
-	our established clusters. 
-- Identifying Individuals: The methods above are useful for tagging larger 
+	customers. So one way to identify a cluster is to buy something from a
+	merchant, tag the receiving address, and wait for it to link with one of
+	our established clusters.
+- Identifying Individuals: The methods above are useful for tagging larger
 merchants and businesses with a lot of addresses (large clusters). But how can
-we identify individuals (small clusters). 
-	- Direct transactions: anyone who transacts with an individual knows at 
-	least one of their addresses. 
-	- Service providers: Most users eventually interact with an exchange or 
-	other centralized service provider. These service providers are often 
-	legally required to ask for real identities which can be surrendered to 
-	law enforcement. 
+we identify individuals (small clusters).
+	- Direct transactions: anyone who transacts with an individual knows at
+	least one of their addresses.
+	- Service providers: Most users eventually interact with an exchange or
+	other centralized service provider. These service providers are often
+	legally required to ask for real identities which can be surrendered to
+	law enforcement.
 	- Carelessness: People often post their Bitcoin addresses in public forums.
-	Usually this is done to request donations. However, this creates a link 
-	between the real world identity and the bitcoin identity. 
+	Usually this is done to request donations. However, this creates a link
+	between the real world identity and the bitcoin identity.
 	- Attacks and piracy: Deanonymization algorithms usually improve over time
-	when the data is public ally available. 
+	when the data is public ally available.
 - Network Layer Deanonymization
 	- In networks theory, the blockchain is the application layer and the P2P
-	network is the network layer. When a node creates a transaction, it connects 
-	to many nodes at once and broadcasts the transaction (flooding algorithm). 
+	network is the network layer. When a node creates a transaction, it connects
+	to many nodes at once and broadcasts the transaction (flooding algorithm).
 	If sufficiently many nodes on the network collude with one another (or are
 	run by the adversary) they can figure out the first node to broadcast any
 	transaction. This node is presumably the node that created the transaction
 	(paid the transaction). The adversary could then link the bitcoin address
 	with the IP address (which is very close to the real world identity).
 	- This can be alleviated by using services like Tor which anonymize IP
-	addresses. However, there are potential security problems with using 
-	bitcoin over Tor. 
+	addresses. However, there are potential security problems with using
+	bitcoin over Tor.
 
 __Mixing__
 
 - Mixing is a technique to make transaction graph analysis less effective. The
-main idea is simple - if you want anonymity, use an intermediary. 
+main idea is simple - if you want anonymity, use an intermediary.
 - Online Wallets as Mixes
-	- An online wallet is a service where you can store your bitcoins online 
-	and withdraw them at some later date. These wallets can be seen as 
-	intermediaries as typically the coins you withdraw won't be the same coins 
-	you deposit - hence they provide some level of unlinkability. 
+	- An online wallet is a service where you can store your bitcoins online
+	and withdraw them at some later date. These wallets can be seen as
+	intermediaries as typically the coins you withdraw won't be the same coins
+	you deposit - hence they provide some level of unlinkability.
 	- However, online wallets don't promise to mix users' funds - they do it
-	because it makes the engineering easier. Additionally they will probably 
-	keep records of transactions. 
+	because it makes the engineering easier. Additionally they will probably
+	keep records of transactions.
 - Dedicated Mixing Services
-	- Dedicated mixing services are services that will essentially launder 
-	your bitcoin. You send your bitcoins to an address provided by the mix and 
+	- Dedicated mixing services are services that will essentially launder
+	your bitcoin. You send your bitcoins to an address provided by the mix and
 	you tell the mix a destination address to send the bitcoins to. The mix
-	should swap your bitcoins and send them to the address. 
+	should swap your bitcoins and send them to the address.
 - Guidelines for Mixing
 	- Uses a series of mixers: increasing the number of mixers you pass your
 	coins through decreases you reliance on one mixer and therefore increases
-	the anonymity of your transactions. 
+	the anonymity of your transactions.
 	- Use uniform transactions: All users using a mix should agree on a common
-	"chunk size" of coins to pass through a mix at once. This would increase 
+	"chunk size" of coins to pass through a mix at once. This would increase
 	the anonymity set as all transactions going through any mix would look
-	exactly the same and would bot be distinguishable based on their value. 
-	- Client side should be automated: The functionality for interacting with 
+	exactly the same and would bot be distinguishable based on their value.
+	- Client side should be automated: The functionality for interacting with
 	mixes should be automated and built into software to prevent deanonymization
-	by checking timings of transactions. 
+	by checking timings of transactions.
 	- Fees should be all or nothing: If all mixers were to apply mixing fees
 	we wouldn't be able to maintain uniform chunk size (especially if we're
 	chaining mixers together). Mixers should apply an all or nothing type fee
-	where the mixer either takes the entire chunk or not based on a probability. 
+	where the mixer either takes the entire chunk or not based on a probability.
 	(ie if the mixer wants to charge a 1% mixing fee it should take the entire
-	chunk with probability 0.01). 
-- Mixing in practice: Mixing is great in theory, but there is no unified 
-ecosystem and many mixes have been reported to steal bitcoin. Aditionally, 
-bootstrapping a mixing ecosystem is very difficult. 
+	chunk with probability 0.01).
+- Mixing in practice: Mixing is great in theory, but there is no unified
+ecosystem and many mixes have been reported to steal bitcoin. Aditionally,
+bootstrapping a mixing ecosystem is very difficult.
 
 __Decentralized Mixing__
 
-- Decentralized mixing eliminates mixing services and replaces them with a p2p 
+- Decentralized mixing eliminates mixing services and replaces them with a p2p
 protocol through which a group of users can mix their coins. Decentralized
-mixing has more practical advantages than mixing services. Users don't have to 
-wait for reputable services to pop up (ie there isn't a bootstrapping problem) 
+mixing has more practical advantages than mixing services. Users don't have to
+wait for reputable services to pop up (ie there isn't a bootstrapping problem)
 and theft is impossible because the protocol ensures that when you put in coins
 to be mixed you'll get back bitcoins of equal value.
 - CoinJim
 	- CoinJim is the main proposed protocol for decentralized mixing. In this
-	protocol, different users jointly create a single bitcoin transaction that 
-	combines all their inputs - recall that a bitcoin transaction can have 
+	protocol, different users jointly create a single bitcoin transaction that
+	combines all their inputs - recall that a bitcoin transaction can have
 	multiple inputs from different users, each user just needs to sign. Thus
 	each user provides an input and output address, the order of the addresses
 	are randomized, and each participant checks to make sure that their outpu
 	address is included in the transaction and that it receives the same amount
 	of bitcoins as they have input (minus any transaction fees). Once this has
-	been confirmed, they sign. 
+	been confirmed, they sign.
 	- It is not possible to map between the inputs and outputs in CoinJim.
-	- Practically implementing CoinJim requires an anonymous communication 
-	protocol like Tor or a special anonymous routing protocol called a 
-	"decryption mix-net". 
+	- Practically implementing CoinJim requires an anonymous communication
+	protocol like Tor or a special anonymous routing protocol called a
+	"decryption mix-net".
 
 __Side Channels__
 
 - A side channel attack is an attack based on information gained from the
-implementation of the computer system rather than from weaknesses in the 
-algorithm itself. 
-- High Level Flows - a regular transaction patter. High level flows cannot be 
-effectively be hidden by mixing since, eventually one can discern a 
+implementation of the computer system rather than from weaknesses in the
+algorithm itself.
+- High Level Flows - a regular transaction patter. High level flows cannot be
+effectively be hidden by mixing since, eventually one can discern a
 relationship
-between the addresses. An example of a high level flow is placing money in a 
-savings account regularly. 
-- Merge avoidance - Generally, to make a payment, a user creates a single 
+between the addresses. An example of a high level flow is placing money in a
+savings account regularly.
+- Merge avoidance - Generally, to make a payment, a user creates a single
 transaction that combines as many coins as necessary to pay the entire amount
-to a single address. But if the user didn't merge - instead the receiver 
-provides multiple output addresses and the sender and receiver can split the 
-transaction into multiple small transactions to different addresses - the 
-high level flow would be much harder to trace. 
-	
+to a single address. But if the user didn't merge - instead the receiver
+provides multiple output addresses and the sender and receiver can split the
+transaction into multiple small transactions to different addresses - the
+high level flow would be much harder to trace.
+
 ### Anonymous Cryptocurrencies - Zerocoin and Zerocash
 - Zerocoin and it's successor Zerocash are two of the most popular cryptocurrencies
 and have gained much of their fame due to the rigorous cryptography and powerful
 anonymity they promise. While all the techniques we discussed above are built
 on top of the Bitcoin protocol to increase anonymity, Zerocoin and Zerocash
-incorporate anonymity at the protocol level. 
-- Note, because of the strong anonymity guarantees of Zerocoin and Zerocash, 
-their protocols are not compatible with Bitcoin. 
-- Zerocoin and Zerocash incorporate protocol level mixing and the anonymity 
-properties come with cryptographic guarantees. You don't need to trust anyone 
+incorporate anonymity at the protocol level.
+- Note, because of the strong anonymity guarantees of Zerocoin and Zerocash,
+their protocols are not compatible with Bitcoin.
+- Zerocoin and Zerocash incorporate protocol level mixing and the anonymity
+properties come with cryptographic guarantees. You don't need to trust anyone
 to ensure privacy. Anonymity relies only on the adversary's computational limits.
 
 __Zerocoin__
 
-- Zerocoin is based on Basecoin - a Bitcoin-like altcoin. You can convert 
-Basecoins into Zerocoins and back again. When you do this, the link between 
-the original Basecoin and the new Basecoin is broken. Thus, in this system 
-Basecoin is the currency that you transact in and Zerocoin provides the 
-mechanism to trade your Basecoins in for new ones that are unlinkable to the 
-old ones. 
-- Each Zerocoin you own is proof that you owned a Basecoin and made it 
+- Zerocoin is based on Basecoin - a Bitcoin-like altcoin. You can convert
+Basecoins into Zerocoins and back again. When you do this, the link between
+the original Basecoin and the new Basecoin is broken. Thus, in this system
+Basecoin is the currency that you transact in and Zerocoin provides the
+mechanism to trade your Basecoins in for new ones that are unlinkable to the
+old ones.
+- Each Zerocoin you own is proof that you owned a Basecoin and made it
 unspendable.
-This proof doesn't reveal which Basecoin you owned. You can redeem this proof 
-for a new Basecoin by presenting the proof to the miners. 
-- This "proof" must be implimented cryptographically - we need to make sure 
+This proof doesn't reveal which Basecoin you owned. You can redeem this proof
+for a new Basecoin by presenting the proof to the miners.
+- This "proof" must be implimented cryptographically - we need to make sure
 that each proof can only be used once to redeem a Basecoin.
-- Zero knowledge proofs are the key cryptographic tool to prove a statement 
-without revealing any other information that leads to that statement being 
+- Zero knowledge proofs are the key cryptographic tool to prove a statement
+without revealing any other information that leads to that statement being
 true.
-For example, generally if we want to show proof of work we need to show that 
+For example, generally if we want to show proof of work we need to show that
 we've found an $x$ such that $H(x | p) < target$. A zero knowledge proof would
-allow us to prove this without revealing $x$. 
-- Zerocoins come into existence by minting - anyone can mint a Zerocoin. 
-However, Zerocoins don't have value until they are put into the blockchain - 
-and that can only be done if you give up the right amount of Basecoin. 
+allow us to prove this without revealing $x$.
+- Zerocoins come into existence by minting - anyone can mint a Zerocoin.
+However, Zerocoins don't have value until they are put into the blockchain -
+and that can only be done if you give up the right amount of Basecoin.
 
 ```Python
 S, r = keygen() # S is a serial number, r is a random secret value.
 com = commit(S, r) # minted a coin
-publish(com) # now the coin has value, burned a 
+publish(com) # now the coin has value, burned a
 ```
 
 - Publishing the commitment burns a Basecoin and gives the Zerocoin value.
 - Publishing a Zerocoin to the blockchain requires a special transaction whose
 output address is the cryptographic commitment of the Zerocoin's serial number.
-The input of the transaction is a basecoin. 
-- If we want to spend the Zerocoin (that is get a new Basecoin) we need to 
-prove that we previously minted a Zerocoin. Trivially we could just reveal 
-S and r - however this would create a link between the burned Basecoin and 
+The input of the transaction is a basecoin.
+- If we want to spend the Zerocoin (that is get a new Basecoin) we need to
+prove that we previously minted a Zerocoin. Trivially we could just reveal
+S and r - however this would create a link between the burned Basecoin and
 our new Basecoin which defeats the purpose.
 - To spend a Zerocoin with serial number S to redeem a new Basecoin:
 	- Create a special "spend" transaction that contains S along with a zero
-	knowledge proof of the statement `I know r such that commit(S, r) is in 
-	the set {c1, c2, ...,cN}`. The set {c1, c2, ... cN} is the set of all 
-	commitments in the blockchain. Note that this is a proof that doesn't 
-	involve revealing r. In other words, the statement is "I know a secret key 
-	r such that commit(S, r) is in the blockchain". 
-	- The miners will verify this proof which shows your ability to poen one 
+	knowledge proof of the statement `I know r such that commit(S, r) is in
+	the set {c1, c2, ...,cN}`. The set {c1, c2, ... cN} is the set of all
+	commitments in the blockchain. Note that this is a proof that doesn't
+	involve revealing r. In other words, the statement is "I know a secret key
+	r such that commit(S, r) is in the blockchain".
+	- The miners will verify this proof which shows your ability to poen one
 	of the Zerocoin commitments on the blockchain without actually opening it.
-	- The miners will check that S has never been used in a previous spend 
-	transaction. This prevents double spending. 
-	- The output of the spend transaction will act as a new basecoin (the 
-	output address should be one you own). 
-- Once you spend a Zerocoin, the serial number becomes public and you will 
-never be able to redeem the serial number again. And since each serial number 
-is unique it must be true that each Zerocoin can only be spent once. 
-- The key to this entire scheme is that r is kept secret throughout the 
-process. Neither the mint nor the spend transaction reveals it. This means 
-nobody knows which serial number corresponds to which Zerocoin. There is no 
-link between the mint transaction that committed a serial number S and the 
-spend transaction that revealed. The zero knowledge proof showed that we knew 
-the secret key without physically linking back to that commitment in the blockchain. 
+	- The miners will check that S has never been used in a previous spend
+	transaction. This prevents double spending.
+	- The output of the spend transaction will act as a new basecoin (the
+	output address should be one you own).
+- Once you spend a Zerocoin, the serial number becomes public and you will
+never be able to redeem the serial number again. And since each serial number
+is unique it must be true that each Zerocoin can only be spent once.
+- The key to this entire scheme is that r is kept secret throughout the
+process. Neither the mint nor the spend transaction reveals it. This means
+nobody knows which serial number corresponds to which Zerocoin. There is no
+link between the mint transaction that committed a serial number S and the
+spend transaction that revealed. The zero knowledge proof showed that we knew
+the secret key without physically linking back to that commitment in the blockchain.
 - The zero knowledge proof is logarithmic in N (the number of commits to the
-blockchain). 
+blockchain).
 - Setting up Zerocoin requires a one-time trusted setup. A trusted party needs
 to choose two  large primes p and q and publish $N = p * q$ - everyone will use
 this parameter for the lifetime of the system. N is like a public key except that
 it is for all of Zercoin. If the trusted party destroyes any record of p and q
-the system is thought to be secure. However, if anyone knows p and q they can 
-create new Zerocoins without being detected. 
+the system is thought to be secure. However, if anyone knows p and q they can
+create new Zerocoins without being detected.
 
 __Zerocash__
 
 - Zerocash is an anonymous cyprocurrency that builds on the concepts of Zerocoin
-but advances the cryptography. It uses a cryptogrphic technique called "zero 
-knowledge succinct non interactive arguments of knowledge" (zk-SNARKs) which 
-make zero knowledge proofs much more compact and efficient to verify. This 
-greatly improves the efficiency of the system. The efficiency is so much 
+but advances the cryptography. It uses a cryptogrphic technique called "zero
+knowledge succinct non interactive arguments of knowledge" (zk-SNARKs) which
+make zero knowledge proofs much more compact and efficient to verify. This
+greatly improves the efficiency of the system. The efficiency is so much
 better that you can run the network without needing a Basecoin - all transactions
-can be done through zero knowledge proofs. 
+can be done through zero knowledge proofs.
 - Zerocoin used Basecoin for all "regular" transactions and used Zerocoin for
-expensive de-linking. So in many ways the Zerocoin ledger looks a lot like the 
-bitcoin ledger except with the mint and spend transactions. 
+expensive de-linking. So in many ways the Zerocoin ledger looks a lot like the
+bitcoin ledger except with the mint and spend transactions.
 - Zerocash, there is no distinction between basecoin and zerocash. The transaction
-ammounts are inside teh commitment and are no longer visible on the blockchain. 
+ammounts are inside teh commitment and are no longer visible on the blockchain.
 The cryptographic proofs ensure that all splitting and merging are done correctly
-and that users can't create zerocash out of thin air. 
-- The only thing the Zerocash ledger records is the existence of transactions 
-along with proofs tht allow the miners to verify the properties needed for the 
+and that users can't create zerocash out of thin air.
+- The only thing the Zerocash ledger records is the existence of transactions
+along with proofs tht allow the miners to verify the properties needed for the
 correct functioning of the system. The only people who know transaction amounts
-are the parties in the transaction. 
-- Zerocash also requires an enormous set of public parameters to set up. 
-Setting up these parameters requires some secret inputs - and if anyone knew 
-these inputs it would compromise the security of the entire system. 
+are the parties in the transaction.
+- Zerocash also requires an enormous set of public parameters to set up.
+Setting up these parameters requires some secret inputs - and if anyone knew
+these inputs it would compromise the security of the entire system.
 
 # Blockchain Design
 
-### Hash Puzzles 
-- The "puzzle" is very important in designing a blockchain scheme. The puzzle 
-determines the incentive system, and the nature of the puzzle determines the 
-behavior of miners. 
+### Hash Puzzles
+- The "puzzle" is very important in designing a blockchain scheme. The puzzle
+determines the incentive system, and the nature of the puzzle determines the
+behavior of miners.
 - The proof of work puzzle in bitcoin is not the only possible implementation
-and several schemes have already been discussed in literature. 
-- Puzzle requirements: 
-	- Cheap to verify 
-	- Adjustable difficulty 
+and several schemes have already been discussed in literature.
+- Puzzle requirements:
+	- Cheap to verify
+	- Adjustable difficulty
 	- For proof of work puzzles - chance of winning should be proportional to
-	computing power. In bitcoin this is hash power. 
-- Bad POW puzzles 
+	computing power. In bitcoin this is hash power.
+- Bad POW puzzles
 	- A puzzle that requires N sequential steps (run a loop N times). In this
-	case the faster miner will always win. 
+	case the faster miner will always win.
 - A good POW puzzle involves some kind of weighting sampling - eg draw from a
 distribution of nodes weighted by their computing power. Nice in theory, not
-proven to be possible. 
+proven to be possible.
 
-__ASIC Resistance__ 
+__ASIC Resistance__
 
 - __ASIC__ - application specific integrated circuit. Basically a circuit
-designed and optimized for a specific task (in this case mining). 
-- The goal of ASIC resistance is to allow Ordinary people with idle 
-laptops / PCs, smartphones, can also mine. 
-- Prevent large manufacturers from dominating the game. 
-	- Also prevents large manufacturers from keeping ASIC designs secret. 
-- Memory hard puzzles 
-	- The cost and performance of memory is much more stable than processors. 
+designed and optimized for a specific task (in this case mining).
+- The goal of ASIC resistance is to allow Ordinary people with idle
+laptops / PCs, smartphones, can also mine.
+- Prevent large manufacturers from dominating the game.
+	- Also prevents large manufacturers from keeping ASIC designs secret.
+- Memory hard puzzles
+	- The cost and performance of memory is much more stable than processors.
 	By that we mean that memory cost and performance is relatively constant
-	compared to processor cost and performance. 
+	compared to processor cost and performance.
 	- Memory consumes a large amount of chip area. A puzzle that requires a
-	large amount of memory will reduce the number of hash breaking units 
-	on a chip which reduces the number of hashing units per ASIC. 
+	large amount of memory will reduce the number of hash breaking units
+	on a chip which reduces the number of hashing units per ASIC.
 	- Basic idea:
-		- Fill memory with random values 
-		- Read from memory in random order 
+		- Fill memory with random values
+		- Read from memory in random order
 	- scrypt
 		- An example of a memory-hard hash puzzle
 
@@ -1181,9 +1181,9 @@ laptops / PCs, smartphones, can also mine.
 			v1 = H(x)
 			v2 = H(v1) # H_2(x) = H(H(x))
 		# ...
-		vN = H_N(x) 
+		vN = H_N(x)
 		```
-	
+
 	- This creates a table in memory of the form:
 
 	```
@@ -1204,13 +1204,13 @@ laptops / PCs, smartphones, can also mine.
 	```
 
 	- This is a memory hard function because reducing the memory by half
-	requires 1.5 times the number of steps. For example - if we only 
+	requires 1.5 times the number of steps. For example - if we only
 	store $v_i$ if i is odd, computing even $v_i$s would involve hashing
-	$v_{i-1}$. 
+	$v_{i-1}$.
 	- The major disadvantage of this system is that it requires N steps
-	and N memory to verify. 
-	- Cucko hash cycle 
-	- This is a memory hard puzzle that's cheap to verify. 
+	and N memory to verify.
+	- Cucko hash cycle
+	- This is a memory hard puzzle that's cheap to verify.
 
 		```Python
 		def cucko_hash_cycle(x):
@@ -1223,71 +1223,71 @@ laptops / PCs, smartphones, can also mine.
 		return X, edges.cycle
 		```
 
-	- Visually the input can be seen as two sets of nodes - each set is 
-	of size N. 
+	- Visually the input can be seen as two sets of nodes - each set is
+	of size N.
 
 	```
 	A: (1)   (2)   ...  (N)
 	B: (N+1) (N+2) ... (2N)
 	```
-	
+
 	- The algorithm creates random edges between the vertices in A and B
-	and, after E iterations, returns X and the edges in the cycle. 
+	and, after E iterations, returns X and the edges in the cycle.
 	- Thus verifying the solution is easy - just make sure the edges form
-	a cycle and that the values of the nodes are consistent with the 
-	parameters. 
+	a cycle and that the values of the nodes are consistent with the
+	parameters.
 - Other ways to achieve ASIC resistance include:
 	- More complicated hash functions.
 	- Changing the puzzle periodically (moving target).
-- Currently, SICs aren't changing that much, so some argue that memory hard 
+- Currently, SICs aren't changing that much, so some argue that memory hard
 hash puzzles aren't necessary - standard SHA-256 is fine.
 
 __Proof of Useful Work__
 
 - Standard proof of work requires a lot of computational
-work. Could this work be put toward solving a useful problem? 
+work. Could this work be put toward solving a useful problem?
 	- You could create a puzzle based on protein folding or searching for
-	anomalies in outer space data. 
-	- The challenge is that the randomly chosen puzzles must be difficult 
+	anomalies in outer space data.
+	- The challenge is that the randomly chosen puzzles must be difficult
 	- it's not clear who would choose these problems and how hardness could
-	be enforced. 
-	- Primecoin - hash puzzle based on finding large prime numbers 
-	(specifically Cunningham primes). The "usefulness" of finding 
+	be enforced.
+	- Primecoin - hash puzzle based on finding large prime numbers
+	(specifically Cunningham primes). The "usefulness" of finding
 	Cunninghavm chains is not very clear but it's hard to find better
 	examples.
 - Standard proof of work requires a lot of work and a lof of hardware
-investment is wasted. Could this work be put towards providing a useful 
-service? 
+investment is wasted. Could this work be put towards providing a useful
+service?
 	- Permacoin - can be used to create a global, distributed storage
-	system. Each node stores some random segment of users' files. 
+	system. Each node stores some random segment of users' files.
 - Assume we have a large file F to store. (for ximplicity assume F is
-chosen globally by a trusted part). In permacoin, each user stores a 
-random subset of the file. This is an example of a storage based 
+chosen globally by a trusted part). In permacoin, each user stores a
+random subset of the file. This is an example of a storage based
 puzzle.
-		1. Build a Merkle tree where each leaf is a segment of the file 
+		1. Build a Merkle tree where each leaf is a segment of the file
 		2. Generate a public signing key pk, which determines the random
-		subset of file segments. 
+		subset of file segments.
 		3. Each mining attempt select a random nonce and compute
 	`h1 = H(prev | merkel_root | public_key | nonce)`. h1 selects k
 	fragments from the subset of files stored. Then calculate
 	`h2 = H(prev | merkel_root | public_key | nonce | F)`. The goal
-	is for `h2 < TARGET`. 
+	is for `h2 < TARGET`.
 	- This is an example of a proof of space or proof of retreivability
-	puzzle since storing requires non-trivial storage. This is more 
-	environmentally friendly than proof of work. 
-- Preventing Mining Pools 
+	puzzle since storing requires non-trivial storage. This is more
+	environmentally friendly than proof of work.
+- Preventing Mining Pools
 - A mining pool is a group of nodes that pools resources and shards mining
-profits. Pool operator tells the pool which puzzle to solve. Pool members try 
+profits. Pool operator tells the pool which puzzle to solve. Pool members try
 to solve the puzzle and send solution to the operator. Operator divides up
-profits among pool members. 
-- Vigilante attack 
-	- A "vigilante" can join a pool as a member and if he finds a solution 
-	he can discard it - the pool revenue will be reduced and the vigilante 
-	will lose a bit. 
-- Encouraging the vigilante 
+profits among pool members.
+- Vigilante attack
+	- A "vigilante" can join a pool as a member and if he finds a solution
+	he can discard it - the pool revenue will be reduced and the vigilante
+	will lose a bit.
+- Encouraging the vigilante
 	- Design a puzzle such that whoever finds the solution is the only
-	person who can spend the reward. The puzzle is changed to be based 
-	on two signatures and a public key 
+	person who can spend the reward. The puzzle is changed to be based
+	on two signatures and a public key
 
 ```
 solution = (prev, merkel_root, nonce, public_key, s1, s2)
@@ -1300,63 +1300,63 @@ verify(public_key, s2, prev | merkel_root)
 - s1 is a signiture needed to find the solution.
 - s2 is the signiture of the miner who finds the solution.
 	- So the pool operator cannot share the problem without sharing his
-	signing keys - then the pool members (and vigilante) could spend 
-	the reward for mining. 
+	signing keys - then the pool members (and vigilante) could spend
+	the reward for mining.
 
 __Proof of Stake__
 
 - Proof of take works on the principle that the chance of winning in a round is
-proportional to your current "stake" in the currency. Stake means the ammount 
-of money you have invested in the currency. 
+proportional to your current "stake" in the currency. Stake means the ammount
+of money you have invested in the currency.
 	- In this system users who have money in the system can be miners - no need
-	for large ASICS. 
+	for large ASICS.
 	- Environmentally friendly since mining doesn't take any kind of power
-	hungry calculations. 
+	hungry calculations.
 	- More difficult to gain a majority since you can't just buy up computing
-	power / stake in the coin. 
+	power / stake in the coin.
 		- Buying a lot of coins could have unforseen economic consequences -
 		inflating the value of the currency and is seen as a barrier to this
-		type of attack. 
+		type of attack.
 - Algorind is a proof of stake based cryptocurency which takes 1 minutes to
 confirm transactions (vs an hour with bitcoin). It has a public ledger with a
 low probability of forks. The honest majority is assumed to be 2/3 (as opposed
-to bitcoin's 1/2). The network uses a gossip protocol. 
+to bitcoin's 1/2). The network uses a gossip protocol.
 	- Adaptive adversary - may corrupt dynamically as long as 2/3 majority holds
 	- Achieves consistency assuming "weak synchrony" (the network can be
 	asynchronous but the asynchronous period must be upper bounded by some time
-	B and the asynchrony is followed by a short period of extreme synchrony). 
-- Basics of the Proof of Stake Protocol  
-	- Users are weighted by stake 
-		- Builds on byzantine agreement protocol of Micali for consensus. 
-			- BA is an interactive multi-party protocol whose goal is to 
-			achieve consensus on some input. 
+	B and the asynchrony is followed by a short period of extreme synchrony).
+- Basics of the Proof of Stake Protocol
+	- Users are weighted by stake
+		- Builds on byzantine agreement protocol of Micali for consensus.
+			- BA is an interactive multi-party protocol whose goal is to
+			achieve consensus on some input.
 		- BA protocol executed between a small committee of users for
 		scalability
 		- Committee chosen at random using cryptographic techniques
-	- The BA protocol in expectation terminates in only four steps in the 
-	(honest case) or thirteen steps in teh dishonest case. 
-	- Players across different steps in BA protocol may not be the same. 
+	- The BA protocol in expectation terminates in only four steps in the
+	(honest case) or thirteen steps in teh dishonest case.
+	- Players across different steps in BA protocol may not be the same.
 	- For each step, players chosen at random, non-interactively, in a publicly
-	verifiable manner. 
+	verifiable manner.
 
-__Byzantine Agreement Protocol__ 
-- A protocol B between n parties where up to T parties may be corrupted 
+__Byzantine Agreement Protocol__
+- A protocol B between n parties where up to T parties may be corrupted
 (under the control of some adversary) is an $n,T$ byzantine agreement
-protocol with soundness s if: 
-	- for every value set V and adversary A who corrupts t out of n 
-	players 
+protocol with soundness s if:
+	- for every value set V and adversary A who corrupts t out of n
+	players
 	- In an execution of P with A in which each player starts with a value
-	v_i in set V and each honest player halts with probability 1 
+	v_i in set V and each honest player halts with probability 1
 	outputting a value $out_i$ so as to satisfy the following properties:
 		- Agreement: $out_i = out_j$ for all honest parties $i,j$
 		- Consistency: if for some $v,\ v_i = v$ for all honest players i,
 then $out_j = v$ for all honest players j.
-- In Binary BA, the value set V is $\{0, 1\}$. 
+- In Binary BA, the value set V is $\{0, 1\}$.
 - Byzantine agreement is hard because the protocol is executed over point
-to point channels and adversarial parties may send different messages to 
+to point channels and adversarial parties may send different messages to
 different honest parties.
 - Micali's protocol
-	- Consider idealized protocol P(r) where $b_i$ is the initial input of 
+	- Consider idealized protocol P(r) where $b_i$ is the initial input of
 	party i:
 
 	```
@@ -1368,21 +1368,21 @@ different honest parties.
 	else: b_i = c(r)
 	```
 
-	- $N(1, r, b)$. is the number of players from which player i received b in 
+	- $N(1, r, b)$. is the number of players from which player i received b in
 	iteration r.
-	- If 2t + 1 parties are honest, P(r) acheives soundness 1/2. 
-	- If honest players start in agreement, then they remain in agreement. 
+	- If 2t + 1 parties are honest, P(r) acheives soundness 1/2.
+	- If honest players start in agreement, then they remain in agreement.
 	- If honest parties don't start in agreement, then they end in agreement
 	(on some bit) with probability 1/2.
 	- A big part of this algorithm is the "coin in the sky" ie the randomly
 	selected bit c(r). We can implement this using crypto:
-	- Unique digital signatures: For every public key pk and message m, 
-	there is only one valid signature for m with respect to pk. 
-	- Hash functsions: modeled as a random oracle. 
+	- Unique digital signatures: For every public key pk and message m,
+	there is only one valid signature for m with respect to pk.
+	- Hash functsions: modeled as a random oracle.
 	- Common random string R: fixed at the start of the protocol execution
-	. Known to each party and not controlled by the adversary. 
+	. Known to each party and not controlled by the adversary.
 	- Based on these principles we can implement the coin in the sky as follows.
-	This function is called `concreteCoin(r)`. 
+	This function is called `concreteCoin(r)`.
 
 	```
 	Each player i does the following
@@ -1390,28 +1390,28 @@ different honest parties.
 	compute m such that H(v_m) <= H(v_i) for all i
 	set c_i(r) = lsb(h) where h = H(v_m)
 	```
-	
+
 	- `lsb(h)` returns the value of the least significant bit of h. Thus the
 	value of the coin in the sky is dependent on v_m.
 	- Using this construction:
 	- If honest players start in agreement, then they remain in agreement.
-	- If honest players don't start in agreement, then they end in 
-	agreement on some bit with probability 1/3. 
-	- The resulting protocol has soundness 1/3. 
+	- If honest players don't start in agreement, then they end in
+	agreement on some bit with probability 1/3.
+	- The resulting protocol has soundness 1/3.
 	- Given that the protocol has a soundness 1/3 we could theoretically
 	keep repeating the protocol until agreement is reached. However, the parties
-	don't know that agreement is reached so the protocol may never terminate. 
+	don't know that agreement is reached so the protocol may never terminate.
 	- We could overcome this by repeating a fixed k times. But that could
-	lead to wasted steps. 
+	lead to wasted steps.
 	- Sequentially repeat P'(r) where each P'(r) consists of three correlated
 	executions of P(r):
 	1. Execution of P(r) when c(r) = 0
 	2. Execution of P(r) when c(r) = 1
 	3. Execution of P(r) when c(r) <- ConcreteCoin9r) - our algorithm
 	- In the first two executions, a party will terminate if it thinks
-	agreement has been reached. 
+	agreement has been reached.
 	- The number of repitions of P'(r) are not fixed in advance. The expected
-	number of repitions is 3. 
+	number of repitions is 3.
 
 	```Python
 	b = list(size=N)
@@ -1420,7 +1420,7 @@ different honest parties.
 	cr = 0
 	# Each player propagates b[i]
 	for each player i:
-	if N(i, 1, 0) >= 2t + 1: 
+	if N(i, 1, 0) >= 2t + 1:
 		b[i] = 0
 		out[i] = 0
 		send(0)
@@ -1429,11 +1429,11 @@ different honest parties.
 		b[i] = 1
 	else:
 		b[i] = cr
-	
+
 	cr = 1
 	# each player propagates b[i]
 	for each player i:
-	if N(i, 2, 1) >= 2t + 1: 
+	if N(i, 2, 1) >= 2t + 1:
 		b[i] = 1
 		out[i] = 1
 		send(1)
@@ -1446,7 +1446,7 @@ different honest parties.
 	cr = concreteCoin(r)
 	# each player propagates b[i]
 	for each player i:
-	if N(i, 3, 0) >= 2t + 1: 
+	if N(i, 3, 0) >= 2t + 1:
 		b[i] = 0
 	if N(i, 3, 1) >= 2t + 1:
 		b[i] = 1
@@ -1457,29 +1457,29 @@ different honest parties.
 __Algarind using Byzantine Agreement__
 
 - Users weighted by stake
-- For every block generation round, a small committee of users is chosen at 
-random, using cryptography based on user weights. This is done using a 
-cryptographic sortition algorithm. 
+- For every block generation round, a small committee of users is chosen at
+random, using cryptography based on user weights. This is done using a
+cryptographic sortition algorithm.
 - One of the committee members who has the highest priority proposes a block.
 - The committee runs a BA protocol to reach consensus on the proposed block.
-- Verifiable Random Functions: 
+- Verifiable Random Functions:
 	- On any input x, $vrf_sk(x) = hash, proof$
-	- hash is uniquely determined given sk and x but looks random to anyone 
+	- hash is uniquely determined given sk and x but looks random to anyone
 	who doesn't know sk
 	- Given pk and proof and anyone can check that hash corresponds to x.
-- Any user can check whether it was selected using its sk and then send a 
-proof to others for the same. The user with the highest hash is the block 
-proposer. 
+- Any user can check whether it was selected using its sk and then send a
+proof to others for the same. The user with the highest hash is the block
+proposer.
 - For each step of the consensus protocol, a different set of users is chosen
 using a cryptographic sortition algorithm. All users can passively participate
 in the protocol by listening to the gossip network and whenever selected for a
-step they send a message based on what they have heard so far in the network. 
+step they send a message based on what they have heard so far in the network.
 - Security challenges
-	- For BA to have security, a high majority of players must be honest. 
+	- For BA to have security, a high majority of players must be honest.
 	- To prevent an adversary from corrupting all the comittee members we only
 	disclose committee members when they send their messages - at that point
-	corrupting them is not helpful. 
-	- We need to select an appropriate t. 
+	corrupting them is not helpful.
+	- We need to select an appropriate t.
 	- $good > threshold$ for agreement
 	- $1/2 good + bad \leq threshold$ to avoid forks
 
@@ -1490,57 +1490,57 @@ step they send a message based on what they have heard so far in the network.
 - Prediction market
 	- Trade shares in a potentil future event
 	- Share worth X if the event happens, 0 if not
-	- Current price is based on an estimate of X happening. 
-	- These markets should reveal all knowledge about the future undera  
+	- Current price is based on an estimate of X happening.
+	- These markets should reveal all knowledge about the future undera
 	[number of assumptions. They allow profit from accurate predictions and
-	penalize random predictions. 
+	penalize random predictions.
 - A decentralized prediction market requires
 	- Decentralized payment and enforcement
 	- Decentralized arbitration
 	- Decentralized "order book" (mechanism for buying and selling shares)
 - Decentralized payment and settlement
 	- Simple solution is to use Bitcoin with some trusted third party
-	arbiters. 
+	arbiters.
 		- We can use some escrow / multisig solution for this
 	- Or we can build an altcoin that has specific support for prediction
-	markets. 
-		- FutureCoin was a proposed solution for this. 
+	markets.
+		- FutureCoin was a proposed solution for this.
 - Decentralized Arbitration
 	- Trusted ariters
 		- This system allows any user to define adn open a market
-		- However this depends on a third party to be correct and honest. 
+		- However this depends on a third party to be correct and honest.
 	- Users vote
-		- Requires incentives, bonds, and reputation 
+		- Requires incentives, bonds, and reputation
 	- Miners vote
 	- RealityKeys is an existing system that handles arbitration
 - Order Books
-	- Users display the minimum price they're welling to sell at and the 
-	maximum price they're willing to buy at. 
+	- Users display the minimum price they're welling to sell at and the
+	maximum price they're willing to buy at.
 		- The spread is the difference between the maximum buying price and the
-		miminum selling price. 
+		miminum selling price.
 	- Submit orders to miners - let them match any possible trade
-	- Spread is retained as a transaction fee. 
+	- Spread is retained as a transaction fee.
 
 ### Fair Protocols
 
 __Secure Computation__
 
-- Secure computation: Party A has x, Party B has y. Both parties want to 
+- Secure computation: Party A has x, Party B has y. Both parties want to
 compute some $f(x,y)$ without revealing any other information (ie A shouldn't
 know y and B shouldn't know x unless they are encoded in the output of the
-function). 
+function).
 - When talking about secure computation we care about four major properties
 	- privacy: nothing but the output is revealed
 	- correctness: the output is correctly computed
-	- independence of inputs: a corrupted party cannot make its input  dependent on the honest party’s input). 
-	- fairness, which guarantees that corrupted parties cannot receive output without the honest parties also receiving output. 
+	- independence of inputs: a corrupted party cannot make its input  dependent on the honest party’s input).
+	- fairness, which guarantees that corrupted parties cannot receive output without the honest parties also receiving output.
 - If we have a trusted thrid party, this is easy. A and B both send their
 inputs to the trusted party. This party computes the output and sends it
-back to A and B. 
-	- This protocol is private and secure but not neccesarily fair. 
-- Fairness is only possible in restricted settings - ie when a majority of the parties are honest. 
+back to A and B.
+	- This protocol is private and secure but not neccesarily fair.
+- Fairness is only possible in restricted settings - ie when a majority of the parties are honest.
 - Fair exchange of digital commodities - there are two (or more) parties that wish to exchange digital commodities (e.g., signed contracts) in a fair manner, i.e., either both parties complete the exchange, or none do.
-- Workarounds 
+- Workarounds
 	- Graduatl relesase mechanisms
 	- Partial fairness
 		- control adversary's advantage in learning the output first
@@ -1551,29 +1551,29 @@ back to A and B.
 		- requires a trusted third party
 	- Penalty model
 		- Deviating parties pay monetary penalty to honest party
-		- A penalty model either requires a trusted third party to enforce fairness or a trusted arbiter with some e-currency. 
-		- Ideally we'd use a decentralized system to avoid the trusted third party. 
+		- A penalty model either requires a trusted third party to enforce fairness or a trusted arbiter with some e-currency.
+		- Ideally we'd use a decentralized system to avoid the trusted third party.
 
 __Bitcoin as a Platform for Secure Computation__
 
-- We want to use bitcoin as a platform to replace the trusted third party in the penalty model for secure, semi-fair computation. 
+- We want to use bitcoin as a platform to replace the trusted third party in the penalty model for secure, semi-fair computation.
 - This can have applications in contracts, DRM, etc
 - Coin
-	- Atomic entity 
+	- Atomic entity
 	- Indistinguishable from othe rcoins
 	- Unique owner posseses given coin
 	- Ownership changes upon transfer
-	- Notation: 
+	- Notation:
 		- $coins(x) + coins(y) = coins(x+y)$
 		- $coins(x) - coins(y) = coins(x-y)$
-- Claim or refund functionality 
+- Claim or refund functionality
 	- Accept from sender
 		- Deposit: $coins(x)$
 		- Time: $\tau$
 		- Circuit: $\phi$
-	- A receivinr can claim this deposit if they can produce a witness $T$ that satisfies $\phi$ in time $\tau$. 
-	- If the deposit is claimed, $T$ is revealed to all parties. 
-	- If not, $coins(x)$ is returned to the sender. 
+	- A receivinr can claim this deposit if they can produce a witness $T$ that satisfies $\phi$ in time $\tau$.
+	- If the deposit is claimed, $T$ is revealed to all parties.
+	- If not, $coins(x)$ is returned to the sender.
 - Secure Computation with Penalties
 	- Honest parties submit
 		- Inputs
@@ -1581,26 +1581,26 @@ __Bitcoin as a Platform for Secure Computation__
 	- Adversary submits
 		- Inputs of corrupt parties
 		- Penltay deposit $coins(x)$
-	- Let h be the bumber of honest parties and q be the penalty ammount  
+	- Let h be the bumber of honest parties and q be the penalty ammount
 	- Functionality $F* $
 		- Return $coins(d)$ to each honest party
 		- if $x == hq$ deliver output to S
 			- if S returns abort, send $coins(q)$ to each honest party
-			- if S returns continue, send output to each honest party and return $coins(x)$ to S. 
+			- if S returns continue, send output to each honest party and return $coins(x)$ to S.
 	- if $x \neq hq$
 		- send output to all parties
 - Hybrid Model
 	- Computes output of f -> z
 	- Secret share z into n additional shares $sh_1 ... sh_n$
-	- Computes commitments on shares $c_i = com(sh_i, w_i) \ \forall \ i=1...n$. 
-	- Delivers output $((c_1...c_n), T_i = (sh_i, w_i))$ to party $P_i$. 
+	- Computes commitments on shares $c_i = com(sh_i, w_i) \ \forall \ i=1...n$.
+	- Delivers output $((c_1...c_n), T_i = (sh_i, w_i))$ to party $P_i$.
 
 
 # Etherium Smart Contracts
-An etherium smart contract is a program that can be used to build decentralized applications (DApps). Smart contracts are written in Solidity, a specific language designed for Etherium. 
+An etherium smart contract is a program that can be used to build decentralized applications (DApps). Smart contracts are written in Solidity, a specific language designed for Etherium.
 
 ## CryptoZombies Lesson 1
-Every Solidity program starts with a `pragma` line that declares the version of Solidity to use. 
+Every Solidity program starts with a `pragma` line that declares the version of Solidity to use.
 
 ```Solidity
 pragma solidity ^0.4.19;
@@ -1612,7 +1612,7 @@ The usable part of a Solidity program must be contained inside of a contract. In
 - functions
 - events
 
-Solidity is strongly typed (each variable must be given a type). We can also declare arrays whose length is optionally predefined at the variable declaration. Functions and variables can also be declared `public` or `private` - public variables and functions can be accessed by other contracts whereas private members cannot. 
+Solidity is strongly typed (each variable must be given a type). We can also declare arrays whose length is optionally predefined at the variable declaration. Functions and variables can also be declared `public` or `private` - public variables and functions can be accessed by other contracts whereas private members cannot.
 
 We declare a function in Soliidty using the syntax
 
@@ -1620,9 +1620,9 @@ We declare a function in Soliidty using the syntax
 function <functionName>(<args>) [public / private] [view / pure] [return (<return type>)] {
 	// body
 }
-``` 
+```
 
-A `view` function views members in the contract but doesn't modify them. A `pure` function doesn't access any contract members. In Solidity we use the naming convention that function arguments begin with an underscore as do the names of private functions. 
+A `view` function views members in the contract but doesn't modify them. A `pure` function doesn't access any contract members. In Solidity we use the naming convention that function arguments begin with an underscore as do the names of private functions.
 
 Events are used to notify application frontends about occurances in the smart contract. They are essentially ways of triggering events and passing data to other parts of the application. We can declare an event using the syntax
 
@@ -1630,7 +1630,7 @@ Events are used to notify application frontends about occurances in the smart co
 event <eventName>(<args>);
 ```
 
-And we trigger the event by calling `eventName` as though it were a function. 
+And we trigger the event by calling `eventName` as though it were a function.
 
 __Example__
 
@@ -1660,16 +1660,16 @@ contract ZombieFactory {
     function _createZombie(string _name, uint _dna) private {
         uint id = zombies.push(Zombie(_name, _dna)) - 1;
         NewZombie(id, _name, _dna);
-    } 
+    }
 
-    // private helper function that generates random DNA from the 
+    // private helper function that generates random DNA from the
     // hash of a string
     function _generateRandomDna(string _str) private view returns (uint) {
         uint rand = uint(keccak256(_str));
         return rand % dnaModulus;
     }
 
-    // public function that creates a random zombie based on a name. 
+    // public function that creates a random zombie based on a name.
     function createRandomZombie(string _name) public {
         uint randDna = _generateRandomDna(_name);
         _createZombie(_name, randDna);
@@ -1679,11 +1679,11 @@ contract ZombieFactory {
 
 ## CryptoZombies Lesson 2
 
-__Mapping__: We can create a mapping (key-value store) using the syntax `mapping (keyType => valueType) [public] mapName;`. Note that Solidity has a special type `address` that can be used to designate Etherium addresses. We can use `msg.seder` to refer to the address of the contract calling a specific function. 
+__Mapping__: We can create a mapping (key-value store) using the syntax `mapping (keyType => valueType) [public] mapName;`. Note that Solidity has a special type `address` that can be used to designate Etherium addresses. We can use `msg.seder` to refer to the address of the contract calling a specific function.
 
-__Assert__: Solidity has a assert-like function called `require` which will throw an error if some condition is not true. We can use `require` to ensure that inputs to a function are correct, that a specific `msg.sender` can only call the function a specific number of times, etc. 
+__Assert__: Solidity has a assert-like function called `require` which will throw an error if some condition is not true. We can use `require` to ensure that inputs to a function are correct, that a specific `msg.sender` can only call the function a specific number of times, etc.
 
-__Inheritance__: Solidity contracts are pseudo-objects. Contracts can extend other contracts. We use the syntax 
+__Inheritance__: Solidity contracts are pseudo-objects. Contracts can extend other contracts. We use the syntax
 
 ```
 contract Doge {
@@ -1699,11 +1699,11 @@ contract BabyDoge is Doge {
 }
 ```
 
-To denote that `BabyDoge` extends `Doge`. As in standard object oriented languages, the sub-contract can access any public members of the super-contract. 
+To denote that `BabyDoge` extends `Doge`. As in standard object oriented languages, the sub-contract can access any public members of the super-contract.
 
-__Import__: Solidity also has import statements which allow us to use string paths to import `.sol` files into solidity projects. This allows us to split large files and create libraries. 
+__Import__: Solidity also has import statements which allow us to use string paths to import `.sol` files into solidity projects. This allows us to split large files and create libraries.
 
-__Memory Management__: There are two types of memory in Solidity - permanent memory (storage) which is stored on the blockchain and temporary memory (memory) which only lasts for the scope of the function. By default global variables are given storage status whereas function variables are given memory status. We can explicitly define a variable's memory type by using the keyword `memory` or `storage` in the declaration. 
+__Memory Management__: There are two types of memory in Solidity - permanent memory (storage) which is stored on the blockchain and temporary memory (memory) which only lasts for the scope of the function. By default global variables are given storage status whereas function variables are given memory status. We can explicitly define a variable's memory type by using the keyword `memory` or `storage` in the declaration.
 
 ```Solidity
 contract SandwichFactory {
@@ -1729,10 +1729,10 @@ contract SandwichFactory {
 
     // If you just want a copy, you can use `memory`:
     Sandwich memory anotherSandwich = sandwiches[_index + 1];
-    // ...in which case `anotherSandwich` will simply be a copy of the 
+    // ...in which case `anotherSandwich` will simply be a copy of the
     // data in memory, and...
     anotherSandwich.status = "Eaten!";
-    // ...will just modify the temporary variable and have no effect 
+    // ...will just modify the temporary variable and have no effect
     // on `sandwiches[_index + 1]`. But you can do this:
     sandwiches[_index + 1] = anotherSandwich;
     // ...if you want to copy the changes back into blockchain storage.
@@ -1740,13 +1740,13 @@ contract SandwichFactory {
 }
 ```
 
-__Function access management__: In addition to public and private, Solidity has modifiers `internal` and `external`. An internal function is private, but accessible to all contracts that inherit from the base. An external function is public but not accessible to the contract itself (only accesible from outside the contract). 
+__Function access management__: In addition to public and private, Solidity has modifiers `internal` and `external`. An internal function is private, but accessible to all contracts that inherit from the base. An external function is public but not accessible to the contract itself (only accesible from outside the contract).
 
 __Calling external contracts__: We often want to interact with external contracts that exist on the etherium blockchain. We can do this in two steps
-1. We define an __interface__ which declares the functions we want to use from the external contract. 
+1. We define an __interface__ which declares the functions we want to use from the external contract.
 An interface in Solidity is similar to an interface in Java. We declare it using the `contract` keyword, but hte contents are just declarations of functions (function headers) as opposed to function definitions. \
 Given the LuckyNumber contract
-```Solidity 
+```Solidity
 contract LuckyNumber {
   mapping(address => uint) numbers;
 
@@ -1765,10 +1765,10 @@ contract NumberInterface {
   function getNum(address _myAddress) public view returns (uint);
 }
 ```
-2. In our main contract we use the address of the external contract to define the interface. 
+2. In our main contract we use the address of the external contract to define the interface.
 ```Solididty
 contract MyContract {
-  address NumberInterfaceAddress = 0xab38... 
+  address NumberInterfaceAddress = 0xab38...
   // ^ The address of the FavoriteNumber contract on Ethereum
   NumberInterface numberContract = NumberInterface(NumberInterfaceAddress);
   // Now `numberContract` is pointing to the other contract
@@ -1781,7 +1781,7 @@ contract MyContract {
 }
 ```
 
-__Multiple returns__: Functions in solidity can return multiple values. This can either be done in a pythonic tuple way or in a Matlab assignment way. 
+__Multiple returns__: Functions in solidity can return multiple values. This can either be done in a pythonic tuple way or in a Matlab assignment way.
 
 ```Solidity
 function returnMultiple() public return (uint, uint) {

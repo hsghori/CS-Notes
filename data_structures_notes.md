@@ -18,8 +18,8 @@ geometry: margin=1in
 	- double => Double
 	- char => Character
 	- ...
-- Wrapper classes are instantiable classes that correspond to primative data types.
-- Autobox - primative types can be automatically be converted to wrapper classes when needed.
+- Wrapper classes are instantiable classes that correspond to primitive data types.
+- Autobox - primitive types can be automatically be converted to wrapper classes when needed.
 
 #### Generics
 - Creates a "generic" methods and classes that work with unspecified data types.
@@ -35,13 +35,13 @@ geometry: margin=1in
 		- You cannot implement an array of generics directly
 			- `T[] ra = new T[n]` (not allowed)
 			- `T[] ra = (T[]) new Object[n]` (allowed)
-		- Any type `<T>` can fit into a generic type so long as it's an instantiable class (eg Wrapper Class)
+		- Any type `<T>` can fit into a generic type so long as it's an instantiate class (eg Wrapper Class)
 			- we must use `<T> = Integer` instead of `<T> = int`
-		
-#### Java Collections Framweork
+
+#### Java Collections Framework
 - Collection - an object that groups multiple elements in a single unit
 	- typically data items that form a "natural" group
-- Collections Framweork- a unified architecture for representing and manipulating collections.
+- Collections Framework - a unified architecture for representing and manipulating collections.
     - `List<T>` extends `Collection<T>`
 		- for manipulating a sequence of values
 		- adds positional operations for indexing into a Collection
@@ -97,23 +97,23 @@ geometry: margin=1in
 - Equivalence Relation
 	- A relation ~ over a set S is a set of pairs of items from S
 		- Note '~' represents a relation
-		- write x~y to indivate that {x,y} exists in ~
+		- write x~y to indicate that {x,y} exists in ~
 	- A relation ~ over a set S is an equivalence relation if it is
 		- reflexive
 			- for al x E S, x~x
-		- symetric
+		- symmetric
 			for all x,y E S, x~y implies y~x
 		- transitive
 			- for all x,y,z E S, x~y and y~z implies x~z
 	- An equivalence relation ~ over the set S partitions S into disjoint (non overlapping) subsets
 		- two elements in the same subsets are considered equivalent with respect to ~
 	- Dynamic Equivalence Problem
-		- Somewtimes we need to modify th eequivalence relatin as we go, changing the partition
+		- Sometimes we need to modify the equivalence relation as we go, changing the partition
 			- the formerly disjointed sets get combined
-		- Given n equivalence relation over S and two items from S, how can we determine if the elements are equivalent. 
+		- Given n equivalence relation over S and two items from S, how can we determine if the elements are equivalent.
 
 #### Bag
-- Basically a Set (from the java collections framework) but duplicates are allowed. 
+- Basically a Set (from the java collections framework) but duplicates are allowed.
 	- Order doesn't matter
 	- Size doesn't matter
 	- Operations
@@ -152,7 +152,7 @@ geometry: margin=1in
 	- Use a tree to represent each set with the root being the name of the set
 		- one "top" element is called the root with related elements branching "below"
 		- elements with no branches are called leaves
-	- each node keps track of it's parent
+	- each node keeps track of it's parent
 	- tree is represented by an array where array[i] gives the parent of item i
 		-array[0] = -1 since root has no parent
 	- performing find(x)
@@ -165,25 +165,25 @@ geometry: margin=1in
 		- performing union(a, b)
 			- find(a) to find the root of a
 			- find(b) to find the root of b
-			- set a[b] to b 
+			- set a[b] to b
 				- the b is the parent of a
 		- use union-by-size
 			- set the root value for b to be -size(b).
 				- then search for any negative number instead of -1 when performing find(x)
-			- then always attatch the smaller tree to the larger toree to keep trees small. 
+			- then always attatch the smaller tree to the larger toree to keep trees small.
 			- then no tree can have depth greater than log(N)
 		- use path compression
 			- when performing find(x) set all nodes between x and the root to point to the root. Compresses all paths such that find(x) becomes much faster
 
 #### Iterators
-- An object that allows us to access each element in a collection in turn. 
+- An object that allows us to access each element in a collection in turn.
 Interfaces
 - Iterator
 - Iterable
 	- Defines a collection that is iterable
 - Iteratiors do not neccesarily operate in order. They just garuntee that every element in the iteration will be selected.
 - An iterator's remove() method is optional. Calling it might result in an UnspportedOperationException
-- Modifying a collection while an iterator is in use can cause problems. 
+- Modifying a collection while an iterator is in use can cause problems.
 	- When detected will throw a ConccurrentModificationException. Happens often when remove() is called.
 
 #### Linked List
@@ -199,7 +199,7 @@ Interfaces
 
 #### Stack
 - Last In First Out (LIFO) structure. User has no access to inner elements
-- Modifications to stack only occur at the end (called the top) 
+- Modifications to stack only occur at the end (called the top)
 - Operations
 	- `void push(T items)`
 		- adds an item to the top of the stack
@@ -242,8 +242,8 @@ Interfaces
 - Location of a particular item is determined by a "hash function" instead of position relative to rest of the data
 	- if a hash function maps two items to the same location we call this a hash colision.
 	- ideally a hash function will provide O(1) access time
-- Java has built in Hash Functions for general classes (String, Integer, etc), but sometimes it is useful to write your own functions. 
-	- typically we create a table of size 'm' with indices [0, m-1]. 
+- Java has built in Hash Functions for general classes (String, Integer, etc), but sometimes it is useful to write your own functions.
+	- typically we create a table of size 'm' with indices [0, m-1].
 	- then if x = Hash(item) we reduce x % m such that it will fit in the table
 - Collision Resolution
 	- Seperate chaining
@@ -258,12 +258,12 @@ Interfaces
 			- for K = 0, 1, ... M-1
 				if (index + K) % M is empty
 					insert item in (index + k) and end loop
-		- For this strategy to be eficient the table needs to have a lot of empty space. (M > what we really "need"). Then theoretically there will be empty spaces where collision-items can be added close to their "actual" space (as per the Hash function) which maximizes search efficiency. 
+		- For this strategy to be eficient the table needs to have a lot of empty space. (M > what we really "need"). Then theoretically there will be empty spaces where collision-items can be added close to their "actual" space (as per the Hash function) which maximizes search efficiency.
 		- Search(item)
 			- Find index = Hash(item)
 			- check index
 			- if Table(index) = item return
-			- else 
+			- else
 				- for k = 0, 1, M-1
 					if Table(index + k) == item, return
 					else if Table(index + k != null), keep searching
@@ -276,20 +276,20 @@ Interfaces
 	- Edge is a link between two nodes
 	- Path is the set of edges between two nodes. The path length is the number of edges between two noeds
 - depth of node
-	- root=0, 1+depth(parent), 
+	- root=0, 1+depth(parent),
 - height of node
-	- leaf=0, 1+max child height 
-- ordered tree: 
-	- children of a node are ordered, ie, book TOC 
+	- leaf=0, 1+max child height
+- ordered tree:
+	- children of a node are ordered, ie, book TOC
 - Tree Algorithms
 	- compute depth of node
 	- compute height of node (two methods)
 	- traversals
 	    - breadth-first
 	    - depth-first
-		- preorder 
+		- preorder
 		- postorder
-	- int size() 
+	- int size()
 		- O(1)
 	- boolean isEmpty()
 		- O(1)
@@ -298,7 +298,7 @@ Interfaces
 	- `Iterable<E> postOrder()`
 - Binary Trees
 	- every node has at most 2 children (called left & right usually)
-	- depth-first traversals: 
+	- depth-first traversals:
 	  - Pre-Order
 	      - Check root, then left subtree, then right subtree
 	  - Post-Order
@@ -312,7 +312,7 @@ Interfaces
 	    - log n <= h because n <= 2^(h+1) - 1 = sum (i=0,h) 2^i
 	    - nodes at depth i <= 2^i
 	- Proper Binary Tree
-		- All nodes have 0 or 2 children 
+		- All nodes have 0 or 2 children
 	- Complete Binary Tree
 		- Full from top to bottom, left to right
 	    - h <= log(N)
@@ -374,7 +374,7 @@ Interfaces
 		                return root
 		```
 	- Example: arithmetic expression evaluation
-		- Consider this arithmetic expression: (1+2) * -6 - 2 * (14/5) 
+		- Consider this arithmetic expression: (1+2) * -6 - 2 * (14/5)
 		- This binary tree represents it and can be used to compute the result:
 			```
 		                      -
@@ -388,7 +388,7 @@ Interfaces
 		- in-order traversal for fully parenthesized in-fix form: $(((1+2)*(-6))-(2*(14/5)))$
 		- pre-order traversal generates pre-fix notation: `- * + 1 2 - 6 * 2 / 14 5`
 		- post-order traversal generates post-fix notation: `1 2 + 6 - * 2 14 5 / * -`
-		
+
 - AVL Tree
 	- An AVL tree is a binary search tree which must maintain the Height Balance Property
 		- The absolute value of the difference between the heights of any node's children must be less than or equal to one.
@@ -436,7 +436,7 @@ Interfaces
 	- O(N) for findMin, deleteMin
 - Note that ordered/unordered arrays could be linked lists too
 - Heap
-	- complete binary tree: 
+	- complete binary tree:
 		- N nodes, height log N
 		- full except for rightmost last level
 		- last node corresponds to level numbering
@@ -444,7 +444,7 @@ Interfaces
 		- every node key (priority) <= it's childrens' keys (priorities)
 	- Implimentations
 		- Ranked Sequence array rep of complete binary tree
-			- level numbering: 
+			- level numbering:
 		        - f(v) = 1 if root
 		        - left child = 2f(parent(v))
 		        - right child = 2f(parent(v)) + 1
@@ -455,7 +455,7 @@ Interfaces
 		- Insert
 			Algorithm
 				- add next leaf node according to next open spot
-				- bubble value up based on priority. 
+				- bubble value up based on priority.
 			- Time Complexity
 				- Add O(1)
 				- Bubble Up O(log(N))
@@ -471,7 +471,7 @@ Interfaces
 				- bubble root value down based on priority
 			- Time Complexity
 				- remove root O(1)
-				- find last 
+				- find last
 					- Array O(1)
 					- Tree O(log(N))
 				- Bubble Down O(log(N))
@@ -574,10 +574,10 @@ Interfaces
 		```
 - Algorithms
 	- Traversals and Searhes
-		- Breadth-first 
+		- Breadth-first
 			- Approximates level-order tree traversal
 			- Move one level further away from starting vertex during each round
-		- Depth-first 
+		- Depth-first
 			- Generalization of pre-order tree traversal
 			- Find longest path from start that you can without repeating vertices, then backtrack as needed to try di↵erent long paths until you reach all vertices
 	- Topological Sort
@@ -600,7 +600,7 @@ Interfaces
 					for (v in graph):
 						dist[v] = infinity
 						prev[v] = null
-					dist[start] = 0 
+					dist[start] = 0
 					prev[start] = -1
 					//Perform a breadth-first traversal to process nodes
 					queue.enqueue(start)
@@ -662,7 +662,7 @@ Interfaces
 					- O(N^2) or O(Mlog(N))
 					- M is the number of edges, N is the number of vertices
 			- Kruskal's Algorithm
-				- Finds the smallest edge and adds to the tree if adding that edge doesn't create a cycle. 
+				- Finds the smallest edge and adds to the tree if adding that edge doesn't create a cycle.
 				- Algorithm
 				```Python
 					def kruskal():
@@ -780,12 +780,12 @@ search tree, but not necessarily balanced.
 		- loop
 			- maximum number of iterations multiplied by the sum of body statements + condition execution time
 			- nested lops can be very complicated
-		- method call 
+		- method call
 			- sum of all statements in method body
 - Big O, Big Omega, and Big Theta
 	- Let T(N) represent the worst case running time of an algorithm with input size N.
 		- by default we measure the worst case scenario
-	- Big O: T(N) ~ O(f(N)) if there exists a 'c' and an 'n' such that T(N) <= cf(N) for all N >= n. 
+	- Big O: T(N) ~ O(f(N)) if there exists a 'c' and an 'n' such that T(N) <= cf(N) for all N >= n.
 		- Upper bound function of worst case runtime.
 		Note: We use '~' to represent "is an element of".
 		- There are a large number of functions that can bound any given method. We then use the smallest possible function which satisfies the Big O conditions
@@ -798,7 +798,7 @@ search tree, but not necessarily balanced.
 	- Example
 	Linear Search algorithm
 	```Java
-		for (int i = 0; i<N; i++){ 
+		for (int i = 0; i<N; i++){
 			if (a[i] == value) {
 				return i;
 			}
@@ -821,25 +821,25 @@ search tree, but not necessarily balanced.
 	$T(N) >= cN$ for $c = 3$ and $n = 1$ Therefore $T(N) ~ Omega(N)$
 	Therefore $T(N) ~ Theta(N)$
 - Standard T(N) Functions (in order of efficiency)
-	- c 
+	- c
 		- constant time
 	- log log log ... log(N)
 		- multi log time
-	- log(N) 
+	- log(N)
 		- logarithmic time
-	- (log(N))^2 
+	- (log(N))^2
 		- log squared time
-	- (log(N))^k 
+	- (log(N))^k
 		- log k time
-	- N 
+	- N
 		- linear time
-	- Nlog(N) 
+	- Nlog(N)
 		- linearithmic time (or just Nlog(N) time)
-	- N^2 
+	- N^2
 		- qadratic time
-	- N^3 
+	- N^3
 		- cubic time
-	- c^N 
+	- c^N
 		- exponential time
 
 #### Sorting
@@ -980,8 +980,8 @@ search tree, but not necessarily balanced.
 			...
 		- Unicode - 8 bits/character
 		- This type of scheme may result in a creating more bits than neccesary
-- Variable-length encoding scheme: 
-	- Use character frequencies to make specialized encoding, 
+- Variable-length encoding scheme:
+	- Use character frequencies to make specialized encoding,
 	- more frequent characters have shorter codes.
 	- issue is knowing when one character stops and the next starts in a
 	  bit stream
@@ -995,7 +995,7 @@ search tree, but not necessarily balanced.
 			- left is 0, right is 1
 			- characters stored at leaves => prefix code guarantee
 			- frequences stored in nodes
-		    - path from root to leaf gives encoding for that character	
+		    - path from root to leaf gives encoding for that character
 		    - create by repeatedly merging min frequency trees into larger one
 			- O(N) to read file (compute frequencies) and then encode
 			- construct optimal code in O(C log C) time w/heap PQ
@@ -1008,9 +1008,9 @@ search tree, but not necessarily balanced.
 				           /   \          /    \
 				         4      6        6         8
 				       /  \    / \      / \       /   \
-				      2   2   3   3    3   3    4       4 
+				      2   2   3   3    3   3    4       4
 				      a   r   e   t   / \  sp  / \     / \
-				                     1  2     2  2     2   2 
+				                     1  2     2  2     2   2
 				                     !  u    /\  /\    /\  /\
 				                            W l o  v  D S c  s
 
@@ -1045,7 +1045,7 @@ search tree, but not necessarily balanced.
 		 d           k   u   d     a   l e   e
 		             |   |         |   |
 		             e   n         s   l
-		             |  / \       /    |  
+		             |  / \       /    |
 		             s  d t      h     s
 		                | |     / \
 		                s a    e   o
@@ -1076,9 +1076,9 @@ search tree, but not necessarily balanced.
 		- Tags a method that runs once at the beginning of the test class
 	- `@Test`
 		- Tags a test
-	- `@After` 
+	- `@After`
 		- Tags a method that will run after each test
-	- `@AfterClass` 
+	- `@AfterClass`
 		- Tags a method that runs once at the end of the test class
 - Import Statements
 	```Java

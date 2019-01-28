@@ -664,5 +664,87 @@ at IPC we often care about the "issue" of the processor (how many instructions c
 order of the processor (whether or not instructions can be executed out of order), and the ALU limitations.
 If a processor is narrow issue and in order, the limiting factor is usually the narrow issue but if the processor
 is wide issue and in order, the order limits the IPC. So if we have a wide issue processor we should make sure
-it is out of order to benefit from the issue. 
+it is out of order to benefit from the issue.
 
+### Instruction scheduling
+We have seen that ILP can be very helpful in improving IPC. However, we had to handle control dependencies using
+branch prediction, handle false dependencies (WAR, WAW) through register renaming, handle true dependencies (RAW0)
+through out of order execution, and structural dependencies by investing in more ALU components. However, while
+we came up with a good "on paper" approach to register renaming and out of order execution we have yet to
+discuss how the processor will handle these problems.
+
+#### Tomasulo's Algorithm
+Tomasulo's algorithm is an algorithm used to handle register renaming and out of order instructions. It is
+about 40 years old but is still very similar to the algorithms used by mordern processors.
+
+Tomasulo's algorithm only works with floating point instructions (not loads and stores).
+
+```
+     -------------------------------------------------------------------
+     |                                                                 |
+     V                                                                 |
+Registers --------------------------                                   |
+                                   |-----------<-----------------------|
+                                   V                                   |
+Fetch -> Instruction Queue -(1)> Reservation Station -(2)> ALU -(3)> output
+                        |                                              |
+                        ----(1)> Load / Store -(2)-> MEM -(3)> output --
+
+1 - issue
+2 - dispatch
+3 - broadcast
+```
+
+Instructions are fetched and passed into an issue queue. Instructions from the queue are decoded and
+popped into the Reservation Station as space becomes available. The value from the registers is passed to
+the reservation station and used to complete the instructions. Once an instruction is "ready" (all values
+are read from the registers), the instruction is sent to the ALU and the output is sent back to the
+registers and the reservation station (to modify any waiting instructions). Non floating point instructions
+are sent to a different component but the result is also passed to the registers and reservation station.
+There is one reservation station for each ALU component (so one for adds, multiplies, etc).
+
+Observe that load and store instructions are not processed in the same pipeline as floating point instructions
+in Tomasalo's algorithm. However, modern processors can use a similar scheme with all instructions.
+
+The __issue__ is the juncture between the instruction queue and the reservation stations. In the issue, the
+processor must:
+1. Fetch the next instruction from the instruction queue in program order.
+2. Determine where the inputs are coming from - are they already in a register or are they going to be computed
+   by a preceding instruction.
+3. Get the free reservation station and put the instruction in the reservation station
+4. Tag the destination register so later instructions know which instruction to wait on.
+
+We maintain a register alias table (RAT) which maps register names to where we should find the value. So
+when an instruction is issued, the address of it's reservation station is put in the RAT so all future instructions
+know where to get the value when it becomes available.
+
+The __dispatch__ is the point where we send instructions from the reservation station to the ALU. The dispatch
+must determine which results have all their operands ready (ie all the operands are values and not reservation
+station tags) and send those instructions (along with their reservation station address) to the ALU. Oftentimes,
+more than one instruction is ready at once. The processor can use a bunch of heuristics to determine which
+instruction to choose first.
+- Oldest first. This is a common heuristic since the oldest instruction probably has a lot of dependencies
+  waiting on it.
+- Most dependencies first. This is the "best" heuristic but hardest to calculate.
+- Random. This is easy to implement but leads to poor performance.
+
+Usually we use the oldest first heuristic to balance ease of implementation with picking the best overall
+instruction.
+
+The __broadcast__ is the point where the output of an instruction is sent back to the registers and reservation
+station. Let $RS_0$ be the originating reservation station.
+1. The broadcast will go to the RAT and find the register that maps to $RS_0$. It will then send the
+   output to the registers to update the register value. If there is no register associated with $RS_0$
+   (the output is stale) we don't update the registers.
+2. The broadcast will clear the entry in the RAT containing $RS_0$ (if one exists).
+3. The broadcast will send $RS_0$ and the result back to the reservation stations. $RS_0$ will be cleared and
+   every reservation station that had a $RS_0$ placeholder will be updated to use the result of $RS_0$.
+
+Oftentimes, more than one output is ready to broadcast. In this case we want to broadcast the result from the
+slower ALU (ie multiplication is slower than add) first.
+
+It is important to note that in every cycle, every step is happening to some instruction. Tomasulo's algorithm
+works like a pipeline. However, usually, a single instruction cannot be issued and dispatched in the same cycle
+nor can a single instruction update it's values (from broadcast) and be dispatched in the same cycle. An issue
+instruction and a broadcast instruction can also write to the same place in the RAT - the issue instruction should
+just take precedence.
