@@ -748,3 +748,87 @@ works like a pipeline. However, usually, a single instruction cannot be issued a
 nor can a single instruction update it's values (from broadcast) and be dispatched in the same cycle. An issue
 instruction and a broadcast instruction can also write to the same place in the RAT - the issue instruction should
 just take precedence.
+
+#### Reorder Buffer
+Tomasulo's algorithm (and the more modern variants) allow us to execute instructions out of order. However, real
+programs have runtime exceptions that can make reordered programs quite messy. Consider the following instructions
+
+```MIPS
+DIV F10, F0, F6
+LD  F2, 45(R3)
+MUL F0, F2, F4
+SUB F8, F2, F6
+```
+
+If F6 is 0, the first instruction will result in a divide by 0 exception. However, division is a slow process
+so the exception will not be thrown until relatively late in the program (after the other instructions have
+already been executed). So when the division throws the exception, goes to the exception handler, and comes back
+for re-execution it will be working with an incorrect, new values for F0 (from the MUL). This is one of the
+major problems with Tomasulo's algorithm in modern processors.
+
+This can also be a problem with branch misprediction:
+
+```MIPS
+DIV R1, R3, R4
+BEQ R1, R2, label
+ADD R3, R4, R5
+```
+
+In this case, the divide will take a long time to complete - so we cannot fully resolve the branch for a
+while. However, we will still make a prediction as to whether or not the branch will be executed so we may
+end up executing the next ADD instruction. However, once the DIV has resolved we may have mispredicted
+and will need to jump to the branch label. However, we have already written to R3 as part of the ADD instruction
+where the code in the label to be from the DIV.
+
+We can also run into a hybrid issue where an exception happens in a predicted branch - but we don't want to go
+through the work of resolving that predicted exception unless we are sure that the exception will happen (when
+the branch is resolved).
+
+In these cases we see that while instructions can be computed out of order, final writes to the register must be
+completed in order for the program to execute correctly. So we need to maintain a __reorder buffer__ (ROB) which
+remembers the correct execution order of the program (even after Tomasulo's algorithm has done its re-ordering) and
+holds the final values of registers until they are safe to write.
+
+The ROB is a table of entries, each of which has at least three fields - the register to be written to,
+the value to be written, and whether or not that value is value. The ROB is ordered by program execution and
+must maintain two pointers - one pointing at the location for the next instruction to be placed in the buffer and
+the other pointing at the next register to commit.
+
+```
+[ R1 | 3 | True ]
+[ R5 | 4 | True ] <- commit
+[ R8 | 4 | True ]
+[ R2 | 4 | False ]
+[ R1 | 4 | False ]
+[ R6 | 4 | True ] <- issue
+[    | 4 | False ]
+```
+
+We need to make some modifications to Tomasulo's algorithm to work with the ROB.
+- At issue we put the instruction in the ROB and have the RAT point to that address in the ROB (instead of the
+  reservation station). Note that the Done bit in the ROB should be false until that instruction is broadcast.
+- At dispatched, the reservation station can be immediately cleared since we are no longer  using the reservation
+  station as a memory address for the final register. We also dispatch with the ROB address as the tag instead
+  of the reservation station.
+- At broadcast, we send the final value to the reservation station and to the ROB where the value is updated and
+  the done bit is set to true.
+We also add a new step, commit, where we check the commit point in the ROB to see if the value is ready to be
+committed. In which case, we commit it to the register. At the commit stage, the registers are always updated. The
+RAT is only updated if the instruction is the latest rename for the value (if the ROB tag in the instruction
+matches the pointer in the RAT).
+
+We can see that a ROB fixes the problems that we had before.
+- With an exception, we can annotate that an exception has occured in the ROB. When that instruction has reached
+  the commit point we can move the issue and commit pointers back to one instruction before the exception causing
+  instruction (canceling the future instructions) and clear the ROB.
+- With a branch misprediction, when the commit pointer has moved to the branch instruction we know that the branch
+  was mispredicted - so every instruction after it is invalid. So we can just move the issue pointer back to the
+  commit pointer (removing those instructions from the commit queue) and clear the RAT to reset the registers back
+  to their original values.
+- Phantom exceptions (exceptions in a mispredicted branch) are solved by the regular branch misprediction case.
+
+Superscalar processors are processors that can fetch, decode, issue, dispatch, execute, broadcast, write, or
+commit multiple instructions at once. Superscalar processors are significantly more complicated than regular
+processors and are only as efficient as the weakest point.
+
+
