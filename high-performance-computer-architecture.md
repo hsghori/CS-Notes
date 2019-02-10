@@ -831,4 +831,301 @@ Superscalar processors are processors that can fetch, decode, issue, dispatch, e
 commit multiple instructions at once. Superscalar processors are significantly more complicated than regular
 processors and are only as efficient as the weakest point.
 
+#### Memory ordering
+The ROB helps us prevent data hazards in cases of exceptions and branch mispredictions by tracking the order that
+registers are to be written in program execution. However, memory instructions (load and stores) do not rely on
+registers to access the same memory address (you can hardcode a memory address, store it in multiple registers,
+etc). So the ROB does not help avoid data hazards for load and store instructions.
 
+In store instructions, writes to memory happen at commit. However, loads should happen as quickly as possible. So
+we maintain a __load store queue__ (LSQ) which is similar to a ROB but only for load and store instructions.
+Each entry in th eload store queue contains four fields, the type of instruction (load or store), the memory
+address (or pointer to where the address will be computed), the value, and whether or not the instruction has
+been completed.
+
+The LSQ allows us to handle loads in a more efficient way. When a load is being executed we check the LSQ - if
+there is a previous store with the same memory address, we just use that value. This is called __store to load
+forwarding__. If there is no previous store with the same memory address, we go in memory. However, it is
+possible that some store instructions have not computed their memory address and would match the load instructions.
+In this case, when the store completes it has to go through the LSQ and request that any incorrect loads recover.
+
+Like the ROB, the LSQ maintains an issue and commit pointer which point to the head of the queue and the
+entry to commit next (respectively). Loads and stores are put in the ROB and the LSQ.
+
+### Compiler ILP
+So far we've talked about theoretical ILP and how processors can execute instructions out of order to improve
+IPC. However, the compiler also plays an important role in improving the IPC of a program.
+
+__Tree height reduction__ is a technique used by the compiler to more efficiently handle grouped operations using
+associativity to maximize the number of instructions that can be done in parallel. For example, if we have
+the statement:
+
+```C
+int a = w + x + y + z
+```
+
+The compiler could convert this to:
+
+```MIPS
+ADD R8, R1, R2
+ADD R8, R8, R3
+ADD R8, R8, R4
+```
+
+However, there is a raw dependency between `I1` and `I2` and also between `I2` and `I3`. This means that this
+conversion, while correct requires that the instructions be performed sequentially. Tree height reduction
+reduces the height of the dependency tree (removes the RAW dependencies by using the associative property).
+
+```MIPS
+ADD R8, R1, R2
+ADD R7, R3, R4
+ADD R8, R8, R7
+```
+
+Now there are RAW dependencies between `I1` and `I3` and `I2` and `I3`, but `I1` and `I2` can be executed in
+parallel.
+
+Like the processor, compilers try to order instructions to break up dependencies and execute out of order. It
+accomplishes this using a few different techniques. __Compiler instruction scheduling__ is a technique by which
+the compiler reorders branchless instructions to eliminate stalls.
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R2, R2, R0
+    SW R2, 0(R1)
+    ADD R1, R1, 4
+    BNE R1, R3, loop
+```
+
+If we execute this program in order we see that there are RAW dependencies between `I1` and `I2` and `I4` and `I5`.
+So assuming that an `ADD` takes 3 cycles and a `LW` takes 1 cycle:
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    // STALL
+    ADD R2, R2, R0
+    // STALL
+    // STALL
+    SW R2, 0(R1)
+    ADDI R1, R1, 4
+    // STALL
+    // STALL
+    BNE R1, R3, loop
+```
+
+So the compiler will attempt to rearrange this program (irrespective of any potential processor optimizations)
+to reduce the number of stalls and increase the IPC. We can see that there are no dependencies between `I1` and
+`I4` so we can move `I4` to execute directly after `I1`. However, `I3` would then see the incorrect value for
+`R1` so we need to also modify `I3`. So the compiler could rearrange the program as:
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R1, R1, 4
+    ADD R2, R2, R0
+    SW R2, -4(R1)
+    BNE R1, R3, loop
+```
+
+which would execute as:
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R1, R1, 4
+    ADD R2, R2, R0
+    // STALL
+    // STALL
+    SW R2, -4(R1)
+    BNE R1, R3, loop
+```
+
+Instruction scheduling can also involve renaming registers.
+
+```MIPS
+LW R1, 0(R2)
+ADD R1, R1, R3
+SW R1, 0(R2)
+LW R1 0(R4)
+ADD R1, R1, R5
+SW R1, 0(R4)
+```
+
+Here we assume that `LW` takes 2 cycles and all other instructions take 1 cycle. Observe then that the only
+stalls are directly after the load. We can see that `I4-I7` are not at all dependent on `I1-I3` since the
+latter instructions load different values. However, we can't just move `I4` to occur after `I1` since that
+would modify the value of `R1` and mess up `I2` and `I3`. however, we can rename the registers used in `I4-I7` to
+reduce stalls.
+
+```MIPS
+LW R1, 0(R2)
+LW R10 0(R4)
+ADD R1, R1, R3
+SW R1, 0(R2)
+ADD R10, R10, R5
+SW R10, 0(R4)
+```
+
+Instruction scheduling works fine for branchless code. However, code with branches can become a lot more
+complicated since the compiler will not know which branch will be executed. Thus it can schedule the code within
+individual branches but cannot do so between branches. However, recall that compilers can use __branch
+predication__ which uses register renaming and ternary operators to convert small branches to branch-free code.
+Thus, if a compiler uses branch predication to reduce the branches in a program, it can also use instruction
+scheduling on more of the program which will in turn improve the IPC of the program.
+
+Predication works well with branches but does not work with loops since predicating the branches in a loop would
+recursively generate way too much code to deal with. However, we can use __loop unrolling__ to help apply
+instruction scheduling to looped code.
+
+Recall this small program
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R2, R2, R0
+    SW R2, 0(R1)
+    ADD R1, R1, 4
+    BNE R1, R3, loop
+```
+
+which we converted to
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R1, R1, 4
+    ADD R2, R2, R0
+    SW R2, -4(R1)
+    BNE R1, R3, loop
+```
+
+to reduce the number of stalls. However, there are still two stalls in the program
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R1, R1, -4
+    ADD R2, R2, R0
+    // STALL
+    // STALL
+    SW R2, -4(R1)
+    BNE R1, R3, loop
+```
+
+which we would like to fill with instructions.
+
+Loop unrolling works as follows. Assume we have a loop like:
+
+```C
+for (int i = 1000; i != 0; i--) {
+    a[i] += s;
+}
+```
+
+Observe that this is an equivalent loop to the program
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R2, R2, R0
+    SW R2, 0(R1)
+    ADD R1, R1, -4
+    BNE R1, R3, loop
+```
+
+Unrolling the loop basically makes one iteration of the loop perform more than one iteration of the previous
+loop. For example, unrolling the above loop once would result in:
+
+```C
+for (int i = 1000; i != 0; i-=2) {
+    a[i] += s;
+    a[i-1] += s
+}
+```
+
+The unrolled loop then becomes:
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    ADD R2, R2, R0
+    SW R2, 0(R1)
+    LW R2, -4(R1)
+    ADD R2, R2, R0
+    SW R2, -4(R1)
+    ADD1 R1, R1, -8
+    BNE R1, R3, loop
+```
+
+Loop unrolling has many benefits. Loop unrolling decreases the number of instructions in the program (particularly
+small loops with a lot of iterations). This happens because unrolling a loop reduces the effect of the __loading
+overhead__, the instructions used to set up and maintain the loop.
+
+Loop unrolling can also be used to improve the CPI since compilers can now apply instruction scheduling to
+more code in the loop body.
+
+```MIPS
+loop:
+    LW R2, 0(R1)
+    LW R20, -4(R1)
+    ADD R2, R2, R0
+    ADD R20, R20, R0
+    ADD1 R1, R1, -8
+    SW R2, 8(R1)
+    SW R20, 4(R1)
+    BNE R1, R3, loop
+```
+
+using register renaming we can make the unrolled loop execute much more efficiently. If we
+have a multi-issue processor, loop unrolling allows us to almost parallelize the instructions in the loop
+drastically improving the CPI.
+
+There are some downsides to unrolling
+- Code bloat - unrolling can vastly increase the size of our codebase making it larger and harder to read.
+- Sometimes we may not know when the loop will end (while loops) or the number of iterations in the for loop
+  is not divisible by N (the number of times you want to unroll).
+
+__Function call inlining__ is a process by which the compiler moves a function into the code body instead of
+actually calling a function. Using function call inlining, we reduce the code overhead (associated with
+pushing parameters onto the stack, maintaining a RAS, and calling the function) and we can treat the function code
+the same as the regular code body when it comes to instruction scheduling.
+
+Function call inlining also leads to code bloat (though not as much as loop unrolling). So usually we
+want to inline small functions or functions that are not called too often.
+
+The compiler can use other pipelining techniques to improve IPC
+- software pipelining is used to create pipelines out of loops so that we can parallelize elements from
+  different iterations.
+- trace scheduling allows the compiler to determines a likely path through branched code and does instruction
+  scheduling for that path. However that path may be a misprediction and any departure from the trace requires
+  that we fix any issues caused by scheduling and return to the less efficient version of the program.
+
+### VLIW
+__Superscaalar__ processors are processors that try to execute more than one instruction per cycle using techniques
+like Tomasulo's algorithm. We have seen that superscalar processors can either be in-order or out of order which
+affects how they can improve IPC. __Very long instruction word__ (VLIW) processors are another class of processors
+that can be optimized to improve IPC. VLIW processors execute instructions one at a time - however, they use
+__long word__ instructions which is an aggregation of $N$ regular instructions. Obviously, creating long word
+instructions is dependent on the compiler.
+
+xxxxx                                | Out of order SS       | In order SS            | VLIW
+-------------------------------------|-----------------------|------------------------|--------------------------
+Instructions per cycle               | $\leq N$              | $\leq N$               | 1 large instr$^{*}$
+How to find independent instructions | look at $>>N$ instrs  | look at next $N$ instr | look at next large instr
+Hardware cost                        | expensive             | less expensive         | cheap
+Help from compiler?                  | can help              | needs help             | depends on compiler
+
+$^{*}$this one large instruction does the same ammount of work as $N$ regular instructions
+
+The benefits of the VLIW processor are that it relies completely on the compiler - so a lot of the work is
+done as part of preprocessing. So the processor itself can have smaller hardware and can be more memory efficient.
+VLIW work particularly well on loops and "regular" code (eg arithmetic and reading from arrays). However,
+instruction latencies can be mis-predicted by the compiler which adds to the execution time and VLIW programs
+can be much larger than regular programs. Furthermore, many applications rely on irregular code (pointer
+applications, lots of branching, etc) and do not neccesarily work well on a VLIW processor
+
+VLIW instructions contain all the normal op codes, have full predication support, and have a lot of registers
+so the compiler can rely on register renaming. The compiler can also annotate branches with "branch hints" to
+tell the processor what the compiler thinks the branch result is.
