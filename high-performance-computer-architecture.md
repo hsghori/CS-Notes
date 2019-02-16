@@ -1,5 +1,8 @@
-# High performance computer architecture notes
-
+---
+title: High Performance Computer Architecture
+author: Haroon Ghori
+geometry: margin=1in
+---
 Computer architecture is the idea that a computer should be built in the best way to fulfill its main purpose.
 For example, a PC should be optimized for "regular" use whereas a supercomputer should be more optimized towards
 faster processing and parallelism. We need good computer architecture to improve performance (which can be measured
@@ -53,8 +56,8 @@ We compare performance using __speedup__. The speedup $N$ of system $X$ vs syste
 $$N = \frac{speed(X)}{speed(Y)}$$
 
 This $speed$ function can be defined in terms of latency or throughput.
-- For the latency case, $speed \prop \frac{1}{throughput}$ so $N = \frac{latency(Y)}{latency(X)}$
-- For the throughput case, $speed \prop throughput$. So $N = \frac{throughput(X)}{throughput(Y)}$
+- For the latency case, $speed = c \times \frac{1}{throughput}$ so $N = \frac{latency(Y)}{latency(X)}$
+- For the throughput case, $speed = c \times throughput$. So $N = \frac{throughput(X)}{throughput(Y)}$
 
 Obviously $N > 1$ means better performance (better execution time or better throughput) whereas $N < 1$ means worse performance (worse execution time or worse throughput).
 
@@ -452,8 +455,8 @@ PC, we should trust the gshare or pshare predictor.
 
 ```
 PC -> gshare -------> | select between    | ---> next pc
-├---> pshare -------> | gshare and pshare |
-└---> meta-predictor -----^
+|---> pshare -------> | gshare and pshare |
+----> meta-predictor -----^
 ```
 
 The gshare and pshare predictors are "trained" by iterating their counters as usual and the meta predictor is
@@ -749,6 +752,36 @@ nor can a single instruction update it's values (from broadcast) and be dispatch
 instruction and a broadcast instruction can also write to the same place in the RAT - the issue instruction should
 just take precedence.
 
+__Tomasulo's algorithm__
+
+```
+While there is an instruction to issue
+	If there is an empty appropriate RS entry
+		Put opcode into RS entry.
+		For each operand
+			If there is an RS number in the RAT
+				Put the RS number into the RS as an operand.
+			else
+				Put the register value into the RS as an operand.
+		Put RS number into RAT entry for the destination register.
+		Take the instruction out of the instruction window.
+
+For each RS
+	If RS has instruction with actual values for operands
+		If the appropriate ALU or processing unit is free
+			Dispatch the instruction, including operands and the RS number.
+
+For each ALU
+	If the instruction is complete
+		If a RAT entry has #
+			Put value in corresponding register.
+			Erase RAT entry.
+		For each RS that's waiting for it
+			Put the result into the RS.
+		Free the ALU.
+		Free the RS.
+```
+
 #### Reorder Buffer
 Tomasulo's algorithm (and the more modern variants) allow us to execute instructions out of order. However, real
 programs have runtime exceptions that can make reordered programs quite messy. Consider the following instructions
@@ -830,6 +863,41 @@ We can see that a ROB fixes the problems that we had before.
 Superscalar processors are processors that can fetch, decode, issue, dispatch, execute, broadcast, write, or
 commit multiple instructions at once. Superscalar processors are significantly more complicated than regular
 processors and are only as efficient as the weakest point.
+
+__Tomosulo's algorithm with ROB__
+```
+While there is an instruction to issue
+	If there is an empty ROB entry and an empty appropriate RS
+		Put opcode into RS.
+		Put ROB entry number into RS.
+		For each operand which is a register
+			If there is a ROB entry number in the RAT for that register
+				Put the ROB entry number into the RS as an operand.
+			else
+				Put the register value into the RS as an operand.
+		Put opcode into ROB entry.
+		Put destination register name into ROB entry.
+		Put ROB entry number into RAT entry for the destination register.
+		Take the instruction out of the instruction window.
+
+For each RS
+	If RS has instruction with actual values for operands
+		If an appropriate ALU or processing unit is free
+			Dispatch the instruction, including operands and the ROB entry number.
+			Free the RS.
+
+While the next ROB entry to be retired has a result
+	Write the result to the register.
+	If the ROB entry number is in the RAT, remove it.
+	Free the ROB entry.
+
+For each ALU
+	If the instruction is complete
+		Put the result into the ROB entry corresponding to the destination register.
+		For each RS that's waiting for it
+			Put the result into the RS as an operand.
+		Free the ALU.
+```
 
 #### Memory ordering
 The ROB helps us prevent data hazards in cases of exceptions and branch mispredictions by tracking the order that
@@ -1117,15 +1185,475 @@ How to find independent instructions | look at $>>N$ instrs  | look at next $N$ 
 Hardware cost                        | expensive             | less expensive         | cheap
 Help from compiler?                  | can help              | needs help             | depends on compiler
 
-$^{*}$this one large instruction does the same ammount of work as $N$ regular instructions
+$^{*}$this one large instruction does the same amount of work as $N$ regular instructions
 
 The benefits of the VLIW processor are that it relies completely on the compiler - so a lot of the work is
 done as part of preprocessing. So the processor itself can have smaller hardware and can be more memory efficient.
 VLIW work particularly well on loops and "regular" code (eg arithmetic and reading from arrays). However,
 instruction latencies can be mis-predicted by the compiler which adds to the execution time and VLIW programs
 can be much larger than regular programs. Furthermore, many applications rely on irregular code (pointer
-applications, lots of branching, etc) and do not neccesarily work well on a VLIW processor
+applications, lots of branching, etc) and do not necessarily work well on a VLIW processor
 
 VLIW instructions contain all the normal op codes, have full predication support, and have a lot of registers
 so the compiler can rely on register renaming. The compiler can also annotate branches with "branch hints" to
 tell the processor what the compiler thinks the branch result is.
+
+## Memory
+### Cache basics
+The __locality principle__ states that things that will happen soon will likely be close to things that just
+happened. So if we know about past behavior we should be able to predict future behavior. When it comes to memory
+addresses, he locality property implies that if a processor accesses memory address X, it is likely to access
+memory address X, and memory addresses near X, in the near future.
+
+A __cache__ in the context of computer architecture is a small datastore physically close to the processor which
+is meant to take advantage of the locality principle to speed up memory access. Instead of the processor having
+to make a round trip to memory for every memory read and write (which is expensive since memory is far away from
+the processor and the trip takes many cycles), when the processor reads from a memory address, that memory address
+(as well as nearby memory addresses) are stored in the cache. Now future reads of that memory address are much
+faster since they just need to read from the cache instead of taking the time to read from memory.
+
+Looking up data in a cache should be fast, so the cache has to be small. THis means that the values a cache
+can store are limited. When the processor needs a value from memory, it will first look in the cache to find the
+data value. If the memory address exists in the cache, we have a __cache hit__ and the processor can just read
+that value. If the memory address does not exist in the cache, we have a __cache miss__ and the processor has
+to read the data from memory. It will also store the memory address and value in the cache to avoid future misses
+on that address.
+
+We measure cache performance using the __average memory access time__ (AMAT) which is the memory access time as
+seen by the processor. We define AMAT as:
+
+$$AMAT = hit \ time + miss \ rate * miss \ penalty$$
+
+- The hit time of a cache defines the time it takes to get the data in a cache hit. We want to minimize hit time
+  which requires a small and fast cache.
+- The miss rate of a cache defines the percent of memory access that will result in a cache miss. Qe want to
+  minimize the miss rate which requires a large or intelligent (which usually means slower) cache.
+- The miss penalty of a cache defines the time it takes to get the data in a cache miss.
+
+We can also define AMAT as
+
+$$AMAT = (1 - miss \ rate) * hit \ time + miss \ rate * miss \ time$$
+
+where $miss \ rate = hit \ time + miss \ penalty$.
+
+Modern processors have an L1 cache size of approximately 16-64kB. This is large enough to have a 90% hit rate but
+small enough that the hit time is around 2-3 cycles.
+
+Conceptually, the cache is a table where each entry or __cache line__ contains a __block__ of memory.
+When the processor performs a load, it will go to memory and bring an entire block worth of memory into the cache.
+So we want the block to be large enough to take advantage of spacial locality but not so large that we make the
+cache slow and hard to navigate. Recall that the cache is only 16kB so if we load huge cache lines, there will be
+very few entries in the cache and the lines will have to be searched linearly for the corresponding data which
+will increase hit time. In modern processors a block is usually between 32 and 128 bytes.
+
+There is a slight complication here in that if we can just pull blocks of data from memory, we may pull overlapping
+blocks which causes complications when writing. Ie we could get block (0, 63) and then block (1, 64) which
+duplicates memory addresses 1-63. To avoid this, we say that we can only get blocks that are __aligned__, that is
+that each block must begin at a specific set of memory addresses - so for a 64 byte block size we may say that
+blocks can only start at multiples of 64 (0, 64, 128, ...). So if I want to get address 27 from memory, I would
+fetch the block (0, 63) and put it in the cache since it contains address 27.
+
+Note that we've been talking about blocks which we can visualize as units of memory. Memory consists of a bunch of
+memory blocks. The cache contains a bunch of __cache lines__ which are essentially slots in which a memory block
+can be put. So the block size and line size must be the same. Observe that block / line sizes must be powers of
+two. This is because, when we are identifying and indexing blocks it is easier to divide by a power of two to
+choose the block id.
+
+For example, if I have a 32byte line size and a 32bit memory address, we can decide the __block offset__ or where
+in the 32byte block we are in by using last 5bits of the memory address. The rest of the bits are used to identify
+the block and index into the cache - this is the __block number__.
+
+Any entry in the cache could contain any individual block, so along with the block data, the cache stores a tag
+which has the block number (or part of the block number) of the block being stored in that line. So the processor
+can use the tags to determine whether or not there is a cache hit or not. The tag is not always equal to the cache
+number. The cache also maintains a __valid bit__ which determines whether or not the data in a specific cache entry
+is valid data or not.
+
+__Fully associative caches__ may have any block on any line. These caches use tags and linear search to get cache
+hits.
+
+__Direct map cache__ directly map a block to a line in the cache. For a cache with M byte blocks and N entries we
+know that the least significant $log_2{M}$ bits of the address are used to find the block offset. The next
+$log_2{N}$ bits of the address are used to determine which index in the cache the block will be in. The rest of the
+bits are the block tag.
+
+A __set associative cache__ has N lines where an individual block could be. A cache is N way set associative if a
+block can be in N lines. As with the direct map cache, if there are M byte blocks and N sets of lines in the cache,
+the least significant $log_2{M}$ bits of the address are used to find the block offset. The next
+$log_2{N}$ bits of the address are used to determine which set in the cache the block will be in. The rest of the
+bits are the block tag. The block is then placed in one of the lines in the set.
+
+Direct mapped cached can be thought of as being a 1 way set associative cache and a fully associative cache can
+be thought of as an N way set associative cache where N is the number of entries in the cache.
+
+When we need to put a new block in the cache, we need to figure out which block should be replaced. There are a
+few different strategies for this. We can do this randomly, __first in first out__ (FIFO), or __least recently
+used__ (LRU). LRU is the best of these options since it takes advantage of temporal locality. When a acahe uses
+LRU, it keeps an LRU value for each cache line.
+
+Data   | Tag | LRU
+-------|-----|---------
+xxxx   | A   | 0
+xxxx   | B   | 1
+xxxx   | C   | 2
+xxxx   | D   | 3
+
+When a block is accessed, say block C, that block is set to the highest LRU value, and all blocks with an
+LRU above the original LRU for block C get decremented by one.
+
+ Data   | Tag | LRU
+-------|-----|---------
+xxxx   | A   | 0
+xxxx   | B   | 1
+xxxx   | C   | 3
+xxxx   | D   | 2
+
+This ensures that all the counters hav different values.
+
+For an N way set associative cache, we need N, $log_2{N}$ bit counters for each set since we want to do LRU for
+each set. So there is a pretty high memory and energy cost.
+
+So far we have discussed how caches deal with reading from memory. But we haven't discussed how to handle writes
+to memory. Caches can deal with writes in two ways. They can either bring written blocks into the cache
+(__write allocate caches__) or they can not bring written blocks into the cache (__no write allocate caches__).
+Most caches are write allocate because there is generally some locality between read and write. When we write to
+memory we can either __write through__ which writes to the cache and memory on a write hit or __write back__ which
+writes to the cache and only updates memory when the block is removed from the cache. Most caches are write back
+since that decreases the number of trips to memory in most cases.
+
+To implement a write back cache, each cache line maintains a __dirty bit__ which is 1 if the block has been
+written. So if the block is removed from the cache and the dirty bit is 1, the block has to be written to memory.
+If the dirty bit is 0 we don't have to write the block to memory.
+
+__Cache summary__
+![](src/hpca/cache-summary.png){width=400px}
+
+### Virtual Memory
+While memory is technically a fixed set of memory addresses (as viewed from a hardware perspective), it is more
+convenient for programs to view memory as a $2^N$ length array (where $N$ is the size of the address) where
+there are specific address regions that map to the system memory, code, heap, and stack.
+
+```
+-----   0
+SYS
+-----
+CODE
+-----
+HEAP
+ |
+ V
+-----
+ ^
+ |
+STACK
+-----   2^N
+```
+
+Furthermore, if there are multiple programs running simultaneously, each program will have the same view of
+memory (that it has the full $2^N$ memory address space). But this is obviously not realistic since multiple
+programs cannot operate in the same memory space at the same time. This view of memory is called __virtual
+memory__ which is a technique operating systems use to abstract the idea of memory for ease of programming.
+Each program has it's own virtual memory space where it is the only actor and it is up to the operating
+system to map the virtual memory of all the running programs into the physical memory such that there are
+no collisions or memory overflows.
+
+The OS maps virtual addresses to physical addresses by dividing the virtual memory into __pages__. Each page
+is usually about 4kB and aligned (so the first page is 0-4011B, second page is 4012B-8023B, ...). The physical
+memory is divided into __frames__ where the frame size and page size are equivalent. The OS maintains a
+__page table__ for each process which maps the pages of that process to frames in physical memory. It is possible
+that pages from different processes will be mapped to the same frame in memory - this should only happen if the
+processes need to share data.
+
+Observe that the size of virtual memory is usually much larger than the size of the physical memory - so any
+pages in virtual memory that are not mapped to physical memory are stored on the hard disk itself. These pages
+are not directly accessible by the processor until they are fetched into memory.
+
+Given a virtual memory address, let's assume that a page size is $4kB = 2^{12}$. Then, the last 12 bits of the
+virtual address are the __page offset__ and the rest of the bits are the __virtual page number__. The
+virtual page number is used to index into the page table for the process and get the frame number for that
+page. The page offset is appended to the frame number to get the physical address of the data in memory.
+
+The issue with these flat page tables are that they take up an unreasonable amount of space. We can see that
+a flat page table size is equal to
+
+$$memory = \frac{vm \ size}{page \ size} \times bytes \ per \ entry$$
+
+which, given that most pages are 4Kb and the bytes per entry is usually the size of the physical address, we
+can simplify to:
+
+$$memory = \frac{2^{N}}{2^{12}} \times M$$
+
+where $N$ is the number of bits in the virtual address and $M$ is the number of bytes in the physical address.
+We can see then that programs in modern computers (with 32 or 64 bit memory addresses) will have very large
+page tables.
+
+To alleviate this problem we use a __multi level page table__. In this scheme, the virtual page number is
+divided into two parts, the first (or outer) set of bits is used to index into the __outer page table__. The
+outer page table maps the most significant bits of the virtual page number to the address of the __inner page
+table__. The inner page table maps the least significant bits (the second or inner part) of the virtual page
+number to the physical address space. At first blush this doesn't seem to save space - in fact it takes up more
+space. However, if an inner page table is not used at all, we can discard that page table and have the pointer
+in the outer page table point to null. That way we are able to keep track of pages that are not being used and
+save a lot of space. Note that in most programs, most of the address space will not be used so a multi level
+page table will save a lot of space.
+
+The page table described above is a 2 level page table, but we can easily have 3, 4, ... level page tables.
+
+Page size can be variable between processors. Small page sizes initially seem bad because they require larger
+page tables. However, large page sizes result in __internal fragmentation__ a phenomenon where an application uses
+only a small part of a page which results in a large amount of the frame not being used. This leads to
+discontinuous data and wasted memory. So we want to compromise on page size between the size of the page table
+and the prevalence of internal fragmentation which is why most page sizes are in the kB to MB range.
+
+Because of the size of page tables, we need to store them in memory. This causes a problem because we need to
+do the virtual to physical mapping before we can read from the cache. So effectively, if we use physical memory
+as we have defined it, every memory access is a cache miss. This can be alleviated using a __translation look-aside
+buffer__ (TLB). A TLB is essentially a cache specifically for virtual to physical memory translations. It directly
+maps between virtual and physical addresses so it requires only 1 access for any cached translation. If we
+have a TLB miss we simply access the page tables and store the resulting translation in the TLB. The TLB is
+usually a highly associative cache with enough entries to cover the memory covered by the cache. This is usually
+between 64 and 512 entries. A TLB can also have multiple levels so more commonly accessed translations are stored
+in a smaller, faster TLB and less common translations are stored in a slower but larger TLB.
+
+### Improving cache performance
+Thus far we have talked about how a processor uses caches to speed up memory access and improve performance.
+However, there are a lot of ways to improve caching performance that we have not discussed.
+
+Recall that
+
+$$AMAT = time_{hit} + p_{miss} * time_{miss}$$
+
+So methods to improve cache performance can either decrease the hit time, decrease the miss rate, or decrease
+the miss time to improve AMAT and therefore improve our processor's efficiency.
+
+#### Improving hit time
+
+##### Pipelining the cache
+One obvious way is using pipelining. Recall that reading
+from a cache can be broken down into steps:
+1. Use the tag to index into the cache (select a set or line) and check the tag and valid bit.
+2. Use the offset to determine where in the line the data is stored
+3. Read the data
+
+So a cache hit in this type of cache may take 3 cycles. But if I have two memory accesses in a row, the second
+access has to wait for the first to finish using the cache before it can use the cache - so the second access
+sees a 5 cycle hit time. We can alleviate this problem by pipelining cache access much as we would pipeline a
+processor.
+
+##### Using virtually accessed caches
+The caches we've been dealing with so far have been __physically accessed cache__ (aka a __physical cache__ or a
+__physically indexed-physically tagged cache__ (PIPT cache)) which means that the physical memory address
+(not the virtual address) is used to index into the cache. This causes some latency because the processor needs
+to convert virtual addresses to physical addresses before checking the cache. So $t_{hit} = t_{tlb} + t_{cache}$.
+
+We can thus reduce cache hit time by using a __virtual cache__ meaning a cache which uses virtual memory addresses
+to index into the cache. This eliminates the need for the tlb on the cache hit (though we will need to use the tlb
+to convert from virtual addresses to physical addresses on a cache miss).
+
+This initially seems like a great idea, but there are a few problems with virtual caches. First, the TLB also
+contains permissions so that the processor knows if it should be able to read or write to specific memory
+addresses. So it would still need to check the TLB on cache hits. Additionally, since virtual addresses may
+map to different physical addresses for different processes we will need to flush the cache at every context
+switch. Since the cache may be large this will lead to a lot of cache misses at the beginning of each context
+switch.
+
+We can overcome these problems using a __virtually indexed physically tagged cache__ (VIPT cache). A VIPT cache:
+1. Use the index bits of the virtual address to get the set in the cache. At the same time access the TLB and
+   find physical address tag.
+2. Use the physcial address tag to search the set in the cache for a cache hit.
+
+Since the TLB access and cache access happen in parallel, the cache hit time will be $max(t_{cache}, t_{tlb})$
+which is usually equal to the cache hit time. Furthermore, we don't need to flush on each access since the
+cache lines are tagged with the physical address. However, VIPT caches can suffer from __aliasing__ if the cache
+is not small. Aliasing occurs when one frame in physical memory is mapped to two or more pages in virtual memory.
+This can occur since virtual memory is much bigger than physical memory. VIPT caches can overcome aliasing if the
+cache is small enough because the index in the cache is determined using some bits close to the end of the
+virtual address. If the cache is small enough, those index bits will fall with the "offset bits" which are used
+to determine where in the frame the data is in physical memory. So the index bits will be the same for the
+different aliases which measn they will map to the same set in the cache - and since they also use the same tag
+the cache data should be consistent. However, if the cache is large, the index bits will not neccesarily be
+part of the offset and therefore the aliasing problem will break the cache.
+
+In general we can say that $size_{cache} \leq assoc * size_{page}$. Which can also be broken down into
+
+$$size_{cache} \leq num_{sets}*2^{size_{block}}*assoc$$
+
+##### Overcoming high associativity
+Modulating the associativity can change the hit rate, miss rate, and miss time. Naively increasing associativity
+will reduce the miss rate but increase the hit time and reducing the associativity will increase the miss rate
+but reduce the hit time. There are a few methods which allow us to reduce miss rate while maintaining a low
+hit time.
+
+__Way prediction__ is a method in higher associativity caches to reduce hit time. We basically guess which line
+in the set is most likely to hit and check that line first. If that line is a hit then we return the data.
+Otherwise we check the rest of the set in a standard set associative way. So this method has very good performance
+if we can guess correctly but the same performance as highly associative caches if we guess incorrectly.
+
+##### Picking a cheaper replacement policy
+LRU is one of the best replacement policies to decrease the imiss rate. HOwever, on a cache hit LRU requires
+that we caeck and decriment the counters in the set. This requires some power and slows down the hit time. __NMRU__
+or "Not most recently used" replacement is a policy that attempts to keep the hit time of LRU while reducing the
+number of items to be checked. Basically, on a hit we save the most recenlty used block and randomly pick from
+the rest of the blocks. __PLRU__ or "pseudo LRU" replacement is a policy that keeps one bit on each line - when a
+line is accessed its bit becomes 1. When we need to replace something, we pick from the blocks with a 0. When we
+set the last bit from 0 to 1, we flip all the othe rbits from 1 to 0. We can see that PLRU is better than NMRU and
+worse than LRU but uses more data.
+
+#### Reducing miss rate
+Misses can be broken down into
+1. __compulasary misses__ - misses because the memory address has not been accessed before
+2. __capacity misses__ - misses because there is not enough room in the cache
+3. __conflict misses__ - misses because there is not enough room in the set
+
+###### Larger cache blocks
+Using larger cache blocks can naively reduce the hit rate since more data is brought into the cache - however
+this only works when spacial loality is high. When spacial locality is low, increaseing the cache block size
+just wastes space in the cache and actually increases the miss rate.
+
+##### Prefetching
+__Prefetching__ is a technique where we guess which blocks will be accessed in the future and bring those
+blocks into the cache. Good guesses can greatly help performance by eliminating misses, but bad guesses
+will polute the cache with useless data and replace potentially useful cache data with useless data - which
+increaess the miss rate. An easy way to handle prefetchin is to add prefetch instructions to the instruction set.
+
+```C
+for (int i = 0; i < 100000; i++) {
+    sum += a[i];
+}
+```
+
+will become
+
+```C
+for (int i = 0; i < 100000; i++) {
+    prefetch(a[i + pdist]);
+    sum += a[i];
+}
+```
+
+we nee to be careful with what we choose as `pdist`. If we choose a small value, we will still have to
+wait a while for the data to arrive from memory. If we choose a large value, the value may sit in the cache
+for too long and get overriden. The correct value for `pdist` is processor dependent.
+
+__Hardware prefetching__ is a method of prefetching where the hardware attempts to determine what will be requested
+next. There are a few different implementations:
+- Stream buffers attempts to figure out if a memory accesses are sequential
+- Stride prefetchers attempt to figure out of memory accesses happen at a fixed distance
+- Correlating prefetchers attempt to figure out non-sequentiaal / fixed distance patterns.
+
+##### Loop interchange
+Sometimes we may write a nested for loop like:
+
+```C
+for (int i = 0; i < N; i++) {
+    for (int j = 0; j < M; j++) {
+        a[j][i] = i*j;
+    }
+}
+```
+
+We can see that this loop access patern is non-optimal given how memory is organized. Recall that
+when `a[0][0]` is accessed, a bumch of elements from `a[0]` will be stored in the cache. However, since
+we are iterating by row, there is a chance that those cached values will be overriden by the time we return
+to `a[0][1]`. Loop interchange would convert the loop structure above to:
+
+```C
+for (int j = 0; j < M; j++) {
+    for (int i = 0; i < N; i++) {
+        a[j][i] = i*j;
+    }
+}
+```
+
+which is much more memory efficient.
+
+Of course this transformation is not always possible and the compiler has to prove that this conversion is valid
+bu showing that there are no dependencies between the iterations of the loop.
+
+#### Reducing miss penalty
+##### Overlapping misses
+__Blocking caches__ are caches that are completely blocked during a cache miss - eg you can't make cache requests
+while there is a cache miss. These are obviously not efficient since sequential misses have a lot of latency.
+__Non blocking caches__ are caches that can pipeline cache actions - __hit under miss__ caches allow for hits
+while the processor is fetching data for a cache miss and __miss under miss__ caches allow for misses while the
+processesor is fetchiing data for a cache miss.
+
+Miss under miss caches need to have __miss status handling registers__ (MSHR) which store information about
+ongoing misses. On a cache miss we first check the MSHRs. If the block is not found in the MSHR, we store
+the instruction information in the MSHR to know which instruciton to trigger when the data comes back. IF the
+block is found in the MSHR, we add the instruction to the MSHR (eg more than one instruction needs to be
+triggered when the data comes back). The second case is called a __half miss__ - a miss in a non-blocking
+cache which would have been a hit in a blocking cache. We want to have 16-32 MSHRs if possible since memory
+latency tends to be high.
+
+##### Cache hierarchies
+Modern processors don't just have one cache. Rather, they have a few caches at varying distance from the
+processor
+
+```
+processor -> [L1 cache] -> [l2 cache] -> [L3 cache] -> ... -> [Memory]
+```
+
+The caches closer to the processor are smaller and faster than the caches farther from the processor. Cache
+hierarchies make our $AmAT$ equation more complicated as well:
+
+$$AMAT = t_{hit\ L1} + p_{miss\ L1} * t_{miss\ L1}$$
+$$t_{miss\ L1} = t_{hit\ L2} + p_{miss\ L2} * t_{miss\ L2}$$
+
+This equation keep recursing downwards until we find the __last level cache__ which is the last cache before
+main memory.
+
+$$t(L) = t_{hit\ L} + p_{miss\ L} * t(L+1)$$
+$$t(N) = C$$
+
+Note that oftentimes the observed hit rate of higher level caches seem lower than the L1 cache. This is because
+the L2, L3, ... caches only see the "harder" memory accesses and therefore they seem to have low hit rates. We
+call this loewr hit rate the __local hit rate__. However, if they were used alone they would have a much higher
+hit rate. We call this the __global hit rate__.
+
+```
+global hit rate = 1 - global miss rate
+global miss rate = # of misses in this cache / # of accesses to all caches
+
+local hit rate = # or hits / # of accesses to this cache
+local miss rate = 1 - local hit rate
+```
+
+When defining cache hierarchies we need to decide if a block is in L1:
+- should the block be garunteed to be in L2 (inclusion)
+- should the block be garunteed to not be in L2 (exclusion)
+- should the block's existance in L2 not be garunteed
+
+by default, inclusion is not garunteed in a cache hierarchy. To maintain inclusion, we need to include an
+inclusion bit in L2 which is 1 if the block is in L1. With this bit we make sure we don't replace anything
+in L2 that is still in L1.
+
+### Memory
+We use caches because accesing main memory would be too slow for the needs of a modern processor. But we haven't
+disussed how memory actually works and what makes it so slow.
+
+There are too major memory technologies __static random access memory__ (SRAM) and __dynamic random access memory__
+(DRAM). __Random access__ means that we can access any part of the memory independently. __Static__ menas that
+the data will be retained so long as power is supplied to the memory chip. __Dynamic__ menas that the data will
+be lost if it is not refreshed. SRAM seemsm like the obvious choice, but it is more expensive and requires more
+transistors per memory unit. DRAM only needs one transistor per chip. SRAM is also faster than DRAM.
+
+![](src/hpca/memory-chip.png)
+
+A memory chip is essentially an N x M matrix where the rows are __word lines__ and the columns are __bit lines__.
+The row decoder activates a word line which sends the bit vlaues to the __sense amplifier__ which amplifies the
+signal. The values are then saved in the __row buffer__ and the __column decoder__ uses a column address to
+determine which bit you care about from the row. To write to a row, we read to the row buffer, modify the bit we
+want to write, adn write the value sback - so a write is really a read-then-write operation.
+
+Recall that DRAM needs to be refershed - an individual row needs to be refreshed within time T of it's last
+write which means that for a DRAM with N words, we need to refresh one row every $\frac{T}{N}$ seconds. This
+is actully very frequesnt and greatly limits how often we can read and write memory. Every read in DRAM is
+read-then-write since we will want to refresh the row whenever possible.
+
+Note that if we want to read different bits from the same row we can read directly from the row buffer instead
+of going all the way back to the DRAM. This is called __fast page mode__. When we switch rows we "close the page"
+and write back the data in the row buffer to memory.
+
+THe processor communicates with memory thorugh a Memory Controller which interprets load and store instructions
+into actions to be performed by the DRAM.
