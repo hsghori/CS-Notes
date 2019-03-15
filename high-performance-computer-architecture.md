@@ -1,8 +1,5 @@
----
-title: High Performance Computer Architecture
-author: Haroon Ghori
-geometry: margin=1in
----
+# High Performance Computer Architecture
+
 Computer architecture is the idea that a computer should be built in the best way to fulfill its main purpose.
 For example, a PC should be optimized for "regular" use whereas a supercomputer should be more optimized towards
 faster processing and parallelism. We need good computer architecture to improve performance (which can be measured
@@ -295,7 +292,7 @@ architecture that maximizes performance and minimizes power.
 
 ![](src/hpca/pipeline-opt.png){width=400px}
 
-## Control hazards - Branch prediction and predication
+## Branch prediction and predication
 
 Branches and jumps are particularly expensive operations since they cause control hazards that waste many cycles.
 Therefore we need to design mechanisms to mitigate the pipeline stalls caused by these operations.
@@ -1657,3 +1654,68 @@ and write back the data in the row buffer to memory.
 
 THe processor communicates with memory thorugh a Memory Controller which interprets load and store instructions
 into actions to be performed by the DRAM.
+
+### Fault tolerance
+
+< insert basics notes >
+
+#### RAID
+__Redundant array of independent disks__ (RAID) is a fault tolerance scheme for hard disk faults. IN RAID there are several
+disks which play the role of one disk. Each of the disks detects errors using error correction codes. RAID has better
+performance than a standard error correction code and allows for reads and writes even with a bad sector and if the
+disk fails completely.
+
+__RAID0__ is a technique where we split a disk (by it's tracks) into N disks. We call each track in the original
+disk a __stripe__. In an N=2 RAID0, Disk 1 gets stripes 0, 2, 4, ... and Disk 2 gets stripes 1, 3, 5, ... This allows us to get
+twice the data throughput since we can parallelize disk access. Furthermore, there is less queing delay ssince individual
+accesses take less time and there are less accesses per disk. However, this scheme is less reliable than a single disk
+since if the failure rate of the total configuration is $N$ times the failure rate of a single disk. So:
+
+$$F_N = N*F_1$$
+$$MTTDL_N = \frac{MTTF_1}{N}$$
+
+__RAID1__ is a technique which mirrors the data accross N disks. So writes happen to all N disks but reads only need to
+happen from one disk. The write performance is the same as with a single disk, but read performance is N times better.
+This scheme can tolerate any faults that affect a single disk. For reliabiliity, let's consider the N=2 case. When
+both disks are active, we can expect a single disk to fail around $\frac{MTTF}{2}$. Then, we can expect the single
+working disk to last for a nother $MTTF$. So the total $MTTF_2 = MTTF_1 + \frac{MTTF_1}{2}$. However, usually we
+would repair the failed disk as soon as it fails. In this case we know that hte first disk will fail in $\frac{MTTR_1}{2}$,
+that disk will be repaied in time $MTTR_1$ and then the system will continue again for $\frac{MTTF_1}{2}$ until another
+disk breaks. So $MTTDL_2 = \frac{MTTF_1}{2} * n_{repairs\ before\ failure}$. The number of repairs before failure is
+equal to $\frac{MTTF_1}{MTTR_1}$ if $MTTF_1 >> MTTR$ so we can say that
+
+ $$MTTDL_2 = \frac{MTTF_1}{2} * \frac{MTTF_1}{MTTR_1}$$
+
+We see that RAID1 dramatically improves reliability while also improving performance.
+
+__RAID4__ uses N disks which are striped like RAID0 - however unlike RAID0, N-1 of the disks in RAID4 are data disks and
+the last disk has the __parity stripe__ for the rest of the disks. A parity stripe is the XOR of the corresponding
+stripes on the other disks. Like RAID1, this allows us to detect and recover from single disk failures (since we
+can reconstruct the data from the parity disk), but unlike RAID1 it doesn't take up too many resources.
+
+In RAID4, a write takesthe time to read the old data, write the new data, read the parity stripe, and write the parity stripe.
+This is because to re-calculate the parity we have to read the old data, XOR that with the new data to determine which bits
+have changed, and XOR the result with the parity to flip any bits that change in the parity. A read, on the other hand, only
+needs to read the stripe.
+Perofrmnace wise, in RAID4 we get an N-1 fold throughput improvement for reads. However, for writes we need to write and read
+between two disks so the throughput is half the throughput of a single disk. In terms of reliability, with an N disk array
+we know that the $MTTF_N = \frac{MTTF_1}{N}$. If we don't repair the disk on failure, then
+
+$$MTTDL_N =  \frac{MTTF_1}{N} + \frac{MTTF_1}{N - 1}$$
+
+which is not an improvement. If we repair the disk then:
+
+$$MTTDL_N =  \frac{MTTF_1}{N} * \frac{\frac{MTTF_1}{N - 1}}{MTTR_1}$$
+$$MTTDL_N =  \frac{MTTF_1^2}{N*(N-1)*MTTR_1}$$
+
+Since $MTTF_1 >> MTTR_1$ this is very large.
+
+__RAID5__ is similar to RAID4, but instead of keeping parity on one bit, but spreads the parity throughout hte bits. In
+this scheme, reads have an N fold increase in throughput (since all N disks store data). A write takes 4 accesses, so
+the write performance is $\frac{N}{4}$ times the throughput of one disk. The reliability of RAID5 is the same as RAID4 since
+RAID5 can tolerate the loss of any one disk (since each disk acts as a data disk in some cases and a parity disk in others).
+
+__RAID6__ is similar to RAID5 which maintains two check blocks per group - the first is a parity block and the second is
+a more complex block. This allows the disk to recover from two failed disks. RAID6 has two times to overhead of RAID5 -
+especially with writes. We should only use RAID6 if there is a high probability of more than one disk failing.
+
