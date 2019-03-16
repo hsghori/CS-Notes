@@ -1657,3 +1657,103 @@ and write back the data in the row buffer to memory.
 
 THe processor communicates with memory thorugh a Memory Controller which interprets load and store instructions
 into actions to be performed by the DRAM.
+
+### Storage
+The storage in a computer system is the memory that stores files (programs, OS, data, settings, etc) and
+allows "extra space" to allow for the virtual memory abstraction. Accessing storage is particularly slow, even
+slower than DRAM.
+
+Storage is traditionaly implemented as a __magnetic disk__. A magnetic disk is made up of a central __spindle__
+which has layeres of disks (__platters__). When the spindle rotates, the platters rotate as well. The platters are
+coated with a magnetic material which is what stores the actual data on the disk. There is one __head__
+per side of the platter which forms a cirle or __track__ of fixed radius as the disk rotates. A group of tracks of
+the same radius in the disk is called a __cylinder__.  The head can switch tracks by either along the radius of the
+disk. The data on a track is stored in __sectors__. The sector starts with a preamble, and contains data and a
+checksum.
+
+![](src/hpca/hard-disk.png)
+
+The disk capacity is computed as
+
+```
+platters * tracks per surface * sectors per track * bytes per sector
+```
+
+If the disk is already spinning, the disk access time is composed of
+- seek time: the time taken to move the head to the correct cylinder
+- rotational latency: the time taken to move the head to the correct sector
+- data read: the time taken to read from the disk
+- controller time: the time taken to verify that the data is valid (check the checksum)
+- I/O bus time
+
+Magnetic disk access cannot happen in parallel - since we can't access multiple tracks at once.
+
+Hard disk speed and capacity have been improving over the years.
+- Capacity is improving at an exponential rate
+- Seek time has been improving very slowly
+- Rotational latency has been improving slowly
+- Controller time has been improving at an OK rate.
+
+
+__Optical drives__ are similar to hard disks, but they are read using a laser who's reflection defines whether
+or not the bit is a 0 or 1. Optical disks are read similarly to a magnetic disk but are not affected by
+dust or smudges as badly as hard disks are. Optical disks are very useful for making data portable, but that
+means that the technology has to be standardized so a lot of different computers can read from them. THis leads
+to a lag in improvements to optical drive technology.
+
+__Magnetic tape__ is a storage mechanism used as a backup storage mechanism. Magnetic tape has a large (basicaly
+infinite) memory capacity but must be accessed sequentialy and so are very slow.
+
+We can see that these storage technologies are quite slow so we have developed __solid state disks__ (SSD) which
+try to make storage access time similar to that of DRAM. There are a few different options:
+- DRAM + battery is extrememly fast and reliable but is expensive and not suitable for storage
+- Flash is slower than DRAM but still fast, relaiable, and not too expensive.
+
+### Fault Tolerance
+__Dependability__ is a quality of a delivered service that justifies relying on the system to provide the service.
+A __dependable service__ is one that we can expect to provide a service. Note that our definition of __service__
+here is a bit vague. A __specified service__ is an expected behavior and a __delivered service__ is the actual
+behavior. So a dependable service is a service where the delivered service matches the specified service.
+We gerenalize services at the module level - ie memory, processor, etc.
+
+When a module deviates from the specified behavior it could have a:
+- fault: when something in the system deviates from specififed behavior
+- error: when the actual behavior of a component of the system deviates from what is expected
+- failure: when the system deviates from the expcted behavior of the system
+
+__Reliability__ is measured by assuming that the service can be in one of two states - service accomplishment and
+service interruption. We measure reliability by measuring continuous service accomplishment. We foten measure
+this using __mean time to failure__ (MTTF).
+
+__Availability__ is simiilar to reliability but is measured as service accomplishment as a fraction
+of total time. We can also measure availabiliity as __mean time to repair__ (MTTR).
+
+There are a few different types of faults:
+- hardwaare faults: when the hardwaare fails
+- design faults: flaws in software design or implementation
+- operation faults: faults caused by operator / user error
+- environmental faults: faults caused by the external environemnt (eg fire, power failure, etc).
+- permanent fault: faults that are constant (once they occur they don't go away until fixed)
+- intermittent fault: faults that occur intermittenlty (eg they come and go)
+- transient: faults that only last for a small amount of time
+
+Not all faults will result in an error.
+
+We can deal with faults using __fault avoidance__ and __fault tolerance__. Fault avoidance techniques are those
+that attempt to avoid faults - eg not drinking liquids around hardware. Fault tolerance techniques are techniques
+applied in computer architecture to prevent faults from becoming failures.
+
+__Checkpointing__ is a common fault tolerance technique where the computer saves the state of the system
+periodicaly, checks for errors, and if there is an error restore the machine state from the checkpoint. This could
+take a long time which would cause service interruption. We can detect the error using __two-way redundancy__ where
+two modules do the same work and roll back if the results are different. We can also use __three-way redundancy__
+where three modules do the same work and vote on which answer to choose. Two way and three way redundancy are
+obviously expensive since they require additional hardware. In general __N-way redundancy__ is a method where n
+modules do the same work and vote on the answer to accept.
+
+N-way redundancy is generaly overkill for memory and storage faults. Instead we use __error detection / correction
+codes__. There are a few techniques. A parity bit is an extra bit which is the XOR of all the data bits. If the
+fault flips one bit, the parity bit will flip and we know there is a fault. An __error correction code__ is a
+technique which can fix single bit errors and detect two bit errors. The hard disk uses more complicated codes
+to detect multiple bit errors.
+
