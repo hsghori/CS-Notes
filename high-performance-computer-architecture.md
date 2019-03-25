@@ -1182,7 +1182,7 @@ How to find independent instructions | look at $>>N$ instrs  | look at next $N$ 
 Hardware cost                        | expensive             | less expensive         | cheap
 Help from compiler?                  | can help              | needs help             | depends on compiler
 
-$^{*}$this one large instruction does the same amount of work as $N$ regular instructions
+$^{\*}$this one large instruction does the same amount of work as $N$ regular instructions
 
 The benefits of the VLIW processor are that it relies completely on the compiler - so a lot of the work is
 done as part of preprocessing. So the processor itself can have smaller hardware and can be more memory efficient.
@@ -1467,7 +1467,7 @@ This can occur since virtual memory is much bigger than physical memory. VIPT ca
 cache is small enough because the index in the cache is determined using some bits close to the end of the
 virtual address. If the cache is small enough, those index bits will fall with the "offset bits" which are used
 to determine where in the frame the data is in physical memory. So the index bits will be the same for the
-different aliases which measn they will map to the same set in the cache - and since they also use the same tag
+different aliases which means they will map to the same set in the cache - and since they also use the same tag
 the cache data should be consistent. However, if the cache is large, the index bits will not neccesarily be
 part of the offset and therefore the aliasing problem will break the cache.
 
@@ -1487,13 +1487,13 @@ Otherwise we check the rest of the set in a standard set associative way. So thi
 if we can guess correctly but the same performance as highly associative caches if we guess incorrectly.
 
 ##### Picking a cheaper replacement policy
-LRU is one of the best replacement policies to decrease the imiss rate. HOwever, on a cache hit LRU requires
-that we caeck and decriment the counters in the set. This requires some power and slows down the hit time. __NMRU__
+LRU is one of the best replacement policies to decrease the miss rate. However, on a cache hit LRU requires
+that we search and decrement the counters in the set. This requires some power and slows down the hit time. __NMRU__
 or "Not most recently used" replacement is a policy that attempts to keep the hit time of LRU while reducing the
-number of items to be checked. Basically, on a hit we save the most recenlty used block and randomly pick from
+number of items to be checked. Basically, on a hit we save the most recently used block and randomly pick from
 the rest of the blocks. __PLRU__ or "pseudo LRU" replacement is a policy that keeps one bit on each line - when a
 line is accessed its bit becomes 1. When we need to replace something, we pick from the blocks with a 0. When we
-set the last bit from 0 to 1, we flip all the othe rbits from 1 to 0. We can see that PLRU is better than NMRU and
+set the last bit from 0 to 1, we flip all the other bits from 1 to 0. We can see that PLRU is better than NMRU and
 worse than LRU but uses more data.
 
 #### Reducing miss rate
@@ -1504,14 +1504,14 @@ Misses can be broken down into
 
 ###### Larger cache blocks
 Using larger cache blocks can naively reduce the hit rate since more data is brought into the cache - however
-this only works when spacial loality is high. When spacial locality is low, increaseing the cache block size
+this only works when spacial locality is high. When spacial locality is low, increasing the cache block size
 just wastes space in the cache and actually increases the miss rate.
 
 ##### Prefetching
 __Prefetching__ is a technique where we guess which blocks will be accessed in the future and bring those
 blocks into the cache. Good guesses can greatly help performance by eliminating misses, but bad guesses
 will polute the cache with useless data and replace potentially useful cache data with useless data - which
-increaess the miss rate. An easy way to handle prefetchin is to add prefetch instructions to the instruction set.
+increaess the miss rate. An easy way to handle prefetching is to add prefetch instructions to the instruction set.
 
 ```C
 for (int i = 0; i < 100000; i++) {
@@ -1761,10 +1761,11 @@ RAID has better performance than a standard error correction code and allows for
 sector and if the disk fails completely.
 
 __RAID0__ is a technique where we split a disk (by it's tracks) into N disks. We call each track in the original
-disk a __stripe__. In an N=2 RAID0, Disk 1 gets stripes 0, 2, 4, ... and Disk 2 gets stripes 1, 3, 5, ... This allows us to get
-twice the data throughput since we can parallelize disk access. Furthermore, there is less queing delay ssince individual
-accesses take less time and there are less accesses per disk. However, this scheme is less reliable than a single disk
-since if the failure rate of the total configuration is $N$ times the failure rate of a single disk. So:
+disk a __stripe__. In an N=2 RAID0, Disk 1 gets stripes 0, 2, 4, ... and Disk 2 gets stripes 1, 3, 5, ... This
+allows us to get twice the data throughput since we can parallelize disk access. Furthermore, there is less queing
+delay ssince individual accesses take less time and there are less accesses per disk. However, this scheme is less
+reliable than a single disk since if the failure rate of the total configuration is $N$ times the failure rate of
+a single disk. So:
 
 $$F_N = N*F_1$$
 $$MTTDL_N = \frac{MTTF_1}{N}$$
@@ -1818,4 +1819,244 @@ __RAID6__ is similar to RAID5 which maintains two check blocks per group - the f
 second is a more complex block. This allows the disk to recover from two failed disks. RAID6 has two times to
 overhead of RAID5 - especially with writes. We should only use RAID6 if there is a high probability of more than
 one disk failing.
+
+## Parallel processing
+
+So far we've dealt with processors that have performed tasks in a serial way. And while there are several ways to
+improve e performance of a __uniprocessor__, eventually they hit a performance wall where drastic improvements
+resulted in small to moderate performance improvements. Consider a superscaalar processor (a processor where each
+instruction is a combination of N "regular" instructions). Making the processor 8-wide instead of 4-wide
+(ie able to execute 8 instructions per clock cycle instead of 4) had a much smaller impact than increasing from
+2-wide o 4-wide. Additionally, increasing the frequency of a uniproocessor would result in a drastic increase in
+power which is not desirable. Thus, to improve performance we began developing __multiprocessors__ which contained
+multiple cores on a single chip and therefore were bale to see drastic performance improvements.
+
+__Flyn's taxonomy of parallel machines__ is a simplistic classification scheme for computers capable of
+parallelization. Flyn's taxonomy considers a processor in terms of the number of instruction streams handled
+at once and the number of data streams processed by the instruction streams.
+
+Classification | Instruction Stream | Data Streams | Example
+---------------|--------------------|--------------|-----------------------------
+SISD           | 1                  | 1            | Standard uniprocessor
+SIMD           | 1                  | N            | Vectorized processor
+MISD           | N                  | 1            | Stream processor (not used)
+MIMD           | N                  | N            | Multiprocessor
+
+Most modern processors today are __MIMD__ in the flyn taxonomy.
+
+When designing multiprocessors there are some different design patterns.
+
+__Centralized shared memory__ processors are processors that have seperate processors but share a single main
+memory and central IO hus. Most modern multiprocessors today follow this pattern. This is also called __unified
+memory access time__ (UMA) or __symetric multiprocessing__ (SMP).
+
+SMP processors suffer from a need to have a large, slow, main memory module. Additionaly, misses from the cores
+will result in low memory bandwidth. With enough memory accesses, the memory bandwidth will become so bad that the
+processor annot benefit from the multiple cores (since all the cores will have to wait on one memory mordule).
+Because of these problems, SMP only works well for small machines (ie machines with less than 16 cores).
+
+__Distributed memory__ is a system that attempts to solve the memory bandwidth issue from SMP. In this scheme,
+each core can access its own slice of memory and contains a network connection to the other cores. If a core has
+a cache miss, it will check its own memory module for the data and, if it doesn't have access to that request, it
+will send a network request to the core that contains that address. This follows a multiprocessing pattern called
+__message passing__. This paradigm also forces the programmer to be intelligent about accessing memory (ie they
+should prioritize accessing local memory to making network requests) which can result in more efficient programs.
+This means that each core is essnetially it's own computer system - these types of systems are also known as
+__multi-computers__ or __clusters__. Note that systems that do not use a shared memory are called __NUMA__ (not
+UMA).
+
+Message passing programs can be complicated to write because we need to keep track of how data is being passed
+around the cluster and need to make sure that each node in the cluster is sending and receiving data in a way that
+doesn't cause deadlocks.
+
+x                   | Shared Memory | Message Passing
+--------------------|---------------|-------------------
+Communication       | Programmer    | Automatic
+Data distribution   | Manual        | Automatic
+HW Support          | Simple        | Extensive
+Programming         |               |
+Correctness         | Difficult     | Less difficult
+Performance         | Difficult     | Very difficult
+
+UMA and NUMA systems rely on multiple cores in one chip. We can also have a single core processor that uses
+multiple __threads__ (on the same core) which access the same physical memory. A multi threading system requires
+extensive hardware support as the core needs to efficienlty switch threads to see any kind of performance
+improvement.
+- __Coarse grained multi-threading__ means that the processor switches threads every few cycles
+- __Fine grained multi-threading__ means that hte processor switches threads every cycle.
+- __Simultaneous multi-threading__ (SMT) or hyperthreading instructions from multiple threads can be executed in
+  the same cycle. So in a 4-wide uniprocessor, the 4 slots can be filled by instructions from differen threads.
+
+SMT can often have as-good if not better performance than multi-core processors in specific use cases. A SMT
+capable processor requires some hardware changes relative to a standard superscalar processor.
+
+Regular superscalar processor
+
+```
+[PC] -> [Fetch] -> [Decode] -> [Rename] -> [RS] -> [ALU] -> [ROB]
+                                  |          ^                 |
+                               [ RAT ]       ---------------[ARF]
+```
+
+SMT
+
+```
+[PC 1] -> [Fetch] -> [Decode] -> [Rename] -> [RS] -> [ALU] -> [ROB]
+[PC 2] ->                          |          ^                 |
+                                 [ RAT 1]     |---------------[ARF 1]
+                                 [ RAT 2]     |                 |
+                                               ---------------ARF 2]
+```
+
+We can see that superscalar processors pull from different PCs, store register renames in different RATs and
+use different architectural register files (ARF) to broadcast the results to the reservation stations.
+
+Accessing memory in a multi-threaded processsor can be challenging. If we use a VIVT cache, we run a real risk of
+getting incorrect data since virtual tags may not match to the same physical addresses between threads. However,
+using a VIPT cache will alleviate the cache inconsistency since the physical tag will be compared to the tags in
+the TLB. However, the TLB itself needs to be thread aware since the threads may map the same virtual page to
+different frames.
+
+SMT threads share a cache which is good because it allows for easy data sharing. However, if we define the
+__working set__ of a thread as the memory that is commonly accessed and should be cached for the thread, and
+
+$$ws(t_1) + ws(t_2) - intersect(ws(t_1), ws(t_2)) > size_{cache}$$
+
+the cache will be constantly re-written resulting in __cache thrashing__. This results in significanlty worse
+performance in an SMT system.
+
+### Cache Coherence
+In shared memory architectures (UMA) we often have the case where *Core A* writes value $x$ to *MEM0*. THen *Core B*
+reads from *MEM0*. Obviously, in these cases we expect the value read by *Core B* to be equal to $x$. However, in
+UMA architectures, each core still has it's own independent L1 cache (since maintaining one large L1 cache across the
+cores would be much too slow). So when *Core A* writes to *MEM0*, it writes the value to its cache - *Core B* does not
+see this update (since its cache was not updated) and therefore Cores A and B are out of sync. In this case we say
+*Cache A* and *Cache B* are __incoherent__. For the UMA architecture to work we need the cores' L1 caches to be
+__coherent__ to avoid memory mismatch problems.
+
+For caches to be coherent:
+1. Read *R* from address *X* on Core *C1* returns the value written by the most recent write *W* to *X* on *C1* if
+   no other core has written to *X* between *W* and *R*.
+2. If *C1* writes to *X* and *C2* reads after a sufficient time (and there are no writes in between), *C2*'s read returns
+   the value from *C1*'s write.
+3. Any two writes to *X* must be seen to occur in the same order by all of the cores. (This means that writes to the same
+   location must be serialized).
+
+There are a few different strategies for maintaining cache coherence. The most naive solution would be to either not
+use caches or use a single L1 cache for all of the cores. However, these are not viable solutions for performance
+reasons. We may also consider using a write-through cache (which updates main memory on write), but that will not work
+because the other cores may see stale values if they only read that address from their cache.
+
+More viable solutions include:
+- __write update coherence__ where writes in one core are broadcast to the caches of all other cores (hadles properties 1
+  and 2 or coherence).
+- __write invalidate coherence__ where a write in one core, invalidates the corresponding block in all other cores'
+  caches (handles properties 1 and 2 of coherence)
+- __snooping__ where all writes are broadcast on the same shared bus to maintain the order of writes (handles property 3
+  of coherence).
+- __directory__ where blocks are ordered by an *ordering point* property which is used to maintain a consistent write
+  order (handles property 3 of coherence).
+
+We can pick any one of the first two methods and any one of the second two methods to create a viable cache coherence
+scheme.
+
+#### Snooping
+
+##### Write update with snooping
+The most naive implementation of write update with snooping uses two write through caches. When one core is written,
+the value is updated in the cache and the write is sent through the shared memory bus to write to memory. The other
+cores snoop writes (listens for writes) and update the corresponding block (if it exists) in their own caches. This works
+but is slow since writing the main memory and broadcasting updates on a shared bus can cause performance bottlenecks. Thus
+there are some optimizations we can do to the write update with snooping system to improve performance.
+
+The first optimization is to use a write back cache (which maintains a dirty bit and only writes to memory when
+the block is removed from the cache). This adds a bit more complication to the write update algorithm. Now it is possible
+for the value in a core's cache to be different from what is in memory. So cores have to snoop reads as well as writes.
+When a core transmits a read (on a cache miss), the other cores snoop that read and look for a corresponding block in
+their cache with a dirty bit. If such a block exists, the cache sends that value through the shared memory bus so as to
+keep the caches coherent with the latest updates. Further, only one of the caches should have a dirty bit for any one
+block. So the last core to write to an address should have that block as dirty in its cache - all other blocks should see
+that block as "clean" since they are not responsible for updating memory.
+
+The second optimization is to only broadcast writes when the block is shared between multiple cores. To do this, the
+shared bus needs another "shared" line and the cache block needs a shared bit. WHen the core adds a block to the cache,
+other blocks snoop the request and use the shared line to broadcast whether or not they contain the corresponding block.
+If any blocks have the corresponding block, they all set their shared bit to 1 and broadcast any writes on the bus.
+However, if the shared bit is not 1 the core does not need to broadcast writes on the bus which reduces the load on the
+bus thus reducing the bottleneck.
+
+#### Write invalidate with snooping
+Write invalidate with snooping works very similarly to the write update with snooping protocol. However, instead of
+updating the caches of the other cores, we simply invalidate any corresponding blocks in other caches on a write to a
+core. Subsequent reads at the other cores will be misses and will read the value from the most up to date cache. This
+works especially well in cases where the cores do not share a single address too much - ie one core works on an address
+for a while, then the other core - since the first overwrite would invalidate all other cache's and thus subsequent
+writes would not need to be broadcast on the bus.
+
+##### Summary of Update and Invalidate protocols
+
+Application Does                     | Update                           | Invalidate
+-------------------------------------|----------------------------------|---------------------------------------------
+Burst of activity to one address     | Each write sends an update (Bad) | First write invalidates. Others hit. (Good)
+Writes different words in same block | Update sent for each word (Bad)  | First write invalidates. Others hit. (Good)
+Producer -> Consumer                 | P sends updates, C hits (Good)   | Producer invalidates consumer's copy (Bad)
+
+Obviously, update and invalidate protocols each have their own advantages. However, modern processors almost always use
+the invalidate protocol. This is because of threading. If the operating system moves a thread to another core (which is
+pretty common), the write update protocol would keep updating the old core's cache which is very inefficient. In
+contrast, the invalidate protocol would invalidate the old core's cache almost immediately which is much more desirable.
+
+__Modified, shared, invalid__ (MSI) coherence is one of the simplest write invalidate with snooping protocols. It
+relies on maintaining one of three states for each cache block:
+- Invalid: an invalid block
+- Modified: a block that has been written to in the cache
+- Shared: a block that has been read but not modified (not that "shared" is a bit of a misnomer here).
+
+The cache blocks transition between states according to the following state diagram:
+
+![](src/hpca/msi-coherence.png)
+
+### Cache to cache transfer
+In a cache coherent system, if a core is attempting to read from memory we sometimes want to pull the data from
+another core's cache since that data will be more up to date. We can accomplish this process of __cache to cache
+transfer__ in a few different ways. The first solution is to abort and retry. If *Core A* makes a read request
+and *Core B* has the data in it's cache, *Core B* will abort *Core A*'s request, write the block in it's cache back
+to memory, and let *Core A* restart its read request. This solution is very simple and obviously works but is
+pretty slow. Since a single read has the latency of two trips to memory. The second solution is known as
+__intervention__. Here, if *Core A* makes a read request for a block in *Core B*'s cache, *Core B* broadcasts an
+intervention signal on the bus which tells the memory not to repond to *Core A*'s request. *Core B* can then
+provide the appropriate data on the bus which is picked up by *Core A* and memory. The memory needs to be picked
+up by (and written to) memory because both blocks will see the requested block in the shared state and will not
+write it back to memory in this scheme. This requires more complex hardware but is more common in modern
+processors.
+
+Intervention works well but requires a lot of writes to memory which is non-ideal. We can solve this using a
+__MOSI__ protocol (which is MSI with an additional O (owned) state). When a block in the M state snoops a read it
+transitions to the O state and memory is not written. The O state is almost exactly like the S state except that in
+the O state the block will provide data when it snoops a read and writes back to memory if repalaced.
+- M: exclusive read / write access
+- S: shared read access (clean)
+- O: shared read access (dirty)
+
+MSI and MOSI are very good with data that is shared between cores but is inefficient with data that is exclusive to
+one core. This is because MSI and MOSI require additional memory updates which would not be present in a
+uniprocessor and cause the performance on isolated memory to decrease (eg invalidating blocks on cache write). To
+solve this problem we introduce an E (exclusive) state which provides exclusive read write access with no need to
+write back. Writes in the E state do not require that we invalidate other blocks (since we know that the block
+is exclusive to the one core) which saves memory accesses.
+
+#### Directory
+Snooping works quite well but the bus used for broadcasts becomes a bottleneck. So snooping does not work well
+for systems with more than 8-16 cores. A directory system maintains a __directory__ which is a distributed access
+cores. The directory is divided into slices (each of which is stored on a different core) where each slice has has
+one entry for each block it serves. The entry tracks which cache have the block in a non-invalid state. The order
+of operations is determined by the slice where the entry for that block lives (called the __home__ slice).
+
+A directory entry contains one dirty bit and a single presence bit for each core (cache) in the system. The
+presence bit is 1 if that cache __may__ contain that block and 0 if the cache definitely does not have that block.
+So instead of broadcasting all read and write requests over the bus, the cores use a point to point network to
+communicate with the directory and the directory uses the presence bits to send data, invalidation, etc requests
+to the caches that may contain the corresponding blocks. A directory system uses the same states as an MSI, MOSI,
+or MEOSI protocol but saves a lot of bandwidth since it's no longer uses a single bus. 
+
 
