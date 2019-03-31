@@ -2057,6 +2057,366 @@ presence bit is 1 if that cache __may__ contain that block and 0 if the cache de
 So instead of broadcasting all read and write requests over the bus, the cores use a point to point network to
 communicate with the directory and the directory uses the presence bits to send data, invalidation, etc requests
 to the caches that may contain the corresponding blocks. A directory system uses the same states as an MSI, MOSI,
-or MEOSI protocol but saves a lot of bandwidth since it's no longer uses a single bus. 
+or MEOSI protocol but saves a lot of bandwidth since it's no longer uses a single bus.
 
+### Synchronization
+An obvious problem with parallel processing is that the division of labor between cores may result in
+synchronization problems. For example: if we are counting the letter frequency in a string using two corew each
+running a script:
+
+```MIPS
+LW L, 0(R1)
+LW R, Count[L]
+ADD R, R, 1
+SW R, Count[L]
+```
+
+If both cores are examining different instances of the same letter L at the same time, the counter for that letter
+will only be incrimented by one instead of by two. THis is obviously incorrect behavior. Specifically we see that
+the problem arises because the two threads read and write the `Count` array at the same time.
+
+In this example we can see that the process of reading the current count, incrementing the count, and storing the
+count must occur on its own (other threads or processes cannot use the dependent resources). Otherwise we can get
+calculation errors. Sections of code that require exclusive access to some resources in a multiprocessor or
+multithread program are called __atomic sections__ or __critical sections__. So when writing a program with
+multiproccessing in mind we need to write extra code to annotate critical sections so that they run atomicaly.
+
+So we can modify our above script:
+
+```MIPS
+LW L, 0(R1)
+Lock CountLock[L] // I2
+LW R, Count[L]
+ADD R, R, 1
+SW R, Count[L]
+Unlock CountLock[L] // I6
+```
+
+So the first of the threads to reach `I2` will gain exclusive access to the `CountLock` section (and any resources
+used in that section). Other threads which also use `CountLock` will have to wait for the thread to reach `I6`
+before they can enter `CountLock`.
+
+Code that uses __lock__ or __mutex__ is said to use __Lock synchronization__. Lock synchronization works as
+follows:
+
+```C
+lock(lock_var);
+shared_mem[i]++;
+unlock(lock_var);
+```
+
+`lock_var` is a "normal" variable initailly set to `0`. The `lock` function performs an operation like:
+
+```C
+void lock(int& lock_var) {
+    while(lock_var == 1);
+    lock_var = 1;
+}
+```
+So when I call `lock` on a variable, it will spin until that variable has been set to `0`, then will reset it to
+`1` which essentailly gives the current thread the `lock`.
+
+The `unlock` function then just sets the lock variable back to `0`.
+
+```C
+void unlock(int& lock_var) {
+    lock_var = 0;
+}
+```
+
+However, there is an obvious problem with this - the lock function itself needs to be atomic otherwise we can have
+two (or more) threads that claim the lock at once. So to implement lock functions we can either use a complicated
+algorithm like [Lampart's bakery algorithm](https://en.wikipedia.org/wiki/Lamport%27s_bakery_algorithm) which
+uses normal load and store instructions to create atomic locks. However, this algorithm is relatively expensiv.e
+So processors actually have built in atomic instructions that can be used to implement the `lock` and `unlock``
+functions.
+
+The __atomic exchange__ instruction exchanges two values. So in
+
+```
+EXCH R1, 0(R2)
+```
+
+will write the value of R1 to the memory address in R2 and will write the value stored in that memory address to
+R1. We can use this instruction to implement the lock function:
+
+```C
+R1 = 1
+while(R1 == 1) {
+   exchange(R1, lock_var);
+}
+```
+
+So while another thread has the lock, `lock_var` will equal 1 and the while loop will keep spinning. Once
+`lock_var` is released, another thread will take it using the exchange. This is a very simple lock and technicaly
+works but suffers from the obvious problem that it requires a lot of writes to memory.
+
+The __test and write__ family of atomic instructisions atomicaly writes to memory based on a specific condition.:
+
+```C
+void test_and_set(int& R1, int addr) {
+    if (mem[Addr] == 0) {
+        mem[8 + R2] = R1;
+        R1 = 1;
+    } else {
+        R1 = 0;
+    };
+}
+```
+
+So we can use this funciton in a lock as:
+
+```C
+do {
+    R1 = 1;
+    test_and_store(R1, lock_var);
+} while(R1 == 0);
+```
+
+The test and store instructions are better for performance than the atomic exchnage but are still very bad for
+pipelining a processor. This is because an instruction simply cannot read and write it memory during the standard
+memory stage in the pcoessor pipeline. We would have to add an additionaly memory stage which is not worth it for
+the small number of combined read/write atomic instcutions. To solve this problem processors have atomic
+__load linked / store conditional__ (LL / SC) instructions which split the reads and writes out of the combined
+load / store instructions.
+
+The load linked instruction is essentaally a normal load, but it saves the address it loads from to a special
+__linked memory__. The store conditional checks if the dddress to store to is the same as the address in the link
+memory. If so, it stores as normal and returns 1. Otherwise it returns 0 and doesn't store anything. If we snoop
+a write to the address between the load and store, the link address is reset to 0. Because of the
+link operation, these two instrucitions behave like a single atomic operation even through they are seperate
+instructions.
+
+So we can implementa a lock:
+
+```C
+void lock(int& lock_var) {
+    do {
+        R1 = 1
+        load_link(R2, lock_var);
+        store_conditional(R1, lock_var);
+    } while(R1 == 1 || R1 == 0); // keep spinning while the lock is held (1) or someone beat us to the write.
+}
+```
+
+This lock synchronization implementation can have pretty bad performance implications. Consider three cores,
+each of which is trying to obtain a lock on some `lock_var`.
+
+Core 0           | Core 1           | Core 2
+-----------------|------------------|------------------|
+`lock(lock_var)` | x                | x                |
+x                | `lock(lock_var)` | x                |
+x                | x                | `lock(lock_var)` |
+
+Since core 0 has the lock, cores 1 and 2 will spin as they read and write  `lock_var`. However because of write
+invalidate cache coherence, as each of the blocks writes to `lock_var`, it will invalidate `lock_var` in the
+other core's cache. So `lock_var` will be moving between core 1 and core 2's caches which will take up a lot of
+power and cause network interference over the bus which could negatively impact the performance of the work being
+done in core 0.
+
+An easy way to avoid this problem is to use normal loads to read `lock_var` and only attempt to obtain the lock
+atomicaly if the normal load returns a free lock.
+
+Using an `exchange
+```C
+void lock(int& lock_var) {
+    do {
+        R1 = 1;
+        load_link(R2, lock_var);
+        if (R2 != 0) {
+            continue;
+        }
+        store_conditional(R1, lock_var);
+        if (R1 == 1) {
+            break;
+        }
+    } while (True);
+}
+```
+
+Now, since each core is only reading from `lock_var` they will get cache hits on the reads and will not attempt to
+write (and invalidate the other cores' caches) unless there is a good chance that they will obtain the lock.
+
+Note that so far we've only been talking about different implementations for the `lock` function. The `unlock`
+function will still use a normal store to set the `lock_var` to `0` since we can garuntee there is no inferference
+when `unlock` is called.
+
+__Barrier synchrnoization__ is another type of synchronization where all of the threads need to reach a specific
+point or barrier before they can resume their work. For example, consider a multithreaded program that is
+calculating the sum of the values in an array. If the program splits the array by threads each thread may run
+a script like:
+
+```C
+int start = get_starting_index(thread_id);
+int end = get_ending_index(thread_id);
+int sums[thread_id] = 0;
+for (int i = start; i < end; i++) {
+    sums[thread_id] += arr[i];
+}
+// TAG
+if (thread_id == 0) {
+    int sum = 0;
+    for (int i = 0; i < num_threads; i++) {
+        sum += sums[i];
+    }
+    print(sum);
+}
+```
+
+we don't want the code after `TAG` to execute until every thread has finished calculating the sum of their parts
+of the array. So we need some kind of barrier at `TAG` which forces the threads to stop there until every thread
+has reached the barrier.
+
+A basic barrier synchronization implemenation has two componenets, a `counter` variable which counts the number
+of threads that have reached the barrier, and a `flag` variable which indicates whether or not `counter ==
+num_threads`.
+
+```C
+void barrier(int& counter_lock, int& count, int& total) {
+    lock(counter_lock);
+    if (count == 0) {
+        release = 0; // reset the barrier to 0
+    }
+    count++; // increment the count
+    unlock(counter_lock);
+    if (count == total) {
+        count = 0; // reset the count to 0 to setup the re-set of the barrier
+        release = 1; // release all threads from the barrier
+    } else {
+        spin(release==1) // spin until the last thread has reached the barrier.
+    }
+}
+```
+
+This is a simple looking barrier release but it actually doesn't work properly in some caes if we are trying to re
+use the same bariier twice. This is because if one of the threads doesn't read the release variable quicklly enough
+t may not iregieter that it has been released if another thread enters the second instanc of the barrier too
+quickly. This could result in a deadlock. The way around this is to keep a local record of what should release the
+thread from the barrier and flip it for each barrier.
+
+```C
+local_sense = !local_sense;
+lock(counter_lock);
+count++;
+if (count == total) {
+    count = 0;
+    release = local_sense;
+}
+unlock(counter_lock);
+spin(release == local_sense);
+```
+
+This way the second barrier doesn't override the release variable for threads stuck in the first barrier which
+solves the deadlock problem.
+
+### Memory consistency
+We have already talked about memory coherence which maintains that accesses to the same address maintain the sameo
+order accross cores. __Memory consistency__ is the property that access to all addresses maintain the same order
+accross cores. While the need for consistency is not as obvious as the need for coherence, it is very important -
+especially when dealing with out of order processors.
+
+__Sequential consistency__ is the most natural type of consistency to think about. It says that the result of any
+execution should be as if all accesses executed by each program were executed in-order and accesses among
+different processors were arbitrarily interleaved. The easiest way to implement this is to force all accesses
+in one processor to be in order. This is, of course, very bad for performance.
+
+A better implementation of sequential consistency would be to allow for out of order memory acceses in the
+processor but detect and fix when consistency may be violated. We can detect a potential consistency violation
+if we roorder memory accesses and there is a store to an out of order address between the time when we read the
+address and the time woen we should have read the address according to sequential consistency. If so, everything
+depending on that read must be replayed.
+
+__Relaxed consistency__ is a looser consistency restriction. We can view consistency orderings as four categories:
+- Write A -> Write B
+- Write A -> Read B
+- Read A -> Write B
+- Read A -> Read B
+
+Sequential consistehcy enforces all of these orderings. Relaxed consistency only enforces a subset of these
+orderings. When dealing with relaxed consistency, the programmer needs to write programs with consistency in mind.
+Usually the processor will come with some non-reorderable instructions which are garunteed to happen in ordere
+ven if the instructions before it or after it are not - ie these instructions are barriers between sections of
+out of order accesses.
+
+a __data race__ is a dependence between memory accesses that is not ordered by synchronization. A __data race
+free__ program is a program that cannot create data races - it follows sequencial consistency even if the hardware
+doesn't have sequential consistency constraints. For example, a program like:
+
+```MIPS
+LW R1, 0(R2) // I1
+SW R3, 0(R2) // I2
+```
+
+can have data races since thre is a clear dependency between `I1` and `I2`.
+
+However:
+
+```MIPS
+LW R1, 0(R2) // I1
+BARREER // I2
+SW R3, 0(R2) // I3
+```
+
+is data race free because the barrier prevents the race condition between `I1` and `I3`.
+
+
+### Many cores
+A __many core processor__ is a processor with a large number of cores. There are a lot of potential problems with
+many core processors.
+
+#### Coherennce traffic
+One obvious problem tha twe have already seen is that coherance traffic becomes hard to
+manage. Increasing the number of cores results in more writes to shared memory which requires write invalidations
+(or updates). This puts a lot of strain on the communication bus. So many core processors use directory cohereace
+with an efficient network for a more scalable conhrance system. Specificaly, a many core processor uses a mesh network to increase the throughput available to the nwtwork.
+
+![](src/hpca/mesh.png)
+
+This way, as we add more cores, we actually increase the number of possible paths between any tow cores which in
+creases the througput of the network.
+
+Obviously, the mesh is not the only viable point to point network that can be used in this type of system. Other
+possible networks include torus networks which are like mesh networks but the links "wrap around" the mesh and
+flattened butterfly networks.
+
+### Off chip traffic
+As the number of cores increases, the number of off chip requests (ie memory requests) increases since each core
+will have the same number of cache misses as before. So we need to reduce the number of memory requests per core
+and make the lower level cache (the L3 cache) shared between cores. However, this is not easy since the
+LLC will be big and slow and will have a single entry point which will become a bottleneck.
+
+To solve this problem we need to create a __distributed lower level cache__ which, as the name implies, is an LLC
+that is distributed accross the cores. The entire cache ss shared accross the cores, but the cache is divided into
+__tiles__ which are divided into the mesh network. So each core in the mesh network contains an individual core,
+a personal L1 cache, a personal L2 cache, and a section of the L3 cache. We can easily divide the DLLC accross the
+cores by:
+- splitting the cache by set. That way it's relatively trivial to know where to send the cache request.
+- splitting the cache by page number. That way we can maintain spacial locality.
+
+### On chip directory
+The directory coherance mechanism is great for small memories but in many chip processors, in the directory system
+we keep a directory for every possible memory block in the system. This could grow to be gigabytes in size for a
+many core processor. To limit the size here we will only allocate space for blocks that have at least one presence
+bit in the directory. If we run out of room in the directory we have to replace an existing entry using some kind
+of scheme (like LRU). When we replace a directory entry we also have to invalidate it in the caches themselves
+by using the presence bits.
+
+### Power budget split among cores
+As we increase the number of cores, the power we can supply to each core (and therefore the frequency we can run
+each core at) decreases significantly. In general we can say that
+
+$$f_n = (\frac{1}{n})^{\frac{1}{3}} * f_1$$
+
+for an n-core processor relative to a uniprocessor. Due to these changes, the loss in performance due to frequency
+change is not always worth the increase an performance due to parallelizm. We can alleviate this problem somewhat
+by creating a turbo frequency which allows a single core to run at a much higher frequency if it's running alone.
+This allows a single threaded program to not be bogged down by performance loss due to cores that are not being
+used.
+
+### OS Confusion
+Many core systems create a lot of consfsion for the OS since it has to deal with threading, cores, chips, etc with
+all of the context switching, locks, consistency, etc. There are a lot of rules the OS has to use to be performant
+in such a system. For example, when allocating threads to resources, the OS must first distribute the
+threads between unique chips, then between unique cores (on the same chip), then between unique threads (on the
+same core).
 
