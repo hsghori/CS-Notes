@@ -1305,7 +1305,7 @@ xxxx   | B   | 1
 xxxx   | C   | 3
 xxxx   | D   | 2
 
-This ensures that all the counters hav different values.
+This ensures that all the counters have different values.
 
 For an N way set associative cache, we need N, $log_2{N}$ bit counters for each set since we want to do LRU for
 each set. So there is a pretty high memory and energy cost.
@@ -1468,7 +1468,7 @@ cache is small enough because the index in the cache is determined using some bi
 virtual address. If the cache is small enough, those index bits will fall with the "offset bits" which are used
 to determine where in the frame the data is in physical memory. So the index bits will be the same for the
 different aliases which means they will map to the same set in the cache - and since they also use the same tag
-the cache data should be consistent. However, if the cache is large, the index bits will not neccesarily be
+the cache data should be consistent. However, if the cache is large, the index bits will not necessarily be
 part of the offset and therefore the aliasing problem will break the cache.
 
 In general we can say that $size_{cache} \leq assoc * size_{page}$. Which can also be broken down into
@@ -1498,7 +1498,7 @@ worse than LRU but uses more data.
 
 #### Reducing miss rate
 Misses can be broken down into
-1. __compulasary misses__ - misses because the memory address has not been accessed before
+1. __compulsory misses__ - misses because the memory address has not been accessed before
 2. __capacity misses__ - misses because there is not enough room in the cache
 3. __conflict misses__ - misses because there is not enough room in the set
 
@@ -1530,7 +1530,7 @@ for (int i = 0; i < 100000; i++) {
 
 we nee to be careful with what we choose as `pdist`. If we choose a small value, we will still have to
 wait a while for the data to arrive from memory. If we choose a large value, the value may sit in the cache
-for too long and get overriden. The correct value for `pdist` is processor dependent.
+for too long and get overridden. The correct value for `pdist` is processor dependent.
 
 __Hardware prefetching__ is a method of prefetching where the hardware attempts to determine what will be requested
 next. There are a few different implementations:
@@ -1549,9 +1549,9 @@ for (int i = 0; i < N; i++) {
 }
 ```
 
-We can see that this loop access patern is non-optimal given how memory is organized. Recall that
-when `a[0][0]` is accessed, a bumch of elements from `a[0]` will be stored in the cache. However, since
-we are iterating by row, there is a chance that those cached values will be overriden by the time we return
+We can see that this loop access pattern is non-optimal given how memory is organized. Recall that
+when `a[0][0]` is accessed, a bunch of elements from `a[0]` will be stored in the cache. However, since
+we are iterating by row, there is a chance that those cached values will be overridden by the time we return
 to `a[0][1]`. Loop interchange would convert the loop structure above to:
 
 ```C
@@ -1573,11 +1573,11 @@ __Blocking caches__ are caches that are completely blocked during a cache miss -
 while there is a cache miss. These are obviously not efficient since sequential misses have a lot of latency.
 __Non blocking caches__ are caches that can pipeline cache actions - __hit under miss__ caches allow for hits
 while the processor is fetching data for a cache miss and __miss under miss__ caches allow for misses while the
-processesor is fetchiing data for a cache miss.
+processor is fetching data for a cache miss.
 
 Miss under miss caches need to have __miss status handling registers__ (MSHR) which store information about
 ongoing misses. On a cache miss we first check the MSHRs. If the block is not found in the MSHR, we store
-the instruction information in the MSHR to know which instruciton to trigger when the data comes back. IF the
+the instruction information in the MSHR to know which instruction to trigger when the data comes back. IF the
 block is found in the MSHR, we add the instruction to the MSHR (eg more than one instruction needs to be
 triggered when the data comes back). The second case is called a __half miss__ - a miss in a non-blocking
 cache which would have been a hit in a blocking cache. We want to have 16-32 MSHRs if possible since memory
@@ -1605,7 +1605,7 @@ $$t(N) = C$$
 
 Note that oftentimes the observed hit rate of higher level caches seem lower than the L1 cache. This is because
 the L2, L3, ... caches only see the "harder" memory accesses and therefore they seem to have low hit rates. We
-call this loewr hit rate the __local hit rate__. However, if they were used alone they would have a much higher
+call this lower hit rate the __local hit rate__. However, if they were used alone they would have a much higher
 hit rate. We call this the __global hit rate__.
 
 ```
@@ -1617,35 +1617,35 @@ local miss rate = 1 - local hit rate
 ```
 
 When defining cache hierarchies we need to decide if a block is in L1:
-- should the block be garunteed to be in L2 (inclusion)
-- should the block be garunteed to not be in L2 (exclusion)
-- should the block's existance in L2 not be garunteed
+- should the block be guaranteed to be in L2 (inclusion)
+- should the block be guaranteed to not be in L2 (exclusion)
+- should the block's existence in L2 not be guaranteed
 
-by default, inclusion is not garunteed in a cache hierarchy. To maintain inclusion, we need to include an
+by default, inclusion is not guaranteed in a cache hierarchy. To maintain inclusion, we need to include an
 inclusion bit in L2 which is 1 if the block is in L1. With this bit we make sure we don't replace anything
 in L2 that is still in L1.
 
 ### Memory
-We use caches because accesing main memory would be too slow for the needs of a modern processor. But we haven't
-disussed how memory actually works and what makes it so slow.
+We use caches because accessing main memory would be too slow for the needs of a modern processor. But we haven't
+discussed how memory actually works and what makes it so slow.
 
 There are too major memory technologies __static random access memory__ (SRAM) and __dynamic random access memory__
-(DRAM). __Random access__ means that we can access any part of the memory independently. __Static__ menas that
-the data will be retained so long as power is supplied to the memory chip. __Dynamic__ menas that the data will
-be lost if it is not refreshed. SRAM seemsm like the obvious choice, but it is more expensive and requires more
+(DRAM). __Random access__ means that we can access any part of the memory independently. __Static__ means that
+the data will be retained so long as power is supplied to the memory chip. __Dynamic__ means that the data will
+be lost if it is not refreshed. SRAM seems like the obvious choice, but it is more expensive and requires more
 transistors per memory unit. DRAM only needs one transistor per chip. SRAM is also faster than DRAM.
 
 ![](src/hpca/memory-chip.png)
 
 A memory chip is essentially an N x M matrix where the rows are __word lines__ and the columns are __bit lines__.
-The row decoder activates a word line which sends the bit vlaues to the __sense amplifier__ which amplifies the
+The row decoder activates a word line which sends the bit values to the __sense amplifier__ which amplifies the
 signal. The values are then saved in the __row buffer__ and the __column decoder__ uses a column address to
 determine which bit you care about from the row. To write to a row, we read to the row buffer, modify the bit we
-want to write, adn write the value sback - so a write is really a read-then-write operation.
+want to write, adn write the values back - so a write is really a read-then-write operation.
 
-Recall that DRAM needs to be refershed - an individual row needs to be refreshed within time T of it's last
+Recall that DRAM needs to be refreshed - an individual row needs to be refreshed within time T of it's last
 write which means that for a DRAM with N words, we need to refresh one row every $\frac{T}{N}$ seconds. This
-is actully very frequesnt and greatly limits how often we can read and write memory. Every read in DRAM is
+is actually very frequent and greatly limits how often we can read and write memory. Every read in DRAM is
 read-then-write since we will want to refresh the row whenever possible.
 
 Note that if we want to read different bits from the same row we can read directly from the row buffer instead
@@ -1660,10 +1660,10 @@ The storage in a computer system is the memory that stores files (programs, OS, 
 allows "extra space" to allow for the virtual memory abstraction. Accessing storage is particularly slow, even
 slower than DRAM.
 
-Storage is traditionaly implemented as a __magnetic disk__. A magnetic disk is made up of a central __spindle__
-which has layeres of disks (__platters__). When the spindle rotates, the platters rotate as well. The platters are
+Storage is traditionally implemented as a __magnetic disk__. A magnetic disk is made up of a central __spindle__
+which has layers of disks (__platters__). When the spindle rotates, the platters rotate as well. The platters are
 coated with a magnetic material which is what stores the actual data on the disk. There is one __head__
-per side of the platter which forms a cirle or __track__ of fixed radius as the disk rotates. A group of tracks of
+per side of the platter which forms a circle or __track__ of fixed radius as the disk rotates. A group of tracks of
 the same radius in the disk is called a __cylinder__.  The head can switch tracks by either along the radius of the
 disk. The data on a track is stored in __sectors__. The sector starts with a preamble, and contains data and a
 checksum.
@@ -1699,39 +1699,39 @@ means that the technology has to be standardized so a lot of different computers
 to a lag in improvements to optical drive technology.
 
 __Magnetic tape__ is a storage mechanism used as a backup storage mechanism. Magnetic tape has a large (basicaly
-infinite) memory capacity but must be accessed sequentialy and so are very slow.
+infinite) memory capacity but must be accessed sequentially and so are very slow.
 
 We can see that these storage technologies are quite slow so we have developed __solid state disks__ (SSD) which
 try to make storage access time similar to that of DRAM. There are a few different options:
-- DRAM + battery is extrememly fast and reliable but is expensive and not suitable for storage
-- Flash is slower than DRAM but still fast, relaiable, and not too expensive.
+- DRAM + battery is extremely fast and reliable but is expensive and not suitable for storage
+- Flash is slower than DRAM but still fast, reliable, and not too expensive.
 
 ### Fault Tolerance
 __Dependability__ is a quality of a delivered service that justifies relying on the system to provide the service.
 A __dependable service__ is one that we can expect to provide a service. Note that our definition of __service__
 here is a bit vague. A __specified service__ is an expected behavior and a __delivered service__ is the actual
 behavior. So a dependable service is a service where the delivered service matches the specified service.
-We gerenalize services at the module level - ie memory, processor, etc.
+We generalize services at the module level - ie memory, processor, etc.
 
 When a module deviates from the specified behavior it could have a:
-- fault: when something in the system deviates from specififed behavior
+- fault: when something in the system deviates from specified behavior
 - error: when the actual behavior of a component of the system deviates from what is expected
-- failure: when the system deviates from the expcted behavior of the system
+- failure: when the system deviates from the expected behavior of the system
 
 __Reliability__ is measured by assuming that the service can be in one of two states - service accomplishment and
 service interruption. We measure reliability by measuring continuous service accomplishment. We foten measure
 this using __mean time to failure__ (MTTF).
 
-__Availability__ is simiilar to reliability but is measured as service accomplishment as a fraction
-of total time. We can also measure availabiliity as __mean time to repair__ (MTTR).
+__Availability__ is similar to reliability but is measured as service accomplishment as a fraction
+of total time. We can also measure availability as __mean time to repair__ (MTTR).
 
 There are a few different types of faults:
-- hardwaare faults: when the hardwaare fails
+- hardwaare faults: when the hardware fails
 - design faults: flaws in software design or implementation
 - operation faults: faults caused by operator / user error
-- environmental faults: faults caused by the external environemnt (eg fire, power failure, etc).
+- environmental faults: faults caused by the external environment (eg fire, power failure, etc).
 - permanent fault: faults that are constant (once they occur they don't go away until fixed)
-- intermittent fault: faults that occur intermittenlty (eg they come and go)
+- intermittent fault: faults that occur intermittently (eg they come and go)
 - transient: faults that only last for a small amount of time
 
 Not all faults will result in an error.
@@ -1741,14 +1741,14 @@ that attempt to avoid faults - eg not drinking liquids around hardware. Fault to
 applied in computer architecture to prevent faults from becoming failures.
 
 __Checkpointing__ is a common fault tolerance technique where the computer saves the state of the system
-periodicaly, checks for errors, and if there is an error restore the machine state from the checkpoint. This could
+periodically, checks for errors, and if there is an error restore the machine state from the checkpoint. This could
 take a long time which would cause service interruption. We can detect the error using __two-way redundancy__ where
 two modules do the same work and roll back if the results are different. We can also use __three-way redundancy__
 where three modules do the same work and vote on which answer to choose. Two way and three way redundancy are
 obviously expensive since they require additional hardware. In general __N-way redundancy__ is a method where n
 modules do the same work and vote on the answer to accept.
 
-N-way redundancy is generaly overkill for memory and storage faults. Instead we use __error detection / correction
+N-way redundancy is generally overkill for memory and storage faults. Instead we use __error detection / correction
 codes__. There are a few techniques. A parity bit is an extra bit which is the XOR of all the data bits. If the
 fault flips one bit, the parity bit will flip and we know there is a fault. An __error correction code__ is a
 technique which can fix single bit errors and detect two bit errors. The hard disk uses more complicated codes
@@ -1762,21 +1762,21 @@ sector and if the disk fails completely.
 
 __RAID0__ is a technique where we split a disk (by it's tracks) into N disks. We call each track in the original
 disk a __stripe__. In an N=2 RAID0, Disk 1 gets stripes 0, 2, 4, ... and Disk 2 gets stripes 1, 3, 5, ... This
-allows us to get twice the data throughput since we can parallelize disk access. Furthermore, there is less queing
-delay ssince individual accesses take less time and there are less accesses per disk. However, this scheme is less
+allows us to get twice the data throughput since we can parallelize disk access. Furthermore, there is less queuing
+delay since individual accesses take less time and there are less accesses per disk. However, this scheme is less
 reliable than a single disk since if the failure rate of the total configuration is $N$ times the failure rate of
 a single disk. So:
 
 $$F_N = N*F_1$$
 $$MTTDL_N = \frac{MTTF_1}{N}$$
 
-__RAID1__ is a technique which mirrors the data accross N disks. So writes happen to all N disks but reads only
+__RAID1__ is a technique which mirrors the data across N disks. So writes happen to all N disks but reads only
 need to happen from one disk. The write performance is the same as with a single disk, but read performance is N
-times better. This scheme can tolerate any faults that affect a single disk. For reliabiliity, let's consider the
+times better. This scheme can tolerate any faults that affect a single disk. For reliability, let's consider the
 N=2 case. When both disks are active, we can expect a single disk to fail around $\frac{MTTF}{2}$. Then, we can
-expect the single working disk to last for a nother $MTTF$. So the total $MTTF_2 = MTTF_1 + \frac{MTTF_1}{2}$.
-However, usually we would repair the failed disk as soon as it fails. In this case we know that hte first disk
-will fail in $\frac{MTTR_1}{2}$, that disk will be repaied in time $MTTR_1$ and then the system will continue
+expect the single working disk to last for another $MTTF$. So the total $MTTF_2 = MTTF_1 + \frac{MTTF_1}{2}$.
+However, usually we would repair the failed disk as soon as it fails. In this case we know that the first disk
+will fail in $\frac{MTTR_1}{2}$, that disk will be repaired in time $MTTR_1$ and then the system will continue
 again for $\frac{MTTF_1}{2}$ until another disk breaks.
 
 So $MTTDL_2 = \frac{MTTF_1}{2} * n_{repairs\ before\ failure}$. The number of repairs before failure is
@@ -1795,7 +1795,7 @@ resources.
 In RAID4, a write takesthe time to read the old data, write the new data, read the parity stripe, and write the
 parity stripe. This is because to re-calculate the parity we have to read the old data, XOR that with the new data
 to determine which bits have changed, and XOR the result with the parity to flip any bits that change in the
-parity. A read, on the other hand, only needs to read the stripe. Perofrmnace wise, in RAID4 we get an N-1 fold
+parity. A read, on the other hand, only needs to read the stripe. Performance wise, in RAID4 we get an N-1 fold
 throughput improvement for reads. However, for writes we need to write and read between two disks so the throughput
 is half the throughput of a single disk. In terms of reliability, with an N disk array
 we know that the $MTTF_N = \frac{MTTF_1}{N}$. If we don't repair the disk on failure, then
@@ -1831,8 +1831,8 @@ instruction is a combination of N "regular" instructions). Making the processor 
 power which is not desirable. Thus, to improve performance we began developing __multiprocessors__ which contained
 multiple cores on a single chip and therefore were bale to see drastic performance improvements.
 
-__Flyn's taxonomy of parallel machines__ is a simplistic classification scheme for computers capable of
-parallelization. Flyn's taxonomy considers a processor in terms of the number of instruction streams handled
+__Flynn's taxonomy of parallel machines__ is a simplistic classification scheme for computers capable of
+parallelization. Flynn's taxonomy considers a processor in terms of the number of instruction streams handled
 at once and the number of data streams processed by the instruction streams.
 
 Classification | Instruction Stream | Data Streams | Example
@@ -1842,15 +1842,15 @@ SIMD           | 1                  | N            | Vectorized processor
 MISD           | N                  | 1            | Stream processor (not used)
 MIMD           | N                  | N            | Multiprocessor
 
-Most modern processors today are __MIMD__ in the flyn taxonomy.
+Most modern processors today are __MIMD__ in the Flynn taxonomy.
 
 When designing multiprocessors there are some different design patterns.
 
-__Centralized shared memory__ processors are processors that have seperate processors but share a single main
+__Centralized shared memory__ processors are processors that have separate processors but share a single main
 memory and central IO hus. Most modern multiprocessors today follow this pattern. This is also called __unified
 memory access time__ (UMA) or __symetric multiprocessing__ (SMP).
 
-SMP processors suffer from a need to have a large, slow, main memory module. Additionaly, misses from the cores
+SMP processors suffer from a need to have a large, slow, main memory module. Additionally, misses from the cores
 will result in low memory bandwidth. With enough memory accesses, the memory bandwidth will become so bad that the
 processor annot benefit from the multiple cores (since all the cores will have to wait on one memory mordule).
 Because of these problems, SMP only works well for small machines (ie machines with less than 16 cores).
@@ -1861,7 +1861,7 @@ a cache miss, it will check its own memory module for the data and, if it doesn'
 will send a network request to the core that contains that address. This follows a multiprocessing pattern called
 __message passing__. This paradigm also forces the programmer to be intelligent about accessing memory (ie they
 should prioritize accessing local memory to making network requests) which can result in more efficient programs.
-This means that each core is essnetially it's own computer system - these types of systems are also known as
+This means that each core is essentially it's own computer system - these types of systems are also known as
 __multi-computers__ or __clusters__. Note that systems that do not use a shared memory are called __NUMA__ (not
 UMA).
 
@@ -1911,7 +1911,7 @@ SMT
 We can see that superscalar processors pull from different PCs, store register renames in different RATs and
 use different architectural register files (ARF) to broadcast the results to the reservation stations.
 
-Accessing memory in a multi-threaded processsor can be challenging. If we use a VIVT cache, we run a real risk of
+Accessing memory in a multi-threaded processor can be challenging. If we use a VIVT cache, we run a real risk of
 getting incorrect data since virtual tags may not match to the same physical addresses between threads. However,
 using a VIPT cache will alleviate the cache inconsistency since the physical tag will be compared to the tags in
 the TLB. However, the TLB itself needs to be thread aware since the threads may map the same virtual page to
@@ -2072,7 +2072,7 @@ SW R, Count[L]
 ```
 
 If both cores are examining different instances of the same letter L at the same time, the counter for that letter
-will only be incrimented by one instead of by two. THis is obviously incorrect behavior. Specifically we see that
+will only be incremented by one instead of by two. THis is obviously incorrect behavior. Specifically we see that
 the problem arises because the two threads read and write the `Count` array at the same time.
 
 In this example we can see that the process of reading the current count, incrementing the count, and storing the
@@ -2105,7 +2105,7 @@ shared_mem[i]++;
 unlock(lock_var);
 ```
 
-`lock_var` is a "normal" variable initailly set to `0`. The `lock` function performs an operation like:
+`lock_var` is a "normal" variable initially set to `0`. The `lock` function performs an operation like:
 
 ```C
 void lock(int& lock_var) {
@@ -2114,7 +2114,7 @@ void lock(int& lock_var) {
 }
 ```
 So when I call `lock` on a variable, it will spin until that variable has been set to `0`, then will reset it to
-`1` which essentailly gives the current thread the `lock`.
+`1` which essentially gives the current thread the `lock`.
 
 The `unlock` function then just sets the lock variable back to `0`.
 
@@ -2127,7 +2127,7 @@ void unlock(int& lock_var) {
 However, there is an obvious problem with this - the lock function itself needs to be atomic otherwise we can have
 two (or more) threads that claim the lock at once. So to implement lock functions we can either use a complicated
 algorithm like [Lampart's bakery algorithm](https://en.wikipedia.org/wiki/Lamport%27s_bakery_algorithm) which
-uses normal load and store instructions to create atomic locks. However, this algorithm is relatively expensiv.e
+uses normal load and store instructions to create atomic locks. However, this algorithm is relatively expensive.
 So processors actually have built in atomic instructions that can be used to implement the `lock` and `unlock``
 functions.
 
@@ -2148,10 +2148,10 @@ while(R1 == 1) {
 ```
 
 So while another thread has the lock, `lock_var` will equal 1 and the while loop will keep spinning. Once
-`lock_var` is released, another thread will take it using the exchange. This is a very simple lock and technicaly
+`lock_var` is released, another thread will take it using the exchange. This is a very simple lock and technically
 works but suffers from the obvious problem that it requires a lot of writes to memory.
 
-The __test and write__ family of atomic instructisions atomicaly writes to memory based on a specific condition.:
+The __test and write__ family of atomic instructions atomically writes to memory based on a specific condition.:
 
 ```C
 void test_and_set(int& R1, int addr) {
@@ -2173,21 +2173,21 @@ do {
 } while(R1 == 0);
 ```
 
-The test and store instructions are better for performance than the atomic exchnage but are still very bad for
+The test and store instructions are better for performance than the atomic exchange but are still very bad for
 pipelining a processor. This is because an instruction simply cannot read and write it memory during the standard
-memory stage in the pcoessor pipeline. We would have to add an additionaly memory stage which is not worth it for
-the small number of combined read/write atomic instcutions. To solve this problem processors have atomic
+memory stage in the pcoessor pipeline. We would have to add an additionally memory stage which is not worth it for
+the small number of combined read/write atomic instructions. To solve this problem processors have atomic
 __load linked / store conditional__ (LL / SC) instructions which split the reads and writes out of the combined
 load / store instructions.
 
 The load linked instruction is essentaally a normal load, but it saves the address it loads from to a special
-__linked memory__. The store conditional checks if the dddress to store to is the same as the address in the link
+__linked memory__. The store conditional checks if the address to store to is the same as the address in the link
 memory. If so, it stores as normal and returns 1. Otherwise it returns 0 and doesn't store anything. If we snoop
 a write to the address between the load and store, the link address is reset to 0. Because of the
-link operation, these two instrucitions behave like a single atomic operation even through they are seperate
+link operation, these two instructions behave like a single atomic operation even through they are separate
 instructions.
 
-So we can implementa a lock:
+So we can implements a lock:
 
 ```C
 void lock(int& lock_var) {
@@ -2215,7 +2215,7 @@ power and cause network interference over the bus which could negatively impact 
 done in core 0.
 
 An easy way to avoid this problem is to use normal loads to read `lock_var` and only attempt to obtain the lock
-atomicaly if the normal load returns a free lock.
+atomically if the normal load returns a free lock.
 
 Using an `exchange
 ```C
@@ -2238,10 +2238,10 @@ Now, since each core is only reading from `lock_var` they will get cache hits on
 write (and invalidate the other cores' caches) unless there is a good chance that they will obtain the lock.
 
 Note that so far we've only been talking about different implementations for the `lock` function. The `unlock`
-function will still use a normal store to set the `lock_var` to `0` since we can garuntee there is no inferference
+function will still use a normal store to set the `lock_var` to `0` since we can guarantee there is no interference
 when `unlock` is called.
 
-__Barrier synchrnoization__ is another type of synchronization where all of the threads need to reach a specific
+__Barrier synchronization__ is another type of synchronization where all of the threads need to reach a specific
 point or barrier before they can resume their work. For example, consider a multithreaded program that is
 calculating the sum of the values in an array. If the program splits the array by threads each thread may run
 a script like:
@@ -2267,7 +2267,7 @@ we don't want the code after `TAG` to execute until every thread has finished ca
 of the array. So we need some kind of barrier at `TAG` which forces the threads to stop there until every thread
 has reached the barrier.
 
-A basic barrier synchronization implemenation has two componenets, a `counter` variable which counts the number
+A basic barrier synchronization implementation has two components, a `counter` variable which counts the number
 of threads that have reached the barrier, and a `flag` variable which indicates whether or not `counter ==
 num_threads`.
 
@@ -2288,9 +2288,9 @@ void barrier(int& counter_lock, int& count, int& total) {
 }
 ```
 
-This is a simple looking barrier release but it actually doesn't work properly in some caes if we are trying to re
-use the same bariier twice. This is because if one of the threads doesn't read the release variable quicklly enough
-t may not iregieter that it has been released if another thread enters the second instanc of the barrier too
+This is a simple looking barrier release but it actually doesn't work properly in some cases if we are trying to re
+use the same barrier twice. This is because if one of the threads doesn't read the release variable quickly enough
+t may not register that it has been released if another thread enters the second instance of the barrier too
 quickly. This could result in a deadlock. The way around this is to keep a local record of what should release the
 thread from the barrier and flip it for each barrier.
 
@@ -2311,8 +2311,8 @@ solves the deadlock problem.
 
 ### Memory consistency
 We have already talked about memory coherence which maintains that accesses to the same address maintain the sameo
-order accross cores. __Memory consistency__ is the property that access to all addresses maintain the same order
-accross cores. While the need for consistency is not as obvious as the need for coherence, it is very important -
+order across cores. __Memory consistency__ is the property that access to all addresses maintain the same order
+across cores. While the need for consistency is not as obvious as the need for coherence, it is very important -
 especially when dealing with out of order processors.
 
 __Sequential consistency__ is the most natural type of consistency to think about. It says that the result of any
@@ -2323,7 +2323,7 @@ in one processor to be in order. This is, of course, very bad for performance.
 A better implementation of sequential consistency would be to allow for out of order memory acceses in the
 processor but detect and fix when consistency may be violated. We can detect a potential consistency violation
 if we roorder memory accesses and there is a store to an out of order address between the time when we read the
-address and the time woen we should have read the address according to sequential consistency. If so, everything
+address and the time when we should have read the address according to sequential consistency. If so, everything
 depending on that read must be replayed.
 
 __Relaxed consistency__ is a looser consistency restriction. We can view consistency orderings as four categories:
@@ -2334,12 +2334,12 @@ __Relaxed consistency__ is a looser consistency restriction. We can view consist
 
 Sequential consistehcy enforces all of these orderings. Relaxed consistency only enforces a subset of these
 orderings. When dealing with relaxed consistency, the programmer needs to write programs with consistency in mind.
-Usually the processor will come with some non-reorderable instructions which are garunteed to happen in ordere
+Usually the processor will come with some non-reorderable instructions which are guaranteed to happen in ordere
 ven if the instructions before it or after it are not - ie these instructions are barriers between sections of
 out of order accesses.
 
 a __data race__ is a dependence between memory accesses that is not ordered by synchronization. A __data race
-free__ program is a program that cannot create data races - it follows sequencial consistency even if the hardware
+free__ program is a program that cannot create data races - it follows sequential consistency even if the hardware
 doesn't have sequential consistency constraints. For example, a program like:
 
 ```MIPS
@@ -2365,10 +2365,10 @@ A __many core processor__ is a processor with a large number of cores. There are
 many core processors.
 
 #### Coherennce traffic
-One obvious problem tha twe have already seen is that coherance traffic becomes hard to
+One obvious problem that we have already seen is that coherence traffic becomes hard to
 manage. Increasing the number of cores results in more writes to shared memory which requires write invalidations
 (or updates). This puts a lot of strain on the communication bus. So many core processors use directory cohereace
-with an efficient network for a more scalable conhrance system. Specificaly, a many core processor uses a mesh network to increase the throughput available to the nwtwork.
+with an efficient network for a more scalable coherence system. Specifically, a many core processor uses a mesh network to increase the throughput available to the network.
 
 ![](src/hpca/mesh.png)
 
@@ -2386,7 +2386,7 @@ and make the lower level cache (the L3 cache) shared between cores. However, thi
 LLC will be big and slow and will have a single entry point which will become a bottleneck.
 
 To solve this problem we need to create a __distributed lower level cache__ which, as the name implies, is an LLC
-that is distributed accross the cores. The entire cache ss shared accross the cores, but the cache is divided into
+that is distributed across the cores. The entire cache is shared across the cores, but the cache is divided into
 __tiles__ which are divided into the mesh network. So each core in the mesh network contains an individual core,
 a personal L1 cache, a personal L2 cache, and a section of the L3 cache. We can easily divide the DLLC accross the
 cores by:
@@ -2414,7 +2414,7 @@ This allows a single threaded program to not be bogged down by performance loss 
 used.
 
 ### OS Confusion
-Many core systems create a lot of consfsion for the OS since it has to deal with threading, cores, chips, etc with
+Many core systems create a lot of confusion for the OS since it has to deal with threading, cores, chips, etc with
 all of the context switching, locks, consistency, etc. There are a lot of rules the OS has to use to be performant
 in such a system. For example, when allocating threads to resources, the OS must first distribute the
 threads between unique chips, then between unique cores (on the same chip), then between unique threads (on the
