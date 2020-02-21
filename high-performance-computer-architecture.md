@@ -1,5 +1,69 @@
 # High Performance Computer Architecture
 
+- [High Performance Computer Architecture](#high-performance-computer-architecture)
+  - [Measuring performance](#measuring-performance)
+    - [Moore's Law](#moores-law)
+    - [Performance metrics](#performance-metrics)
+    - [Benchmarks](#benchmarks)
+    - [Calculating performance](#calculating-performance)
+  - [Pipelining](#pipelining)
+    - [Pipeline stalls](#pipeline-stalls)
+    - [Data dependencies](#data-dependencies)
+    - [Pipeline architecture](#pipeline-architecture)
+  - [Branch prediction and predication](#branch-prediction-and-predication)
+    - [Branch prediction algorithms](#branch-prediction-algorithms)
+      - [Branch target buffer](#branch-target-buffer)
+      - [N-bit predictors](#n-bit-predictors)
+      - [History based predictors](#history-based-predictors)
+      - [PShare and GShare predictors](#pshare-and-gshare-predictors)
+      - [Tournament and hierarchal predictors](#tournament-and-hierarchal-predictors)
+      - [Return address stack predictors](#return-address-stack-predictors)
+    - [Predication](#predication)
+  - [Data Hazards](#data-hazards)
+    - [Instruction level parallelism (ILP)](#instruction-level-parallelism-ilp)
+    - [Instruction scheduling](#instruction-scheduling)
+      - [Tomasulo's Algorithm](#tomasulos-algorithm)
+      - [Reorder Buffer](#reorder-buffer)
+      - [Memory ordering](#memory-ordering)
+    - [Compiler ILP](#compiler-ilp)
+    - [VLIW](#vliw)
+  - [Memory](#memory)
+    - [Cache basics](#cache-basics)
+    - [Virtual Memory](#virtual-memory)
+    - [Improving cache performance](#improving-cache-performance)
+      - [Improving hit time](#improving-hit-time)
+        - [Pipelining the cache](#pipelining-the-cache)
+        - [Using virtually accessed caches](#using-virtually-accessed-caches)
+        - [Overcoming high associativity](#overcoming-high-associativity)
+        - [Picking a cheaper replacement policy](#picking-a-cheaper-replacement-policy)
+      - [Reducing miss rate](#reducing-miss-rate)
+          - [Larger cache blocks](#larger-cache-blocks)
+        - [Prefetching](#prefetching)
+        - [Loop interchange](#loop-interchange)
+      - [Reducing miss penalty](#reducing-miss-penalty)
+        - [Overlapping misses](#overlapping-misses)
+        - [Cache hierarchies](#cache-hierarchies)
+    - [Memory](#memory-1)
+    - [Storage](#storage)
+    - [Fault Tolerance](#fault-tolerance)
+      - [RAID](#raid)
+  - [Parallel processing](#parallel-processing)
+    - [Cache Coherence](#cache-coherence)
+      - [Snooping](#snooping)
+        - [Write update with snooping](#write-update-with-snooping)
+      - [Write invalidate with snooping](#write-invalidate-with-snooping)
+        - [Summary of Update and Invalidate protocols](#summary-of-update-and-invalidate-protocols)
+    - [Cache to cache transfer](#cache-to-cache-transfer)
+      - [Directory](#directory)
+    - [Synchronization](#synchronization)
+    - [Memory consistency](#memory-consistency)
+    - [Many cores](#many-cores)
+      - [Coherence traffic](#coherence-traffic)
+    - [Off chip traffic](#off-chip-traffic)
+    - [On chip directory](#on-chip-directory)
+    - [Power budget split among cores](#power-budget-split-among-cores)
+    - [OS Confusion](#os-confusion)
+
 Computer architecture is the idea that a computer should be built in the best way to fulfill its main purpose.
 For example, a PC should be optimized for "regular" use whereas a supercomputer should be more optimized towards
 faster processing and parallelism. We need good computer architecture to improve performance (which can be measured
@@ -2364,7 +2428,7 @@ is data race free because the barrier prevents the race condition between `I1` a
 A __many core processor__ is a processor with a large number of cores. There are a lot of potential problems with
 many core processors.
 
-#### Coherennce traffic
+#### Coherence traffic
 One obvious problem that we have already seen is that coherence traffic becomes hard to
 manage. Increasing the number of cores results in more writes to shared memory which requires write invalidations
 (or updates). This puts a lot of strain on the communication bus. So many core processors use directory cohereace

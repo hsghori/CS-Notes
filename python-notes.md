@@ -97,7 +97,7 @@ Vim, Emacs,etc) and use the terminal to execute the code. If you are unfamiliar 
 line / terminal you may want to stay away from this and use an IDE.
 - Integrated Development Environment \
 An IDE is an all in one programming suite. They come in many different languages and flavors but their main features are that they have built in tools like syntax highlighting, autocompletion, automation of "boilerplate" code, and a compiler / interpreter. Beginners typically like IDEs, but if used incorrectly they can become something of a crutch. For Python I recommend Spyder or PyCharm.
-- Jupyter Notebook \\
+- Jupyter Notebook \
 A Jupyter Notebook is a tool used in scientific computing and education which allows for inline output and documentation. Basically it allows you to write code and text together in a "notebook" style. It is very similar to the Text Editor / Terminal option in terms of features, but it can be a bit messy to start up. Note that you need to use the terminal to launch a jupyter notebook though you don't need it for anything else in this environment.
 
 The text editor / terminal and IDE options are available for all mainstream languages - the Jupyter notebook is limited to a few languages and is mainly used for Python.
@@ -106,7 +106,8 @@ The text editor / terminal and IDE options are available for all mainstream lang
 
 ## The Hello World Program
 
-Hello world is the first thing most people will write in any language. The goal of this program is to print "Hello World!" to the screen. This is very easy to do in Python.
+Hello world is the first thing most people will write in any language. The goal of this program is to print 
+"Hello World!" to the screen. This is very easy to do in Python.
 
 ```Python
 print('Hello World!')
@@ -155,7 +156,9 @@ print('the lucky number is %d' % (num))
 print('and twice that is %d' % (2*num))
 ```
 
-Variables are very useful for keeping track of data values - especially in longer calculations with user input. Python is known as a __dynamicaly typed__ language. This means that we don't need to explicitly define a variable's type - the interpreter decides the variable type based on the associated value.
+Variables are very useful for keeping track of data values - especially in longer calculations with user 
+input. Python is known as a __dynamicaly typed__ language. This means that we don't need to explicitly 
+define a variable's type - the interpreter decides the variable type based on the associated value.
 
 You can check the variable type using the `type`{.python} function.
 
@@ -180,14 +183,19 @@ print(s)
 
 ## Keyboard Input
 
-Taking in user input is a crucial part of a computer program. We generally want our programs to make computations and decisions based on user input. Python has a very useful "input" function which can be used to input a string entered by the keyboard.
+Taking in user input is a crucial part of a computer program. We generally want our programs to make 
+computations and decisions based on user input. Python has a very useful "input" function which can be used 
+to input a string entered by the keyboard.
 
 ```Python
 x_in = input('Some input message: ')
 ```
 
-The input function is less flexible than techniques in other languages (Java's Scanner, C's scanf, C++'s cin, etc). The input function stores everything before a newline as a String in the variable `x_in`. It's up to the programmer to properly process and store the user input. \
-Since the `input`{.python} function stores everything as a string, we may need to convert the input to other data types (usually float or int) before we can use it. This process is called casting.
+The input function is less flexible than techniques in other languages (Java's Scanner, C's scanf, C++'s 
+cin, etc). The input function stores everything before a newline as a String in the variable `x_in`. It's 
+up to the programmer to properly process and store the user input. \
+Since the `input`{.python} function stores everything as a string, we may need to convert the input to 
+other data types (usually float or int) before we can use it. This process is called casting.
 
 ```Python
 x = input('Enter a value: ') # user enters an integer
@@ -197,10 +205,10 @@ z = float(y) # now z is the actual float
 ```
 
 ## Arithmetic Operations
-One of the main purposes of computers is to perform calculations more quickly than humans. Python has many operations which can be used to perform arithmetic, manipulate data, etc.
-\subsubsection{Arithmetic Operations}
-The arithmetic operations in Python are:
+One of the main purposes of computers is to perform calculations more quickly than humans. Python has many 
+operations which can be used to perform arithmetic, manipulate data, etc.
 
+The arithmetic operations in Python are:
 - `+` addition
 - `-` subtraction
 - `*` multiplication
@@ -215,7 +223,10 @@ When working with "number types" these operations do about what you'd expect
 x = 1 + 2.5 # now x = 3.5
 ```
 
-However, these operations have different meanings when used on non-number types. Specificaly, the `+` operation has a very differnet function when used with two strings - string concatination. Assuming `A` and `B` are two strings, the statement `A + B` returns the string `A | B` where `|` is the concatination operator.
+However, these operations have different meanings when used on non-number types. Specificaly, the `+` 
+operation has a very differnet function when used with two strings - string concatination. Assuming `A` and 
+`B` are two strings, the statement `A + B` returns the string `A | B` where `|` is the concatination 
+operator.
 
 ```Python
 A = 'hello'
@@ -223,18 +234,23 @@ B = 'world'
 C = A + B # now C = 'helloworld'
 ```
 
-Integer division is a division technique that can be useful for certain algorithms. We would usually expect that $2 / 3 \to 0.66666667$, but sometimes we only want the whole number approximation - ie the integer version of this value. Python has a built in operator (`//`) that can be used for "integer division".
+Integer division is a division technique that can be useful for certain algorithms. We would usually expect 
+that $2 / 3 \to 0.66666667$, but sometimes we only want the whole number approximation - ie the integer 
+version of this value. Python has a built in operator (`//`) that can be used for "integer division".
 
 ```Python
-2 / 3   # 0.6666667
-2 // 3  # 0
-10 / 4  # 2.5
-10 // 4 # 2
+2 / 3   # = 0.6666667
+2 // 3  # = 0
+10 / 4  # = 2.5
+10 // 4 # = 2
 ```
 
 ## Random Numbers
-Sometimes we may want to generate a random number as part of our program (we could be writing a board game that uses a dice, simulating a biological process, or testing another program). Java has a specific module designed to handle random number generation. \
-To use this module we must import the random module and declare a new Random object (see the section below on importing modules). If we've called `import random`{.python}.
+Sometimes we may want to generate a random number as part of our program (we could be writing a board game 
+that uses a dice, simulating a biological process, or testing another program). Java has a specific module 
+designed to handle random number generation. \
+To use this module we must import the random module and declare a new Random object (see the section below 
+on importing modules). If we've called `import random`{.python}.
 
 - `random.choice(seq)`\
 Returns a random element from the sequence seq.
@@ -247,17 +263,14 @@ Returns a random integer from the univorm distribution from a to b (exclusive up
 
 The complete list of random number generation methods can be found [here](https://docs.python.org/3.6/library/random.html).
 
-# Control Flow
-
 ## Boolean Statements
 
-Boolean is one of the primitive data types in Java. A boolean variable
+Boolean is one of the primitive data types in Python. A boolean variable
 can take on two values, true or false and can be created using
 combinations of relational statements and boolean variables chained
 together by logical operators.\
 
 **Relational Operators**
-
 -   $<$ less than
 -   $>$ greater than
 -   $<=$ less than or equal to
@@ -266,7 +279,6 @@ together by logical operators.\
 -   $!=$ not equal
 
 **Logical Operators**
-
 - `and`{.python} : logical and
 - `or`{.python} : logical or
 -  `not`{.python} : logical not
@@ -298,19 +310,212 @@ true  |  true  |   true
 
 **NOT**
 
- A    |  not A |
-------|--------|
-false |  true  |
-true  |  false |
+ A    |  not A 
+------|--------
+false |  true  
+true  |  false 
 
 For example
 
 ```Python
-x = 5 < 10; // true
-y = 5 > 10; // false
-z = x and y; // false
-z = x or y; // true
+x = 5 < 10  # true
+y = 5 > 10  # false
+z = x and y # false
+z = x or y  # true
 ```
+
+# Advanced python data types
+
+As we've already touched on, python has a lot of different data types to work with. Some of the most useful
+and flexible of those datatypes are __strings__, __lists__, __dicts__, and __sets__. 
+
+## Strings
+
+Strings are "strings" of characters. Basically any text. They are identified by the use of single, double, or "block" quotes.
+
+```Python
+x = 'this is a string'
+y = "this is also a string"
+z = """this is also a string"""
+```
+
+### Basic string functions
+
+There are some basic operations that we may want to perform on a string:
+- `s.find(find_str)` returns the index of `find_str` in the string
+- `s.lower()` returns the string with all the letters lowercase
+- `s.upper()` returns the string with all the letters uppercase
+- `s.replace(search_str, replace_str)` returns the string where all the instances of `search_str` has been replaced by `replace_str`. 
+- `s.strip()` returns the string with all the whitespace stripped from the end of the string  
+
+```Python
+s_lower = "hello world"
+s_upper = "HELLO WORLD"
+
+s_lower.find("lo") # 3
+s_upper.lower()    # hello world
+s_lower.upper()    # HELLO WORLD
+s_lower.replace("hello", "goodbye") # goodbye world
+'hello world \n'.strip() # hello world
+```
+
+### Indexing and slicing strings
+
+Strings in python are relatively easy to manipulate and analyze. To look at one letter in a string you can 
+check the corresponding "index". In python we do this using bracket notation.
+
+```Python
+s = "hello world"
+print(s[0]) # h
+print(s[6]) # w
+```
+
+Python "indexes by 0" which means that the letter at position 0 is actually the first letter. Thhis may not 
+make a lot of sense right now, but has to do with how computers manage memory.
+
+You can index from the end of the string by using negative indices:
+
+```Python
+s = "hello world"
+print(s[-1]) # d
+print(s[-3]) # r
+```
+
+This bracket notation is extremely powerful and can be used to take complex "slices" of strings using easy
+to read syntax. A slice of a string returns some subset of the letters in the string. To "slice" a string 
+we use the following syntax
+
+```Python
+s = "hello world"
+s[being_index:end_index:step]
+```
+
+`begin_index` is the first index we want from the string (defaults to 0), `end_index` is the (noninclusive) 
+last index we want from the string (defaults to the last letter in the string), and `step` is the interval
+at which we want to select letters. 
+
+Examples:
+
+```Python
+s = "hello world"
+print(s[3:7])    # lo w
+print(s[2:])     # llo world
+print(s[:4])     # hell
+print(s[1:8:2])  # el o
+print(s[-4:-11:-1]) # ow olle
+```
+
+## Lists
+
+Lists in python are lists of other values. 
+
+```Python
+l_one   = [1, 2, 3, 4, 5, 6]
+l_two   = ['one', 'two', 'three']
+l_three = ['one', 2, 3, 'four']
+```
+
+Lists are obviously very useful for keeping track of lots of related information.
+
+### Basic list functions
+
+There are some basic operations you may want to perform on a list
+- `l.find(elem)` returns the index of the first occurrance of `elem` in the list
+- `l.insert(elem, index)` inserts `elem` in the list at index `index`
+- `l.append(elem)` inserts `elem` at the end of the list
+- `l.count(elem)` returns the number of times `elem` appears in the list
+- `l.reverse()` reverses the order of the list
+
+### Indexing and slicing lists
+
+Lists use the same indexing and slicing operations as strings - in fact we can think of a string as a 
+special case of a list which only contains characters. 
+
+```Python
+l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+print(l[0])      # 0
+print(l[5])      # 5
+print(l[-1])     # 10
+print(l[3:7])    # [3, 4, 5]
+print(l[2:])     # [2, 3, 4, 5, 6, 7, 8, 9, 10]
+print(l[:4])     # [0, 1, 2, 3]
+print(l[1:8:2])  # [1, 3, 5, 7]
+print(l[-4:-9:-1]) # [7, 6, 5, 4, 3]
+```
+
+## Dicts
+
+A dict is a map or key value store of items. This type of data structure allows you to keep track of pairs of elements and keep track of relationships between elements. For example, you could use a dict to map between days of the week and an integer representation or between a letter and the number of times it appears in a string. 
+
+We can define a dict using curly braces or using the `dict` keyword. 
+```Python
+d = {
+	key1: value1,
+	key2: value2,
+	# ...
+}
+
+d = dict(
+	key1=value1, 
+	key2=value2
+	# ...
+)
+```
+
+Given a dict, we can insert a new key-value pair into the dict using bracket notation:
+
+```Python
+d = {
+	'a': 1
+}
+d['b'] = 2
+
+print(d) # ['a': 1, 'b': 2]
+```
+
+We can access a value associated with a specific key using bracket notation as well:
+
+```Python
+d = {
+	'a': 1
+}
+
+print(d['a']) # 1
+```
+
+However, if the key is not in the dict, this will throw an error:
+
+```Python
+d = {
+	'a': 1
+}
+print(d['b']) # throws an error
+```
+
+We can use the `in` keyword to check if a key is in a dict:
+
+```Python
+d = {
+	'a': 1
+}
+print('b' in d) # false
+print('a' in d) # true
+```
+
+We can get all the key value pairs in a list in the array using the `items` function
+
+```Python
+d = {
+	'a': 1, 'b': 2,
+}
+
+print(d.items()) # [('a', 1), ('b', 2)]
+```
+
+Note that we have only used strings and integers in our dicts so far, but keys and values can be any datatype - including dicts themselves. 
+
+
+# Control Flow
 
 ## If, Else If, and Else
 
@@ -374,6 +579,35 @@ number of elif blocks, and may contain an else block. The blocks must be
 in order (if, elif, else) and the order of the boolean statements does
 matter.
 
+## The ternary operator
+
+Sometimes you will want to use an if statement to set a variable value based on a condition:
+
+```Python
+percentage = float(input('Input the student\'s grade (%) '))
+if percentage >= 60:
+	result = 'PASS'
+else:
+	result = 'FAIL'
+```
+
+Python has a built in "ternary operator" which simplifies this to one line
+
+```Python
+percentage = float(input('Input the student\'s grade (%) '))
+result = 'PASS' if percentage >= 60 else 'FAIL'
+```
+
+In many cases this is cleaner and more readable that using an entire if/else block. However, if the 
+boolean condition is too complicated this syntax becomes messy. 
+
+__NOTE__ if you've worked in another language like C, Java, or Javascript you may have run into the 
+ternary operator in this form:
+
+```C
+result = (percentage >= 60) ? 'PASS' : 'FAIL';
+```
+
 # Loops
 
 One of the major benefits of a computer is its ability to quickly
@@ -390,11 +624,11 @@ this using about 7 lines of code:
 ```Python
 import random
 total = 0
-total = total + random.randrange(1, 7)
-total = total + random.randrange(1, 7)
-total = total + random.randrange(1, 7)
-total = total + random.randrange(1, 7)
-total = total + random.randrange(1, 7)
+total = total + random.randint(1, 6)
+total = total + random.randint(1, 6)
+total = total + random.randint(1, 6)
+total = total + random.randint(1, 6)
+total = total + random.randint(1, 6)
 print(total)
 ```
 
@@ -409,18 +643,24 @@ for i in some_list:
   # actions
 ```
 
-The `some_list` variable is a __list__ type which is a specific Python
-data type that stores an ordered list of values. We'll discuss lists in depth later on.
+The `some_list` variable is a list - the for loop picks each element from the list (in order), assigns it 
+to the variable `i` and performs the actions in the loop body on that element. 
 
-For now, we use the `range` function to make the for loop "iterate" over a range of values that we can define.
-For example, the statement `range(1, 10)` creates the list of values `[1, 2, 3, 4, 5, 6, 7, 8, 9]`. We can use this in a for loop to create a loop that does the same thing 9 times (once for each value in the list).
+Oftentimes we want to use a for loop to perform an action on a specific range of numbers - for that we
+use the `range` function to make the for loop "iterate" over a range of values that we can 
+define.
 
-```
+For example, the statement `range(1, 10)` creates the list of values `[1, 2, 3, 4, 5, 6, 7, 8, 9]`. We can 
+use this in a for loop to create a loop that does the same thing 9 times (once for each value in the list).
+
+```Python
 for i in range(1, 10):
   print(i)
 ```
 
-In this example, the variable `i` "iterates" over the list created by `range(1, 10)`. So that means that for each iteration of the loop (each time the loop runs), the variable `i` will be set to the next value in the list.
+In this example, the variable `i` "iterates" over the list created by `range(1, 10)`. So that means that 
+for each iteration of the loop (each time the loop runs), the variable `i` will be set to the next value in 
+the list.
 Every iteration of this loop prints the value of i. So the output will look like
 
 ```
@@ -454,20 +694,18 @@ print(total)
 ```
 For loops are great in cases where we have a list of values we want to do things with or we know exactly how many times we want to perform an action.
 
-
 ## While Loops
 
 The while loop is the most general type of loop. A while loop keeps
 executing the loop body so long as a boolean condition is True.
 
-```Java
-Random gen = new Random();
-System.out.println("\nWhile loop - continues until di rolls a 3.");
-int roll = -1; // simulate rolling a 6 sided di
-while (roll != 3) {
-    roll = gen.nextInt(6) + 1;
-    System.out.printf("%d ", roll);
-}
+```Python
+import random 
+print('While loop continues until di rolls 3')
+roll = -1
+while roll != 3:
+	roll = random.randint(1, 6)
+	print(roll)
 ```
 
 In this example, `gen.nextInt(6) + 1`{.java} simulates rolling a 6 sided di. The while loop is set to continue while the di roll is not equal to 3. Since this is a random process (we cannot know when `roll` will equal 3), this behavior can't can't be easily replicated by iterating over some range of values (ie we can't easily adapt a for loop to this situation). \
@@ -478,15 +716,16 @@ the loop will run.
 
 A do-while loop is almost exactly like a while loop except the loop body
 is executed before the condition is checked. This means that the body
-will always be executed at least once.
+will always be executed at least once. Do-while loops are not "real" loops in 
+Python, but they're seen in other languages like C and Java so it's important
+to understand the underlying ides and how to emulate the behavior in Python.
 
-```Java
-System.out.println("Welcome to my do-while example");
-do {
-     System.out.println("Press q to quit")
-     String choice = kb.next();
-     System.out.println(choice);
-} while (!choice.equals("q"));
+```Python
+print('Welcome to my do-while example')
+while True:
+	choice = input('press q to quit')
+	if choice == 'q':
+		break
 ```
 
 The loop above will continue until the user inputs the string "q". Note that we always want the user to see the "Press q to print" prompt at least once - this is accomplished by the do-while loop. (You may be thinking "I can do that with a while loop too", and you would be right. This syntax lets us write this behavior a more cleanly, but as we'll see below you can accomplish the same thing with a while loop).
@@ -500,31 +739,30 @@ special case of a while loop. That means that any for or do-while loop
 can be written as a while loop. However, not every while loop can be
 rewritten as a for or do-while loop.
 
-```Java
-System.out.println("\nEquivalent for and while loops.");
-for (int i = 0; i < 10; i++) {
-    System.out.printf("%d ", i);
-}
-System.out.println();
-int count = 0;
-while (count < 10) {
-    System.out.printf("%d ", count);
-    count++;
-}
+```Python
+print('Equivalent for a while loops')
+for i in range(0, 10):
+	print(i)
 
-// do-while to while
-System.out.println("\nEquivalent do-while and while loops.");
-int rollThree = 0;
-do {
-    rollThree = gen.nextInt(6) + 1;
-    System.out.printf("%d ", rollThree);
-} while (rollThree != 3);
-System.out.println();
-int rollFour = 0;
-while (rollFour != 3) {
-    rollFour = gen.nextInt(6) + 1;
-    System.out.printf("%d ", rollFour);
-}
+count = 0
+while count < 10:
+	print(count)
+	count += 1
+```
+
+```Python
+print('Equivalent do-while and while loops')
+roll = 0
+while True:
+	roll = random.randint(1, 6)
+	print(roll)
+	if roll == 3:
+		break 
+
+roll = 0
+while roll != 3:
+	roll = random.randint(1, 6)
+	print(roll)
 ```
 
 ## Nested Loops
@@ -534,53 +772,64 @@ behaviors.
 
 This example prints a Triangle out of `*` characters:
 
-```Jsva
-for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < i; j++) {
-    System.out.print("*");
-    }
-    System.out.println();
-}
+```Python
+for i in range(0, 10):
+	row = ''
+	for j in range(0, i):
+		row += '*'
+	print(s)
 ```
+
 
 This example rolls a di ten times until the average of the ten rolls is less than
 3:
 
-```Java
-double avgRoll = 6;
-final int numRolls = 10;
-while (avgRoll >= 3) {
-    int acumRoll = 0;
-    for (int i = 0; i < numRolls; i++) {
-        acumRoll += gen.nextInt(6) + 1;
-    }
-    avgRoll = acumRoll / (float) numRolls;
-    System.out.printf("%.2f ", avgRoll);
-}
+```Python
+import random 
+avg_roll = None
+num_rolls = 10
+
+while True:
+	accum_roll = 0
+	for i in range(0, num_rolls):
+		accum_roll += random.randint(1, 6)
+	avg_roll = accum_roll / num_rolls
+	print('%.2f' % (avg_roll))
 ```
 
-# Scope
+# Working with lists the "python" way
 
-When a variable is **declared** in Java it is given a certain **scope**. A
-variables scope is the region in which it is visible (or accessible). A
-variable is accessible in the block in which it is declared (including
-any sub-blocks), but nowhere else.
+Based on our knowledge of lists and loops we can create lists from data "programaticaly" (as part of the
+program instead of hardcoded). For example:
 
-```Java
-public class Scope {
+```Python
+list_of_strings = ['these', 'are', 'some', 'strings']
+result_list = []
+for string in list_of_strings:
+	if len(string) % 2 == 0:
+		result_list.append(string)
+print(result_list) # ['thess', 'some', 'strings' ]
+```
 
-    public static void main(String[] args) {
-        int varOne; // varOne is declared in the main method scope
-        varOne = 10; // varOne is defined (different from begin declared)
-        if varOne > 1 {
-            System.out.println(varOne); // varOne is still in scope
-            varOne = 20;
-            int varTwo = 1;
-        }
-        System.out.println(varOne); // varOne is still in scope and its value has changed
-        System.out.println(varTwo); // throws a compiler error because varTwo is out of scope.
-    }
-}
+We can see that this code snippet builds a list of strings from a master list of strings and only keeps 
+those strings that have an even length. 
+
+Python provides us with an abbreviated way of building lists using syntax akin to set notation in 
+mathematics. 
+
+```Python
+list_of_strings = ['these', 'are', 'some', 'strings']
+result_list = [string for string in list_of_strings if len(string) % 2 == 0]
+print(result_list)
+```
+
+This syntax is called a list comprehension. We can also apply transformations to the data in the 
+original list as part of the list comprehension. 
+
+```Python
+list_of_ints = [-3, -2, -1, 0, 1, 2, 3]
+result_list = [x**2 for x in list_of_ints]
+print(result_list) # [9, 4, 1, 0, 1, 4, 9]
 ```
 
 # File IO
@@ -1000,8 +1249,6 @@ Most recursive methods are based on the __divide and conquer__ mentality. That i
 
 __All problems that can be solved iteratively (with loops) can be solved with recursion__ and oftentimes the recursive solution looks nicer than the iterative solution. __Not all recursive problems can be easily solved with loops__ - usually we want to go from iterative to recursive, not the other way around. __Recursion vs iteration is often a tradeoff between efficiency and simplicity / clarity__.
 
-
-
 When writing a recursive function we break the problem into two pieces
 1. The base case
    This is the smallest instance of the problem - the point at which we know or are given the answer to the problem. For example, in the fibonacci sequence we know Fib(0) = 0 and Fib(1) = 1 - so those are our base cases.
@@ -1381,12 +1628,9 @@ public static int sumDigits(int n) {
 sumDigits(44);
 ```
 
-
 ```
 8
 ```
-
-
 
 __Stair climbing__
 
@@ -1408,8 +1652,6 @@ numSteps(5);
 ```
 8
 ```
-
-
 
 __Stair climbing pt 2__
 
