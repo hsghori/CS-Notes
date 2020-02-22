@@ -1,8 +1,4 @@
----
-title: Machine Learning Notes
-author: Haroon Ghori
-geometry: margin=1in
----
+# Machine Learning
 
 # Supervised Learning
 
@@ -187,13 +183,281 @@ the $f(x_i)$ and find the optimal parameters by solving for the set of parameter
 by taking our training data, transforming it into some matrix $X$ - this can just be the data or can be some
 function of the data like $x_i = [c_i, x_{i}, x_{i}^2]$ (for one dimensional samples).
 
-## Logistic Regression
+## Neural Networks
 
-## Perceptrons
+A **neural network** is a class of machine learning models which attempts to use a system analogous to neurons in
+the brain to learn from data.
+
+### Perceptron
+
+Neural networks are built off of a very simple unit called a perceptron. A perceptron is a function that models
+a very simple neuron.
+
+![](src/ml/neuron.png)
+
+A neuron receives input through signals at the "dendrites" - those inputs are weighted and combined together and,
+if the aggregate input reaches a certain activation threshold, the neuron fires an action potential which sends
+a neurotransmitter to other neurons. Essentially, a neuron is a function which takes the weighted sum of its inputs
+and passes that to a unit activation function.
+
+![](src/ml/perceptron.png)
+
+A perceptron follows the idea of a neuron. Given some input $x$, a perceptron with parameters $W$ and threshold
+$\theta$ is the function:
+
+$$f(x) =
+    \begin{cases}
+        1 \ &\text{if}\ \ W^{T} x > \theta\\
+        0 &
+    \end{cases}
+$$
+
+We see that perceptrons are able to create a linear hyperplane. This means that a perceptron can classify some
+simple functions
+
+like boolean AND:
+
+```
+ |
+ |
+ o \  x
+ |   \
+ o----o\-----
+```
+boolean OR:
+
+```
+ |
+ |
+ x    x
+ |\
+ o--\-x-----
+```
+
+boolean NOT:
+
+```
+         |
+-----x---|---o------
+
+```
+
+However, it can't classify non-linear functions like boolean XOR:
+
+```
+ |
+ |
+ x    o
+ |
+ o----x-----
+```
+
+To solve these kinds of problems we can use a network of perceptrons:
+
+```
+x1----------w1----------
+   \                   \
+    ====== ( AND )--w3--- ( ) -->
+   /                   /
+x2----------w2---------
+
+w1 = 1
+w2 = 1
+w3 = -2
+```
+
+### Training perceptrons
+
+The **perceptron rule** for training perceptrons is very simple. We know that we can calculate:
+
+$$\hat{y} = W^T x \geq 0$$
+
+Note here that we have folded the threshold parameter $\theta$ into the weight vector $W$. We do this by appending
+a "bias term" of 1 to each sample in $X$ (which then adds a corresponding weight parameter). That parameter is
+subtracted over to serve as $\theta$.
+
+Then for every sample $x_i$ we say that:
+
+$$\Delta W_i = \eta (y_i - \hat{y_i})x_i$$
+
+Then we update $W$:
+
+$$W_{new} = W + \Delta W_i$$
+
+If the data is linearly separable - meaning if there exists a line which can split the data, this algorithm will
+always find a dividing line. However, if the data is not linearly separable, this algorithm will run forever.
+
+We can also use **gradient descent** to train our perceptrons. In this method we use the sum of least squared
+error between the activation value of the perceptron and the expected class:
+
+$$E(x) = \frac{1}{2} \sum{(y_{i} - W^T x_i)^2}$$
+
+We use the activation value instead of the "actual output" of the perceptron because the step function is not
+differentiable whereas the activation value is differentiable.
+
+$$\frac{\delta E}{\delta W} = \sum{(y_{i} - W^T x_{i})x_{i}}$$
+
+So then our update rule is
+
+$$\Delta W_{i} = \eta (y_{i} - W^T x_{i})x_{i}$$
+
+The update rules for these two approaches are very similar, but the gradient descent method is more robust against
+non-linearly separable data.
+
+### Sigmoid Function
+
+One problem with the gradient rule for training perceptrons is that the actual output of a perceptron is not a
+differentiable function since the step function is not differentiable. So we have to use the activation value
+instead which is not optimal. To solve this problem can use the **sigmoid** function instead of a step activation
+function to model perceptrons.
+
+$$\sigma(x) = \frac{1}{1 + e^{-x}}$$
+
+The sigmoid has the property that $\limit_{x \to -\infty}{\sigma(x)} = 0$ and
+$\limit_{x \to \infty}{\sigma(x)} = 1$. Around 0, there is an inflection point where the function quickly changes
+from $~0$ to $~1$. This makes the sigmoid function a differentiable alternative to using a unit step function.
+
+![](src/ml/sigmoid.png)
+
+Note that:
+
+$$\frac{d \sigma}{dx} = \sigma(x) (1 - \sigma(x))$$
+
+### Multilayer perceptrons
+
+A neural network is a network of perceptrons typically arranged in a uniform multilayer pattern where each layer's
+outputs feeds into the next layer's inputs.
+
+![](src/ml/mlp.png)
+
+The input and output layers are exposed to the "world" and the rest of the layers are known as hidden layers. Each
+unit in the neural network is a perceptron who's activation is gated using a non-linear differentiable function -
+typically the sigmoid function, RELU, TANU, etc. Thus we can actually represent an entire neural network (even
+an immensely complicated one) as a differentiable function and use that derivative to update the weights on each
+individual perceptron.
+
+**Backpropogation** is an algorithm which uses the chain rule to more easily compute the derivatives of the units
+in the neural network. The general idea behind backpropogation is this:
+
+Consider a perceptron unit $j$ in the neural network. We then define $z_i$ as the inputs from a unit in the
+previous layer to $j$, and $w_{j,i}$ as the weight on the link between $i$ and $j$.
+
+Then:
+
+$$a_j = \sum_{i} w_{j,i} z_{i}$$
+
+and
+
+$$z_j = h(a_j)$$
+
+```
+        w_j1,i1
+( i1 ) ----------
+        w_j1,i2   \
+( i2 ) ----------- ( j1 ) -------- (k1)
+        w_j1,i3  /               /
+( i3 )----------   ( j2 ) ------
+```
+
+To update an individual weight parameter in the neural network $w_{j,i}$ we need to find
+$\frac{\delta E}{\delta w_{j,i}}$ where $E$ is the overall error of the network. From the chain rule we can
+say that:
+
+$$\frac{\delta E}{\delta w_{j,i}} = \frac{\delta E}{\delta a_{j}} \frac{\delta a_{j}}{\delta w_{j,i}}$$
+
+Since $a_{j} = \sum_{i}{w_{j,i} z_{i}}$:
+
+$$\frac{\delta a_{j}}{\delta w_{j,i}} = z_{i}$$
+
+And since $z_{j} = h(a_{j})$:
+
+$$\frac{\delta z_{j}}{\delta a_{j}} = h'(a_{j})$$
+
+Let us define
+
+$$\frac{\delta E}{\delta a_{j}} = \delta_{j}$$
+
+Note that the error at node $j$ can decomposed accross the nodes $k \in K$ that $j$ sends its outputs too. So we
+can use the chain rule again to find that:
+
+$$\delta_{j} = \sum_{k}{\frac{\delta E}{\delta a_{k}} \frac{\delta a_{k}}{\delta a_{j}}}$$
+
+Note that:
+
+$$\frac{\delta E}{\delta a_{k}} = \delta_{k}$$
+
+And:
+
+$$a_{k} = \sum_{j} w_{k,j} z_{j} = \sum_{j} w_{k,j} h(a_{j})$$
+
+So:
+
+$$\frac{\delta a_{k}}{\delta a_{j}} = h'(a_{j}) w_{k,j}$$
+
+And finally:
+
+$$\delta_{j} = h'(a_{j}) \sum_{k}{(w_{k,j} \delta_{k})}$$
+
+And:
+
+$$\frac{\delta E}{\delta w_{j,i}} = z_{j} \delta_{j}$$
+
+$$\frac{\delta E}{\delta w_{j,i}} = z_{j} h'(a_{j}) \sum_{k}{(w_{k,j} \delta_{k})}$$
+
+This may look a bit messy, but it's actually quite elegant when considered recursively. Note that for the
+output nodes we can say that $\delta_{out} = \hat{y} - y$. So to make a neural network update we essentially
+follow a forward / backward algorithm
+
+1. Get the prediction for the network. In the process keep track of the inputs $z$ for every node.
+2. Calculate the error at the output node $\delta_{n} = \hat{y} - y$.
+3. For every layer starting from $n-1$ calculate the weight update using $\delta_k$ values from the previous layer.
+4. Update the weights using $w_{j,i}' = w_{j, i} + \eta \frac{\delta E}{\delta w_{j,i}}$
+
+### Neural network optimizations
+
+With backpropogation and powerful computers it's very easy to design complicated neural networks that (in theory)
+can learn very complicated functions. And while we can do gradient descent and backpropagation to train network,
+gradient descent can get stuck in local minima so we can use different optimization techniques like using momentum
+terms, calculating higher order derivatives, using randomized optimization algorithms, and adding regularization
+parameters to penalize complexity.
+
+## Instance based learning (kNN)
+
+**Instance based learning** algorithms are algorithms that "memorize" the training data and, when presented with
+a new sample, use only the training data it's memorized to make an inference about the new sample's output value.
+
+The **K Nearest Neighbors** algorithm is a very simple, but power instance based learning algorithm. This algorithm
+takes in the training data and when presented with a test sample, uses the value of the $k$ "nearest" (where
+nearness is defined by some similarity function) neighbors to infer the value of the test sample. In classification
+problems, the output class is often determined by a majority vote of the $k$ neighbors whereas in regression
+problems the output value may be based on the mean or median of the neighbors.
+
+This kNN algorithm is very simple, but a lot of that is because it leaves a lot up to the desiger. The desiger
+chooses the value for $k$, the similarity function used, and the way in which the neighbors vote on the output
+class or value for a point.
+
+Note that kNN is a **lazy** learning algorithm. This means that it only does work when it has to. "Training" is a
+constant time operation since it just has to memorize a set number of data points, but the real work happens on
+query time. This is different from other algorithms like decision trees and neural networks which are **eager**
+learners - they frontload the work at training time, but queries take little to no work.
+
+kNN has a very specific preference bias. kNN assumes that locality implies similarity, regression
+functions are smooth, and that each feature is equally important. That last point reflects
+**the curse of dimensionality**. As the number of features grow, the ammount of data we need to generalize properly
+grows exponentially.
+
+There is a special case of kNN where $k=n$ (or k is the total number of training examples). That sounds like a
+trivial case if we're using an average or majority vote metric for determing the output class, but if we use a
+different metric like a weighted average or a weighted regression we can get some pretty interesting decision
+boundaries. A **weighted regression** more generally applies some kind of regression function (linear regression,
+neural network, decision tree, etc) to the $k$ nearest neighbors and uses that to determine the output for the
+query point.
+
+## Ensemble Learning
 
 ## Support Vector Machines
 
-## Neural Networks and Deep Learning
+## Logistic Regression
 
 # Randomized Optimization
 
