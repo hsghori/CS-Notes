@@ -453,13 +453,777 @@ boundaries. A **weighted regression** more generally applies some kind of regres
 neural network, decision tree, etc) to the $k$ nearest neighbors and uses that to determine the output for the
 query point.
 
-## Ensemble Learning
+## Ensemble Learning - Bagging and Boosting
+
+Consider the problem of detecting spam email. We can come up with a bumch of loose rules to help
+classify if an individual email is spam. For example,
+- if the email only contains an image it is likely spam
+- if the email contains some "blacklist" of words it is likely spam
+- if the email is from someone in your contact list it is likely not spam
+- if the email is just a URL it is likely spam
+
+Each of these rules on it's own is pretty weak - we can think of a number of reasonable, real life counterexamples
+for any of these rules individually. However, each rule individually is still better than randomly guessing.
+
+**Ensemble learning** is a set of learning algorithms which uses the aggregation of the results of an "ensemble" of
+"weak" learning algorithms to come up with an output for a test sample.
+
+The basic algorithm is:
+1. Learn over a subset of the data and generate a "rule"
+2. repeat step 1 for a set number of iterations
+3. Combine the generated rules into a more complex rule
+
+This algorithm is quite straightforward though we need to decide how we pick subsets of the data, what kind of
+learner we use to generate a rule, and how we want to combine the rules together. And generally we find that
+if we do this right, using ensemble learning with less complex (or weak) learners performs better on validation
+and testing sets than a single complex learner.
+
+**Bagging** is an ensemble learning algorithm which randomly samples by taking uniform sized random subsets of the
+data (with replacement), trains a weak learner on that subset, and combines the results by taking the mean of the
+individual weak learners. This is a very simple algorithm but in practice it can work quite well.
+
+### Boosting
+
+**Boosting** is an ensemble learning algorithm which:
+- samples by trying to learn the "hardest" examples in a given iteration
+- combines results using the weighted mean.
+
+In boosting we define error as:
+
+$$E = P_{D([h(x) \neq c(x))$$
+
+Essentially error is defined as the probability that a given sample is incorrect where $D$ is a probability
+distribution over the samples.
+
+We also define a **weak learner** as an algorithm where:
+
+$$\forall D \ P_{D}(x) \leq \frac{1}{2} - \epsilon$$
+
+Basically a weak learner is a learner that must have an error rate that is less than 50% for any possible
+probability distribution over the samples.
+
+So the boosting algorithm is:
+
+1. Given training set $X$, $Y$ which is a binary classification problem. Note that $y \in Y$ is in the set
+   $\{ -1, 1\}$.
+2. repeat for iteration $t$ until $T$
+   1. construct probability distribution $D_t$. This is the distribution we will use to sample to train the weak
+      learner.
+   2. find a weak learner classifier $h_t(x)$ by drawing from $D_t$ with small error $P_D(h_t(x_i) = y_i)$
+3. Output $H_{final}$.
+
+We need to construct $D_t$ iteratively. $D_1$ is a uniform distribution. Then
+
+$$D_{t + 1}(i) = \frac{D_{t}(i) \exp{(-\alpha_t y_i h_t(x_i))}}{z_t}$$
+
+where
+
+$$\alpha_t = \frac{1}{2}\ln{\frac{1 - \epsilon_t}{\epsilon_t}}$$
+
+and
+
+$$D_1 = \frac{1}{n} \ \text{where} \ n = |X|$$
+
+Note that $h_t(x_i)$ and $y_i$ can either be $1$ or $-1$ so the expression $y_i h_t(x_i)$ is $1$ if the weak
+learner was right for $x_i$ and $-1$ if the weak learner was wrong for $x_i$. And $\alpha_t$ is always a posative
+number.
+
+So if a weak learner is correct for sample $i$, the probability of selecting that sample in the next
+iteration $D_{t+1}(i)$ can either stay the same or decrease. It will stay the same only if all of the other samples
+in were correctly classified.
+
+This happens because:
+
+$$z_t = \sum_i{D_{t}(i) \exp{(-\alpha_t y_i h_t(x_i))}}$$
+
+So if all of the samples agree, the $\exp{(-\alpha_t y_i h_t(x_i))}$ term cancels out and the probabilities remain
+the same.
+
+If any samples were not correctly classified, then $D_{t + 1}(i)$ will decrease. This makes sense
+since the next iteration wants to sample the "hardest" samples and we have already found a learner than can
+classify $i$.
+
+If a weak learner is wrong for sample $i$, the probability of selecting that sample in the next iteration
+$D_{t+1}(i)$ either stays the same (if all of the samples were incorrectly classified) or increase (if any samples
+were correctly classified).
+
+Then:
+
+$$H_{final}(x) = sigm{(\sum_{t}{\alpha_{t} h_{t}(x)})}$$
+
+So we weight each of the weak learners by how much error it has. $\lim_{\epsilon_t \to 0}{alpha_t} = \infty$ and
+$\lim_{\epsilon_t \to 1}{alpha_t} = \frac{1}{2}$.
 
 ## Support Vector Machines
 
-## Logistic Regression
+**Support vector machines** (SVM) are a class of machine learning classification algorithms which attempts to find
+the "best" hyperplane to classify linearly seperable data.
 
-# Randomized Optimization
+Consider the data below:
+```
+|
+|         x  x
+|   o            x
+|  o  o        x
+|    o
+ -----------------------
+```
+
+Since this data is, clearly, linearly seperable we could use a perceptron to find a line (or hyperplane in the
+n-dimensional case) that classifies the points. However, the perceptron algorithm makes no garuntees about
+*which* dividing hyperplane it will select based on some training data.
+
+```
+|
+|        |x  x
+|   o    |       x
+|  o  o  |     x
+|    o   |
+ -----------------------
+```
+
+and
+
+```
+|
+|     \   x  x
+|   o   \        x
+|  o  o   \    x
+|    o      \
+ -----------------------
+```
+
+are both completely valid hyperplanes to seperate the training data. However, intuitively, it's easy to understand
+that not all hyperplanes are created equal. A hyperplane which is "too close" to one class of data adds an
+overfitting bias to the algorithm since it adds additional constraints based on the training data. So the "best"
+hyperplane is the hyperplane that is farthest away from any of the training data.
+
+So the SVM algorithm attempts to find a hyperplane that seperates classes of the training data while also
+maximizing the distance between the hyperplane and the training data points.
+
+![](src/ml/svm_graph.png)
+
+So consider the equaltion of a hyperplane:
+
+$$y = W^{T}x + b$$
+
+where $y$ is the classification label (either -1 or 1), $W$ are the parameters of the hyperplane, and $x$ is a
+feature sample.
+
+Then let us classify the "upper" set of samples with class 1 and the "lower" set of samples with class 0 and
+define 3 parallel lines:
+
+```
+|    l2  l3
+| l1 \    \
+| \   \    \   +1
+|  \   \    \+1  +1
+| -1\   \    \   +1
+ ---------------------
+```
+
+Where $l_1$ touches the "last" of the -1 samples, $l_3$ touches the "last" of the +1 samples, and l2 is the
+optimal line between the classes. Now we can define these three lines as:
+
+$$0 = W^{T}x + b$$
+$$1 = W^{T}x + b$$
+$$-1 = W^{T}x + b$$
+
+And we want to find the parameters $W$ of the three lines which maximize the distance between them. Let's consider
+the points $x_1$ (on $l_1$) and $x_2$ (on $l_3$) where $x_1$ and $x_2$ are on a line perpendicular to $l_1$, $l_2$,
+and $l_3$
+
+```
+|    l2  l3
+| l1 \    \
+| \   \    x2
+|  x1  \    \
+|   \   \    \
+ ---------------------
+```
+
+$$W^{T}x_1 + b - (W^{T}x_2 + b) = 2$$
+$$W^T(x_1 - x_2) = 2$$
+
+Then we can normalize $W$ to bring the vector into a unit sphere.
+
+$$\frac{W^T}{||W||}(x_1 - x_2) = \frac{2}{||W||}$$
+
+Recall that
+
+$$||W|| = \sqrt(\sum_i{w_i^2})$$
+
+Also note that in a hyperplane, $W$ is a vector that is perpendicular to the line defined by the hyperplane. So
+the expression above tells us that the distance between $x_1$ and $x_2$ (which is what we're trying to maximize)
+is $\frac{2}{||W||}$. This is known as the **margin**.
+
+So a support vector machine attempts to classify the points correctly (minimize the error) while maximizing the
+margin. In other words we want to keep:
+
+$$y_i (W^T x_i + b) \geq 1 \ \forall i$$
+
+while minimizing
+
+$$\frac{2}{||W||}$$
+
+Note that maximizing $\frac{2}{||W||}$ is the same as minimizing:
+
+$$\frac{1}{2} ||W||^2$$
+
+This works because $W$ is positive - so taking the reciporacle just turns the maximum point into a minimum point
+and squaring just increases the magnitude of the outputs, but doesn't change the location of the extrema.
+
+THrough quadratic programming, this optimization problem transforms into:
+
+$$L(\alpha) = \sum_{i}{\alpha_{i}} - \frac{1}{2} \sum_{i,j}{(\alpha_i \alpha_j y_i y_j x_i^T x_j)}$$
+
+such that
+
+$$\alpha_i \geq 0$$
+
+and
+
+$$\sum_{i}{\alpha_i y_i} = 0$$
+
+This is also know as the **dual form** of the perceptron.
+
+Once we know the $\alpha$ parameters from the equation above we can find $W$:
+
+$$W = \sum_{i}{a_i y_i x_i}$$
+
+(and we can pull out $b$ by adding it as a parameter to $W$)
+
+Note that most of the $\alpha$ parameters in this equation are going to be $0$. Really only the "support vectors" -
+defined by the points close to the hyperplane - will have non-zero $\alpha$s.
+
+Also note that $x_1^T x_2$ is the dot product of $x_1$ and $x_2$ which is (to some extent) a measure of similarity
+between two vectors. So the $alpha_i \alpha_j y_i y_j x_i^T x_j$ expression is finding which points matter (based
+on the $\alpha$s), determining if they are from the same class, then determining how "similar" the points are.
+
+### The Kernel Trick
+
+This SVM method is great for linearly seperable data but completely falls apart on non-linearlly seperable data.
+Consider data that looks like:
+
+```
+|          x
+|      x   o   x
+|    x   o  o    x
+|   x   o    o   x
+|     x   o    x
+|        x  x
+ -----------------------
+```
+
+This data is clearly not linearly sepearble, but we can see that a circular decision plane could seperate this
+data. And we can do that by replacing the $x_1^T x_2$ term in the SVM optimization problem with another similarity
+function. We can use a higher dimensional function $\Phi(x)$ to project $x_1$ and $x_2$ into a higher dimension,
+compute some similarity in that dimension, and use that.
+
+$$w(\alpha) = \sum_{i}{\alpha_{i}} - \frac{1}{2} \sum_{i,j}{(\alpha_i \alpha_j y_i y_j \Phi(x_i)^{T} \Phi(x_j)}$$
+
+More interestingly we don't always need to actually project $x$ into a higher dimension space. Consider
+
+$$\Phi(x) = [x_1^2, x_2^2, \sqrt{2}x_1x_2]$$
+
+Then:
+
+$$\Phi(x_i)^{T} \Phi(x_j) = x_{i,1}^2 x_{j,1}^2 + 2x_{i,1} x_{j,1} x_{i,2 }x_{j,2} + x_{i,1}^2 x_{j,2}^2$$
+
+Which can be factored into:
+
+$$\Phi(x_i)^{T} \Phi(x_j) = (x_{i,1}x_{j,1} + x_{i,2}x_{j,2})^2$$
+
+Which is the same as:
+
+$$\Phi(x_i)^{T} \Phi(x_j) = (x_i^T x_j)^2$$
+
+So we can actually do the whole higher order function without taking the time and space to project the vectors into
+a higher dimensionl space.
+
+Thus we can replace that term with a **kernel function** $K$ which computes some similarity between $x_i$ and
+$x_j$.
+
+$$w(\alpha) = \sum_{i}{\alpha_{i}} - \frac{1}{2} \sum_{i,j}{(\alpha_i \alpha_j y_i y_j K(x_i, x_j)}$$
+
+## Information THeory
+
+**Information theory** is a subfield of mathematics which has very useful applications to computer science.
+Basically, information theory provides us with a mathematical framework to determine whether input vectors are
+"similar" (mutual information) and whether specific features are informative (entropy).
+
+More generally **entropy** is defined as the amount of information encoded in a specific variable. We can say that
+
+$$H(X) = \sum_{x}{P(x)bits(x)}$$
+
+or that the entropy of some variable $x$ is given by the expected number of bits needed to encode $x$ for all
+possible states.
+
+$$bits(s) = \log{\frac{1}{P(s)}}$$
+
+so:
+
+$$H(X) = -\sum_{x}{P(x)\log{P(x)}}$$
+
+Recall that this function has the curve:
+
+![Graph of $plog(p)$](src/ml/entropy.png)
+
+so entropy is small if a variable is constrained (is highly likely to be in a small number of states)
+and is large if the variable has a (close to) equal likelihood of being in a lot of states.
+
+Often times we want to know how much information is encoded in multiple variables together. So we can either
+calculate the entropy of the joint distribution:
+
+$$H(X, Y) = -\sum_{x, y}{P(x, y)\log{P(x, y)}}$$
+
+Or we can calculate the entropy of one variable conditioned on the other:
+
+$$H(Y | X) = \sum_{x, y}{P(y | x)\log{P(y | x}}$$
+
+This can also be seen as:
+
+$$H(Y | X) = -\sum_{x}{P(x)H(Y|x)}$$
+
+$$H(Y | X) = -\sum_{x}{(P(x)\sum_{y}{P(y|x)\log{P(y|x)}})}$$
+
+From bayes rule:
+
+$$P(y|x) = \frac{P(y,x)}{P(x)}$$
+
+xo:
+
+$$H(Y | X) = -\sum_{x}{\sum_{y}{P(y, x)\log{P(y|x)}}}$$
+
+and
+
+$$H(Y | X) = -\sum_{x, y}{P(y, x)\log{\frac{P(y, x)}{P(x)}}}$$
+
+
+Note that if $x$ and $y$ are independent:
+- $H(X, Y) = H(X) + H(Y)$
+- $H(Y | X) = H(Y)$
+
+Conditional independence is a very useful metric but doesn't necessarily tell us everything. For example $H(Y|X)$
+could be small if $X$ highly constrains $Y$, but it could also be small if $H(Y)$ is small irrespective of $X$. So
+to more accurately model the dependence between two variables we introduce **mutual information** which is defined
+as:
+
+$$I(X, Y) = H(Y) - H(Y | X)$$
+
+so basically mutual information is a measure of the reduction in randomness of a variable when it is conditioned on
+another variable. Note that if $X$ and $Y$ are independent, $I(X, Y) = 0$.
+
+**KL Divergence** is a metric that measures the distance between two probability distributions. It is given as:
+
+$$D(p, q) = \int{p(x)\log{\frac{p(x)}{q(x)}}}$$
+
+Note that if the distributions are the same, the KL divergence is 0.
+
+## Computational Learning Theory
+
+**Computational learning theory** is a sub-field of computer science and machine learning which seeks to define
+new learning problems, show why and how certain learning algorithms work, and help us understand why some problems
+are fundamentally hard to solve. When thinking about learning algorithms we generally care about:
+- probability of succesful training: $p = 1 - \delta$
+- number of samples to train on: $m$
+- complexity of the hypothesis class
+- accuracy to which target concept is approximated: $\Epsilon$
+- manner in which training examples are presented
+- manner in which training examples are selected
+
+**Computational complexity** is the ammount of computational effort that is needed for a learner to converge.
+
+**Sample complexity** is the number of training iterations needed for a learner to create a successful hypothesis.
+
+**Mistake bounds** are the number of misclassifications a learner can make over an infinite run.
+
+Given a true hypothesis $c \in H$, proposed hypothesis $h \in H$, training set $S \subset X$, and a
+consistent hypothesis as one which produces $c(x) = h(x) for x \in S$ we define the **version space** as:
+
+$$V(S) = \{ h \ \text{s.t.} \ h \in H \text{consistent w.r.t.} \ S\}$$
+
+A version space is essentially the set of hypothesis in a hypothesis space which is consistent with the data given.
+
+The **training error** of a hyporhtesis $h$ is the fraction of samples in the training set that is misclassified by
+$h$. The **true error** is the fraction of samples that would be misclassified on a sample drawn from probability
+distribution $D$. So true error is $error(h) = P_D(c(x) \neq h(x))$.
+
+We also define $C$ as a concept class, $n = |H|$ as the size of a hypothesis class, $D$ as a distribution over
+inputs, $0 < \epsilon \leq \frac{1}{2}$ as an error goal, and $0 < \delta \leq \frac{1}{2}$ as a certainty goal.
+
+Then we say a concept class $C$ is **PAC learnable** by learner $L$ using hypothesis class $H$ if and only if
+$L$ will, with probability $1 - \delta$, output a hypothesis $h \in H$ such that $error(h) \leq \epsilon$ in
+time and samples polynomial in $\frac{1}{\epsilon}$, $\frac{1}{\delta}$, and $n$.
+
+A version space $V$ is **epsilon exhausted** if and only if:
+
+$$\forall h \in V(S) \ error_D (h) \leq \epsilon$$
+
+We can then find that the number of training examples $m$ required to find a consistent hypothesis is given by:
+
+$$m \geq \frac{1}{\epsilon} (\ln{|H|} + \ln{\frac{1}{\delta}})$$
+
+### VC Dimensioality
+
+**VC dimensionality** is a notion of computational learning theory which allows us to know the number of dimensions
+that can be considered when classifying a hypothesis class. The VC dimensionality of $H$ is defined as
+the largest set of inputs that the hypothesis class can label in all possible ways.
+
+For example the hypothesis class $h(x) = \theta \ \text{s.t.} \ \theta \in R$. Then we can see that it's easy to
+label in 1 dimension:
+
+```
+           -         |     +
+-----------x-------theta----------
+
+    -         |      +
+------------theta-----x----------
+```
+
+But we can't label all possible 2d combinations `(+, +), (+, -), (-, +), (-, -)` using a single line.
+
+```
+          -           |     +
+-------x----x-------theta----------
+
+    -         |      +       +
+------------theta-----x------x----
+
+    -          |        +
+-----x-------theta------x----------
+```
+
+This tells us that the VC dimensionality of this hypothesis class is $1$.
+
+This notion of "labeling in all possible ways" is called "shattering".
+
+In general we find the that for a hypothesis class that is represented by a d-dimensional hyperplane, the VC
+dimensionality is $d+1$. This is because the VC dimensionality is given by the number of parameters in the
+hypothesis class.
+
+But not all hypothesis classes have finite VC dimensions. A hypothesis class which returns convex polygons has an
+infinite VC dimension since a convex polygon can have an infinite number of sides and be pretty much any shape and
+therefore label any number of points.
+
+We can use VC dimensionality to redefine the minimum amount of data required to learn an infinitely sized
+hypothesis class as:
+
+$$m \geq \frac{1}{\epsilon} (8 VC(H) \log_{2}{\frac{13}{\epsilon}}  + 4 \log{\frac{2}{\delta}})$$
+
+Additionally, $H$ is PAC learnable if and only if $VC(H)$ is finite.
+
+## bayesian Learning
+
+**bayesian learning** is a way of learning the *most probable* hypothesis given the data and domain knowledge. Or we
+want to find:
+
+$$\argmax_h{P(h | D)}$$
+
+**Bayes Rule** tells us that
+
+$$P(a, b) = P(a | b) P(b)$$
+and
+
+$$P(a, b) = P(b | a) P(a)$$
+
+So
+
+$$P(a | b) = \frac{P(a,b)}{P(b)}$$
+
+and
+
+$$P(a | b) = \frac{P(b | a) P(a)}{P(b)}$$
+
+So:
+
+$$P(h | D) = \frac{P(D | h) p(h)}{P(D)}$$
+
+Now:
+- $P(D)$ is the **prior on the data**. So this is our *prior belief* that this data will occur. Usually this term
+  is just a normalizing factor.
+- $P(D | h)$ is the probability of the training data given the hypothesis. Or more usefully it is the probability
+  that the hypothesis is consistent with the input data. This is a binary value since the hypothesis can be
+  empirically consistent or inconsistent with the input data.
+- $P(h)$ is the **prior on the hypothesis** or our belief this hypothesis will occur.
+
+Now $P(D)$ is going to be constant for all hypothesis so we can kind of ignore it. Then if we assume that all
+hypothesis are equally likely we can say that the best hypothesis is given by:
+
+$$\argmax_{h}{P(D|h)}$$
+
+Now recall that we defined a version space as:
+
+$$VS(D) = \{ h \ \text{s.t.} \ h \in H \text{consistent w.r.t.} \ D\}$$
+
+or the set of all hypothesis that are consistent with the data. And note that:
+
+$$P(D) = \sum_{i}{P(D|h_i)P(h_i)}$$
+
+We know that $P(D|h)$ is the probability that a hypothesis correctly classifies the data (1 if $h$ is consistend
+with $D$ and 0 otherwise). And we can assume that each hypothesis is equally likely to be picked so
+
+$$P(h) = \frac{1}{|H|}$$
+
+So:
+
+$$P(D) = \sum_{i}{1 \times \frac{1}{|H|}}$$
+
+where $H$ is the hypothesis space. Now we know that there since the version space is the consistent hypothesis then
+we can rewrite the equaiotn above as:
+
+$$P(D) = \frac{|VS|}{|H|}$$
+
+Then we know that for any consistent hypothesis
+
+$$P(h | D) = \frac{\frac{1}{|H|}}{\frac{|VS|}{|H|}}$$
+
+$$P(h | D) = \frac{1}{|VS|}$$
+
+### The sum of squares error
+
+The above ideas are great if we have a completely noise free data set. But what if we have some data where each
+label has some noise attached:
+
+$$y_i = f(x_i) + \epsilon_i \ \text{where} \ \epsilon_i = N(o, \sigma^2)$$
+
+So the output of each datapoint is given by some hypothesis function with an additional error drawn from the normal
+distribution. We know from bayes rule that we can find the best hypothesis by finding:
+
+$$h_best = \argmax_{h}{P(h|D)} = \argmax_{h}{P(D|h)}$$
+
+In the noise-free dataset version, $P(D|h)$ was either 0 or 1 since the hypothesis either perfectly captured the
+dataset or not. But now we need to take into account the probability while taking the noise into account. We assume
+that each datapoint is independent of the others. Then we can say:
+
+$$P(D|h) = \Pi_{i} P(d_i | h)$$
+
+And $P(d_i | h)$ is the probability that for $d_i = [x_i, y_i]$, $y_i = h(x_i) + \epsilon_i$. Since $\epsilon_i$ is
+a normal distribution centered at 0, we need to find $P_{normal}(y_i - h(x_i))$ or the probability that the
+difference between the hypothesis output and the actual label could have been drawn from the normal distribution.
+
+$$h_best = \argmax_{h}{\Pi_{i}{ P_{normal}(y_i - h(x_i)}}$$
+
+where
+
+$$P_{normal}(x) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{(-\frac{x^2}{2\sigma^2})}$$
+
+So
+
+$$P_{normal}(y_i - h(x_i) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{(-\frac{(y_i - h(x_i))^2}{2\sigma^2})}$$
+
+Then:
+
+$$h_best = \argmax_{h}{\Pi_{i}{ \frac{1}{\sqrt{2\pi \sigma^2}} \exp{(-\frac{(y_i - h(x_i))^2}{2\sigma^2})} }}$$
+
+Since that leading $\frac{1}{\sqrt{2\pi \sigma^2}}$ term doesn't matter for argmax we can cancel it out. And since
+the argmax of a function is the same as the argmax of its log we can take the log of this function.
+
+$$h_best = \argmax_{h}{\sum_{i}{ (-\frac{(y_i - h(x_i))^2}{2\sigma^2})} }$$
+
+The $2\sigma^2$ term is also irrelevant for the argmax so we can drop it
+
+$$h_best = \argmax_{h}{\sum_{i}{-(y_i - h(x_i))^2}}$$
+
+which is the same as:
+
+$$h_best = \argmin_{h}{\sum_{i}{(y_i - h(x_i))^2}}$$
+
+which is the same as minimizing the sum of squares error of the data.
+
+## bayesian Inference
+
+**bayesian inference** is a machine learning and AI technique which uses probabilistic, graphical models to predict
+outcomes based on data. bayesian inference is unlike any other machine learning algorithm we've discussed so far
+because it requires built in domain knowledge and understanding of the system at play.
+
+Consider the following joint distribution
+
+storm | lightning | P(storm, lightning)
+------|-----------|----------------------
+T     | T         | 0.25
+T     | F         | 0.4
+F     | T         | 0.05
+F     | F         | 0.3
+
+This is a pretty small distribution that tells us some information. But now for every new attribute we add (if it's
+binary) we need to increase the amount of data we're storing exponentially - which is not computationally feasible
+for complicated systems. So how do we store complicated joint distributions?
+
+We say that two variables $X$ and $Y$ are **conditionally independent** if:
+
+$$\forall x,y,z \ P(X=x|Y=y,Z=z) = P(X=x|Z=z)$$
+
+Recall that in general:
+
+$$P(X,Y) = P(X|Y)P(Y)$$
+
+if $X$ and $Y$ are independent variables:
+
+$$P(X,Y) = P(X)P(Y)$$
+
+therefore:
+
+$$P(X|Y) = P(X)$$
+
+which is similar to the notion of conditional independence.
+
+We can represented these joint distributions in a **bayesian Network** which is a graphical model of how the
+different variables in the distribution interact. In our previous distribution, We know that $S$ and $L$ are
+conditionally dependent because
+
+$$P(S=t) = P(S=t|L=t) + P(S=t|L=f) = 0.65$$
+$$P(L=t) = P(L=t|S=t) + P(L=t|S=f) = 0.35$$
+
+If $S$ and $L$ were conditionally independent
+
+$$P(S=t,L=t) = P(S=t)P(L=t)$$
+
+but
+
+$$P(S=t)P(L=t) = 0.2275$$
+
+and
+
+$$P(S=t,L=t) = 0.25$$
+
+So this distribution can be represented by a graph like:
+
+```
+
+ (  S  ) --> (  L  )
+  P(S)        P(L|S)
+
+ ```
+
+ where the dependence of $L$ on $S$ is noted by the edge from $S$ to $L$.
+
+ Now consider another node $T$ where
+
+storm | lightning  | thunder | P(storm, thunder, lightning)
+------|------------|---------|-----------------------------
+T     | T          | T       | 0.2
+T     | F          | T       | 0.04
+F     | T          | T       | 0.04
+F     | F          | T       | 0.03
+T     | T          | F       | 0.05
+T     | F          | F       | 0.36
+F     | T          | F       | 0.01
+F     | F          | F       | 0.27
+
+Note that to incorporate the new variable, we had to double the amount of information. But also note that
+
+$$P(T=t|L=f, S=t) = \frac{P(T=t, L=f, S=t)}{P(L=f,S=t)} = \frac{0.04}{0.4} = 0.1$$
+$$P(T=t|L=f, S=f) = \frac{P(T=t, L=f, S=f)}{P(L=f,S=f)} = \frac{0.03}{0.3} = 0.1$$
+
+And in fact if we enumerate over all of the possibilities for $S$, $L$, and $T$ we find that $P(T|L,S) = $P(T|L)$
+or, in other words, $T$ is conditionally independent of $S$ given $L$.
+
+We can represent this in graphical form as
+
+```
+
+ (  S  ) --> (  L  ) -> (  T  )
+  P(S)        P(L|S)     P(T|L)
+
+ ```
+
+ Note that for a set of parents $u \in U$ a node $V$ needs to store $P(V=t|U)$. So if $V$ has one parent, it only
+ needs to store $P(V=t|U=t)$ and $P(V=t|U=f)$. If $V$ has two parents it needs to store $P(V=t|u_1=t, u_2=t)$,
+ $P(V=t|u_1=t, u_2=f)$, $P(V=t|u_1=f, u_2=t)$, and $P(V=t|u_1=f, u_2=f)$. We call the table that each of these
+ nodes stores a **conditional probability table**. Then we can calculate the joint distribution by multiplying the
+ CPTs together. Note that this kind of thing only works if the bayes nets are directed, acyclic graphs (DAGs).
+
+![](src/ml/bayes_net.png)
+
+$$P(A,B,C,D,E) = P(A)P(B)P(C|A,B)P(D|B,C)P(E|C,D)$$
+
+Note that a general joint distribution is of size $O(2^N)$ for $N$ variables. A Bayes net is $O(N * 2^k)$ if each
+node has up to $k$ parents. Given a bayes net we can also read off how variables are related
+- `(A) -> (B) <- (C)` : A and C are independent (blocking); A and C are
+conditionally dependent given B
+- `(A) -> (B) -> (C)` : A and C are conditionally independent given B
+(blocking); A and C are dependent
+- `(A) <- (B) -> (C)` : A and C are conditionally independent given B
+(blocking); A and C are dependent
+
+We can also find that the sets $A$ and $B$ of random variables are independent given set $C$ if there
+exists no unblocked path from the vertices in $A$ to the vertices in $B$ if the vertices in $C$ are observed.
+$A$ and $B$ are said to be D-seperated by $C$. So to determine if any vertices are independent given a set of observed
+variables we simply check to see if all paths between the variables are blocked.
+
+**Inference** is the process of finding some useful information the joint distribution from a bayes net.
+Usually we want to know the "posterior probability" of some variables or the "most likely explanation".
+The **Posterior Probability** of a variable $Q$ in a joint distribution is given by:
+
+$$P(Q | E_1 = e_i, ..., E_k = e_k)$$
+
+The **most Likely Explanation** is the most likely value for a variable $Q$ given some evidence and is given by:
+
+$$\argmax_q P(Q = q | E_1 = e_i, ..., E_k = e_k)$$
+
+The most common, and most brute force, method of inference is **inference by enumeration**. Given:
+- Evidence variables $E_1...E_k = e_1...e_k$
+- Query variables: $Q$
+- Hidden variables: $H_1...H_r$
+
+We want to calculate:
+
+$$P(Q | e_1...e_k) = \frac{P(Q, e_1'...e_k)}{P(e_1,...,e_k)}$$
+$$P(Q, e_1,...,e_k) = \sum_{h_1...h_r}{P(Q, h_1,...,h_r, e_1,...,e_k)}$$
+$$P(e_1,...e_k) = \sum_{h_1...h_r}{P(e_1,...e_k,h_1,...h_r)}$$
+
+What we are doing here is essentially taking the **margin** (or summing over) all of the "hidden" variables (or
+variables that aren't part of the provided query and evidence).
+
+For example, consider the bayesian network above. If we wanted to calculate $P(E=t|B=t,C=f)$ we would treat $B$ and
+$C$ as our evidence variables, $A$ and $D$ as our hidden variables, and $E$ as the query variable. Then:
+
+$$P(E=t|B=t,C=f) = \frac{
+  \sum_{a}^{A}{\sum_{d}^{D}{P(E=t|C=f,D=d)P(D=d|P(B=t,C=f)P(C=f|A=a,B=t)P(A=a)P(B=b))}}
+}
+{
+  \sum_{e}^{E}{\sum_{a}^{A}{\sum_{d}^{D}{P(E=e|C=f,D=d)P(D=d|P(B=t,C=f)P(C=f|A=a,B=t)P(A=a)P(B=b))}}}
+}$$
+
+This is clearly extremely inefficient - in fact, inference in bayes nets is an NP hard problem. However, we can
+still use a few tricks to make bayes nets useful in machine learning.
+
+### Naive Bayes
+
+**Naive Bayes** is a relatively simple algorithm which uses a simple bayesian network to make predictions. The
+bayes net is of the structure:
+
+```
+              ( x_1 )
+            / ( x_2 )
+( output ) --   ...
+            \
+              ( x_n )
+```
+
+All of the features are conditionally independent of each other.
+
+$$P(output=y | X) = \frac{P(output, X)}{P(X)}$$
+$$P(output=y | X) = \frac{P(X|output=y)P(output=y)}{P(X)}$$
+$$P(output=y | X) = \frac{\Pi_{i}{P(x_i=v_i|output=y)P(output=y)}}{P(X)}$$
+
+We can train this network by treating each feature in the data as an independent, counting the number of times
+it appears with the different output values, using the counts the construct the CPT $P(x_i | output)$, then using
+that bayesian network to calculate the probability that a test input has a specific output.
+
+Naive bayes is a very simple algorithm, and despite the fact that the assumption it makes about feature
+independence, it actually works very well in practice. This is true because in practice, we use this for
+classification and so there is room for error in terms of the actual probabilities - so even if the naive bayes
+network doesn't perfectly model the joint distribution, it's close enough to work for classification.
+
+# Unsupervised Learning
+
+**Unsupervised learning** is a completely different type of machine learning which attempts to make some sense of
+completely unrelated data. Essentially unsupervised learning is attempting to describe the data you have whereas
+supervised learning attempts to find some function to match your already described data.
+
+## Randomized Optimization
 
 **Randomized optimization** (RO) is the process of using randomized algorithms to find the maximum of a fitness
 function. This is particularly important if your fitness function cannot be solved analytically (ie if it doesn't
@@ -467,13 +1231,13 @@ have a derivative or the derivative is difficult to find).
 
 Given an input space $X$ and a fitness function $f(z)$ we want to find $x'$ where
 
-$$x' = argmax_{x \in X}{(f(x))}$$
+$$x' = \argmax_{x \in X}{(f(x))}$$
 
 This is a relatively simple and intuitive idea across many disciplines. We may need to do this kind of optimization
 to tune parameters for chemical or biological processes, find routes, find functional solutions or roots, tune
 hyperparameters for machine learning algorithms, tune weights for machine learning algorithms, etc.
 
-## Hill climbing
+### Hill climbing
 
 **Hill climbing** is one of hte simplest RO algorithms.
 1. Pick a random point $x \in X$.
@@ -494,7 +1258,7 @@ This algorithm is more robust against local maxima since we perform hill climbin
 the input space. While obviously we cannot guarantee that we will hit the global maximum, we can be more certain
 that the maximum we find after performing a series of random hill climbings is, at worst, a high local maximum.
 
-## Simulated Annealing
+### Simulated Annealing
 
 **Simulated annealing** is an RO algorithm which attempts to solve the local maxima problem by allowing the
 algorithm to "explore" sub-optimal paths in the hopes of finding a global maximum.
@@ -529,7 +1293,7 @@ $$P(ending \ at \ z) = \frac{e^{f(z)}{T}}{Z_T}$$
 
 This is known as the **Boltzman distribution**.
 
-## Genetic Algorithms
+### Genetic Algorithms
 
 **Genetic algorithms** are algorithms that incorporate techniques analogous to biological reproduction and evolution
 to perform a local search. Genetic algorithms generally assume a multidimensional input space (for example n-bit
@@ -568,7 +1332,7 @@ A **uniform crossover** considers each point in the samples individually and use
 distribution to determine whether to "keep" or "swap" the values at any position. This assumes that there is no
 structural locality to the data.
 
-## MIMIC
+### MIMIC
 
 The randomized algorithms discussed above are great and finding individual points. However, they don't convey any
 kind of structure and have unclear probability distributions.
@@ -607,18 +1371,87 @@ MIMIC does very well with structure, but it can get stuck in local optima (thoug
 MIMIC takes much more time per iteration than other algorithms (like Simulated Annealing and Genetic Algorithms).
 However, MIMIC gives a lot more information per iteration than other algorithms.
 
-# Probabilistic Models
+### Clustering
 
-## Baysean Networks
+The **clustering** problem is a relatively well defined supervised learning problem. Given a set of objects $X$ and
+a means of measuring "distance" between any two points where $D(x, y) = D(y, x)$, then we want to output some
+partitions where $P_D(x) = P_D(y)$ if $x$ and $y$ are in the same cluster.
 
-## Markov Random Fields
+**Single linkage clustering** is a very basic clustering algorithm.
+1. Initialize each data point as its own cluster
+2. Repeat $N - k$ times
+   1. Calculate the inter-cluster distances (the distances between all individual clusters)
+   2. Merge the two closest clusters
 
-## Markov Models
+This will create $k$ clusters. Note that this is an $O(N^3)$ algorithm. Single link clustering is a very naive
+algorithm and (depending on how you define distance) can result in some very unexpected clusters.
 
-# Expectimation Maximization Algorithms and Clustering
+**K means clustering** is another very popular clustering algorithm.
+1. Pick $k$ cluster center points at random
+2. Repeat until convergence
+   1. For each cluster center, assign the closest points to that cluster
+   2. recompute the cluster centers as the mean of the points in the cluster
 
-## K Means Clustering
+We can also write this out more mathematically. Let $P(x)$ be the partition or cluster of object $x$,
+$C_i$ is the set of all points in cluster $i$, and $c_i$ is the center of all the points in the cluster.
 
-## Gaussian Mixture Model
+Then K means clustering can be mathematically defined as:
 
-## EM Algorithms
+Find the cluster assignments for every point
+
+$$P(x) = \argmin_{i}{||x - c_i||^2}$$
+
+Recalculate the cluster centers:
+
+$$c_i = \frac{\sum_{y \in C_i}{y}}{|C_i|}$$
+
+We can thin of this algorithm as an optimization problem. Our state is the configuration or clusters - this can
+be represented as $\{P, c\}$ where $P$ is the partitions and $c$ are the centers, the fitness
+function or score is $f(x) = \sum_{x}{||x - c_{P(x)}||^2}$, and the neighborhood is the set of states where we have
+recalculated the cluster assignments or we have recalculated the cluster centers - $\{(P', c), (P, c')\}$. Then
+this algorithm is very much like hill climbing since we are essentially taking steps towards a better state.
+This makes sense because for an individual point, the value for that point $||x - c_{P(x)}||^2}$ only changes if
+the cluster has been reassigned - so it can never increase, it can only stay the same or go down.
+
+Since the error here is **monotonically non-increasing**, the algorithm will always converge in finite time (though
+it could take a long time). However, the algorithm can get stuck in non-optimal points. We can use random restarts
+or try to distribute cluster centers intelligently to mitigate that risk though.
+
+One problem with k means clustering is that some points may not fit well into a single cluster - it may be more
+correct for it to be "shared" by multiple clusters. **Soft clustering** is a clustering algorithm that tries to
+fix that. Essentially we follow a very similar idea to k-means. We pick $k$ cluster centers, then find the
+probability that each of the points was generated by a gaussian distribution with the mean at each of the cluster
+centers. We then recompute the centers, by using the expected value of each cluster and repeat until convergence.
+
+Soft clustering is an **expectation maximization** algorithm. $E[Z_{i,j}]$ is the **expectation** that point $i$
+is assigned to cluster $j$.
+
+$$E[Z_{i,j}] = \frac{P(X=x_i|\mu=\mu_j)}{\sum_{l}^{k}{P(X=x_l|\mu=\mu_j)}}$$
+
+where
+
+$$P(X=x_i|\mu=\mu_j) = \frac{1}{z} \exp{-0.5 \sigma^2 (x_i - \mu_j)^2}$$
+
+Then given the cluster assignment likelihoods we can recompute the means as:
+
+$$\mu_j = \frac{\sum_{i}{E[Z_{i,j}]}}{\sum_{i}{E[Z_{i,j}]}}$$
+
+EM is very similar to k-means (and in fact it can be modified slightly to pretty much be k-means). The likelihood
+function is monotonically non-decreasing, but since there are an infinite number of possible configurations, Em
+does not have to converge (though it usually does). However, it will not diverge. It can also get stuck at
+non-optimal points. It can also work with any probability distribution (not just gaussians).
+
+THere are a few general properties of clustering algorithms we want to consider:
+- **Richness** is the property that for any assignment of objects to clusters there is some distance matrix $D$
+  such that $P_D$ supports that clustering.
+- **Scale invariance** is the property that scaling distances by a positive value should not change the clustering
+  assignments.
+- **Consistency** is the property that decreasing the intracluster distances and increasing the intercluster distances should not
+  change the cluster assignments.
+
+There is no clustering algorithm that has richness, scale invariance, and consistency. This is called the
+**impossibility theorem.
+
+# Reinforcement Learning
+
+

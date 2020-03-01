@@ -1308,7 +1308,7 @@ Net. Obviously (as the name implies), approximate inference is not as exact as
 the types of inference discussed above but it is often a more efficient method
 of inference.
 - Prior Sampling
-	- Ignore all evidence and sample from teh joint distribution.
+	- Ignore all evidence and sample from the joint distribution.
 	- Do inference by counting results.
 
 	```Python
