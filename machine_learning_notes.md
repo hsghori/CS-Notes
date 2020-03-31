@@ -98,11 +98,13 @@ commonly based on a maximum depth parameter on the tree.
 
 **Information gain** is a means of determining the most informative feature and is defined as:
 
-$$gain(S, A) = entropy(S) - \sum_{v \in values(A)}{\frac{|S_v|}{|S|} entropy(S_{v})}$$
+$$gain(S, A) = entropy(S) - \sum_{v \in values(A)}{\frac{|S^{A}_v|}{|S|} entropy(S^{A}_{v})}$$
 
 where **entropy** is a function which defines the randomness of a sample set.
 
 $$entropy(S) = -\sum_{v \in values(S)}{p(v)\log{p(v)}}$$
+
+and $S^{A}_v$ is the set of samples where the feature $A$ has value $v$.
 
 Note here that the expression $p(v)\log{p(v)}$ gets more negative as $p(v) \to 0$ since $\lim_{x \to 0}{\log(x)} =
 -\infty$. So a large number of possible values with a small probability of each value would result in a large
@@ -377,7 +379,7 @@ Let us define
 
 $$\frac{\delta E}{\delta a_{j}} = \delta_{j}$$
 
-Note that the error at node $j$ can decomposed accross the nodes $k \in K$ that $j$ sends its outputs too. So we
+Note that the error at node $j$ can decomposed across the nodes $k \in K$ that $j$ sends its outputs too. So we
 can use the chain rule again to find that:
 
 $$\delta_{j} = \sum_{k}{\frac{\delta E}{\delta a_{k}} \frac{\delta a_{k}}{\delta a_{j}}}$$
@@ -432,7 +434,7 @@ nearness is defined by some similarity function) neighbors to infer the value of
 problems, the output class is often determined by a majority vote of the $k$ neighbors whereas in regression
 problems the output value may be based on the mean or median of the neighbors.
 
-This kNN algorithm is very simple, but a lot of that is because it leaves a lot up to the desiger. The desiger
+This kNN algorithm is very simple, but a lot of that is because it leaves a lot up to the designer. The designer
 chooses the value for $k$, the similarity function used, and the way in which the neighbors vote on the output
 class or value for a point.
 
@@ -443,11 +445,11 @@ learners - they frontload the work at training time, but queries take little to 
 
 kNN has a very specific preference bias. kNN assumes that locality implies similarity, regression
 functions are smooth, and that each feature is equally important. That last point reflects
-**the curse of dimensionality**. As the number of features grow, the ammount of data we need to generalize properly
+**the curse of dimensionality**. As the number of features grow, the amount of data we need to generalize properly
 grows exponentially.
 
 There is a special case of kNN where $k=n$ (or k is the total number of training examples). That sounds like a
-trivial case if we're using an average or majority vote metric for determing the output class, but if we use a
+trivial case if we're using an average or majority vote metric for determining the output class, but if we use a
 different metric like a weighted average or a weighted regression we can get some pretty interesting decision
 boundaries. A **weighted regression** more generally applies some kind of regression function (linear regression,
 neural network, decision tree, etc) to the $k$ nearest neighbors and uses that to determine the output for the
@@ -455,7 +457,7 @@ query point.
 
 ## Ensemble Learning - Bagging and Boosting
 
-Consider the problem of detecting spam email. We can come up with a bumch of loose rules to help
+Consider the problem of detecting spam email. We can come up with a bunch of loose rules to help
 classify if an individual email is spam. For example,
 - if the email only contains an image it is likely spam
 - if the email contains some "blacklist" of words it is likely spam
@@ -525,7 +527,7 @@ and
 $$D_1 = \frac{1}{n} \ \text{where} \ n = |X|$$
 
 Note that $h_t(x_i)$ and $y_i$ can either be $1$ or $-1$ so the expression $y_i h_t(x_i)$ is $1$ if the weak
-learner was right for $x_i$ and $-1$ if the weak learner was wrong for $x_i$. And $\alpha_t$ is always a posative
+learner was right for $x_i$ and $-1$ if the weak learner was wrong for $x_i$. And $\alpha_t$ is always a positive
 number.
 
 So if a weak learner is correct for sample $i$, the probability of selecting that sample in the next
@@ -557,7 +559,7 @@ $\lim_{\epsilon_t \to 1}{alpha_t} = \frac{1}{2}$.
 ## Support Vector Machines
 
 **Support vector machines** (SVM) are a class of machine learning classification algorithms which attempts to find
-the "best" hyperplane to classify linearly seperable data.
+the "best" hyperplane to classify linearly separable data.
 
 Consider the data below:
 ```
@@ -569,8 +571,8 @@ Consider the data below:
  -----------------------
 ```
 
-Since this data is, clearly, linearly seperable we could use a perceptron to find a line (or hyperplane in the
-n-dimensional case) that classifies the points. However, the perceptron algorithm makes no garuntees about
+Since this data is, clearly, linearly separable we could use a perceptron to find a line (or hyperplane in the
+n-dimensional case) that classifies the points. However, the perceptron algorithm makes no guarantees about
 *which* dividing hyperplane it will select based on some training data.
 
 ```
@@ -593,17 +595,17 @@ and
  -----------------------
 ```
 
-are both completely valid hyperplanes to seperate the training data. However, intuitively, it's easy to understand
+are both completely valid hyperplanes to separate the training data. However, intuitively, it's easy to understand
 that not all hyperplanes are created equal. A hyperplane which is "too close" to one class of data adds an
 overfitting bias to the algorithm since it adds additional constraints based on the training data. So the "best"
 hyperplane is the hyperplane that is farthest away from any of the training data.
 
-So the SVM algorithm attempts to find a hyperplane that seperates classes of the training data while also
+So the SVM algorithm attempts to find a hyperplane that separates classes of the training data while also
 maximizing the distance between the hyperplane and the training data points.
 
 ![](src/ml/svm_graph.png)
 
-So consider the equaltion of a hyperplane:
+So consider the equation of a hyperplane:
 
 $$y = W^{T}x + b$$
 
@@ -670,7 +672,7 @@ Note that maximizing $\frac{2}{||W||}$ is the same as minimizing:
 
 $$\frac{1}{2} ||W||^2$$
 
-This works because $W$ is positive - so taking the reciporacle just turns the maximum point into a minimum point
+This works because $W$ is positive - so taking the reciprocals just turns the maximum point into a minimum point
 and squaring just increases the magnitude of the outputs, but doesn't change the location of the extrema.
 
 THrough quadratic programming, this optimization problem transforms into:
@@ -702,7 +704,7 @@ on the $\alpha$s), determining if they are from the same class, then determining
 
 ### The Kernel Trick
 
-This SVM method is great for linearly seperable data but completely falls apart on non-linearlly seperable data.
+This SVM method is great for linearly separable data but completely falls apart on non-linearly separable data.
 Consider data that looks like:
 
 ```
@@ -715,7 +717,7 @@ Consider data that looks like:
  -----------------------
 ```
 
-This data is clearly not linearly sepearble, but we can see that a circular decision plane could seperate this
+This data is clearly not linearly separable, but we can see that a circular decision plane could separate this
 data. And we can do that by replacing the $x_1^T x_2$ term in the SVM optimization problem with another similarity
 function. We can use a higher dimensional function $\Phi(x)$ to project $x_1$ and $x_2$ into a higher dimension,
 compute some similarity in that dimension, and use that.
@@ -739,7 +741,7 @@ Which is the same as:
 $$\Phi(x_i)^{T} \Phi(x_j) = (x_i^T x_j)^2$$
 
 So we can actually do the whole higher order function without taking the time and space to project the vectors into
-a higher dimensionl space.
+a higher dimensional space.
 
 Thus we can replace that term with a **kernel function** $K$ which computes some similarity between $x_i$ and
 $x_j$.
@@ -825,14 +827,14 @@ Note that if the distributions are the same, the KL divergence is 0.
 **Computational learning theory** is a sub-field of computer science and machine learning which seeks to define
 new learning problems, show why and how certain learning algorithms work, and help us understand why some problems
 are fundamentally hard to solve. When thinking about learning algorithms we generally care about:
-- probability of succesful training: $p = 1 - \delta$
+- probability of successful training: $p = 1 - \delta$
 - number of samples to train on: $m$
 - complexity of the hypothesis class
 - accuracy to which target concept is approximated: $\Epsilon$
 - manner in which training examples are presented
 - manner in which training examples are selected
 
-**Computational complexity** is the ammount of computational effort that is needed for a learner to converge.
+**Computational complexity** is the amount of computational effort that is needed for a learner to converge.
 
 **Sample complexity** is the number of training iterations needed for a learner to create a successful hypothesis.
 
@@ -864,7 +866,7 @@ We can then find that the number of training examples $m$ required to find a con
 
 $$m \geq \frac{1}{\epsilon} (\ln{|H|} + \ln{\frac{1}{\delta}})$$
 
-### VC Dimensioality
+### VC Dimensionality
 
 **VC dimensionality** is a notion of computational learning theory which allows us to know the number of dimensions
 that can be considered when classifying a hypothesis class. The VC dimensionality of $H$ is defined as
@@ -915,7 +917,7 @@ Additionally, $H$ is PAC learnable if and only if $VC(H)$ is finite.
 
 ## bayesian Learning
 
-**bayesian learning** is a way of learning the *most probable* hypothesis given the data and domain knowledge. Or we
+**Bayesian learning** is a way of learning the *most probable* hypothesis given the data and domain knowledge. Or we
 want to find:
 
 $$\argmax_h{P(h | D)}$$
@@ -937,7 +939,7 @@ $$P(a | b) = \frac{P(b | a) P(a)}{P(b)}$$
 
 So:
 
-$$P(h | D) = \frac{P(D | h) p(h)}{P(D)}$$
+$$P(h | D) = \frac{P(D | h) P(h)}{P(D)}$$
 
 Now:
 - $P(D)$ is the **prior on the data**. So this is our *prior belief* that this data will occur. Usually this term
@@ -1031,7 +1033,7 @@ $$h_best = \argmin_{h}{\sum_{i}{(y_i - h(x_i))^2}}$$
 
 which is the same as minimizing the sum of squares error of the data.
 
-## bayesian Inference
+## Bayesian Inference
 
 **bayesian inference** is a machine learning and AI technique which uses probabilistic, graphical models to predict
 outcomes based on data. bayesian inference is unlike any other machine learning algorithm we've discussed so far
@@ -1452,6 +1454,299 @@ THere are a few general properties of clustering algorithms we want to consider:
 There is no clustering algorithm that has richness, scale invariance, and consistency. This is called the
 **impossibility theorem.
 
+## Feature Selection
+**Feature selection** is the process of selecting a subset of features from our input data to train our machine
+learning algorithms. There are a few reasons we want to do this. First of all, reducing the number of features we
+have to deal with (by selecting the most relevant features) helps us better interpret and understand our data and
+results. Secondly, the **curse of dimensionality** says that the amount of data needed to train a machine learning
+algorithm grows exponentially with the number of features in the dataset. So reducing the number of features we
+have o deal with (ideally) reduces the amount of data needed to train.
+
+However, we basically want to find the "best" subset of features to train our algorithm. This is an NP-Hard problem
+since there are $2^N$ possible subsets of $N$ features and there really isn't a good way of finding the best
+subset. There are two general ways that we can go about performing feature selection.
+
+**Filtering** is a flow forward process where we first use a search algorithm to come up with a subset of features
+and then pass that subset over to the learner. **Wrapping** is a process by which the feature filtering process
+is part of the learning algorithm itself - so the learner learns on some subset of features and reports its results
+back to the filtering algorithm. The filtering algorithm can then update its selection process based on the results
+of the learner. Filtering is generally fast. However, it generally looks at the features in isolation and doesn't consider
+interdependencies between features. It also completely ignores the learner. Wrapping does consider feature
+dependencies (insofar as the learning algorithm does), but it is extremely slow.
+
+There are a lot of different algorithms we can use for filtering feature selection.
+- Train a decision tree and only consider features that are important for the tree - this is tantamount to
+  selecting features with high **information gain**.
+- Select features with high variance
+- Select features with high entropy
+- Select features that are not linear combinations of other features
+
+For wrapping feature selection we can essentially perform a search using a Randomized Optimization algorithm where
+the fitness function is the accuracy of the learner. We can select a neighborhood in a "forward" way (start from a
+set of features and try to add a single feature) or a "backward" way (start with all the features and try to remove
+a single feature).
+
+In general in feature selection we can say that a feature $X_i$ is **strongly relevant** if removing it degrades
+the Bayes Optimal Classifier. $X_i$ is weakly relevant if it is not strongly relevant and there exists a subset of
+features $S$ such that adding $X_i$ to $S$ improves the Bayes Optimal Classifier. Otherwise $X_i$ is irrelevant.
+Relevance really tells us if a feature gives us information. However, some features may still provide some value to
+specific learners without being relevant. We call these features **useful**.
+
+## Feature transformation
+
+**Feature transformation** is the process of doing transformation on our current set of features to create a newer
+(more compact) which retains as much (relevant) information as possible. Here we are focused on linear
+transformations so we are trying to find some matrix $P$ such that $P^{T}x = x'$ where $x'$ has $M$
+features. So that means that $P$ should be an $NxM$ matrix.
+
+**Principle components analysis** or PCA is an eigenproblem which tries to project the feature space onto a new
+feature space with maximum variance. PCA essentially finds a direction which maximizes the variance (the principle
+component), then selects other directions which are orthogonal to the principle component.
+
+![](src/ml/pca.png)
+
+In PCA we are essentially transforming our data into a new feature space (which is the same size as the original)
+but maximizing the variance in a smaller set of dimensions. We can then select the M highest variance dimensions in
+the transformed space. PCA has the property that if we go through the process of broadcasting our original feature
+space into the M highest variance dimensions after PCA, reconstructing the data has the lowest L2 error of any
+possible reconstruction. However, we can see that using this method it is actually possible to drop actually
+relevant features that may have low variance if there are other, noisy features with high variance. So PCA needs to
+be taken with a grain of salt when used with classification problems.
+
+PCA is a **global algorithm** that means that there is a global constraint over all of the features. Namely that
+all the dimensions must be orthogonal. This means that the algorithm tends to pick out "globa" features. For
+example, on a set of images PCA would return the "average image" or the brightness, contrast, etc of the images.
+
+Note an **eigenproblem** is a computational problem that can be solved by finding the eigenvalues and/or
+eigenvectors of a matrix.
+
+**Independent components analysis** or ICA is a process which tries to map the features into a new feature space
+such that the new features are independent of each other. ICA was originally developed to solve the
+**blind source seperation** problem. Basically consider a set of N people in a room who are all talking where the
+noises are recorded by a set of N microphones. The data detected by the microphone is a linear combination of the
+sound from each of the sources - though based on the location of each microphone, the data at each microphone will
+be different. If we treat each microphone as a feature, ICA transforms the data in such a way as to make sure that
+the mutuaul information between the transformed features is 0 (that is they are independent). Thus it is able to
+actually extract the "sources" of the noise as the independent features.
+
+Unlike PCA, ICA doesn't have an orthogonality constraint so it is more of a local algorithm - thus it cane pick out
+more distinct local features. For example, on a set of images, ICA tends to pick out edges as the features.
+
+**Random components analysis** (RCA) or **Random projection** generates $M$ random projections and projects the original
+data into those dimensions. This works surprisingly well despite the randomness of the algorithm. RCA is also very
+fast, cheap, simple, and easy.
+
+**Linear discrimenent analysis** or LDA tries to find a projection that discriminates based on the classification
+label.
+
 # Reinforcement Learning
 
+**Reinforcement learning** is a sub-discipline of machine learning similar to supervised learning though with a
+different objective. Where supervised learning's goal is to approximate some function given training data $x, y$,
+reinforcement learning attempts to find some value $y$ given training data $x, z$ and use that value to make
+"decisions" in the world.
 
+## Markov Decision Processes
+
+A **Markov Decision Process** (MDP) is a fundamental framework in reinforcement learning. It consists of:
+- $S$: a set of states
+- $T(s, a, s')$ = $P(s'|s,a)$: a transition probability matrix
+- $A(s)$ and $A$: a set of actions (where $A(s)$ is the set of valid actions at state $s \in S$).
+- $R(s)$, $R(s, a)$, $R(s, a, s')$: the reward for a combination of states and actions.
+
+Given these parameters we want to generate a **policy**, $\pi(s) \to a$ which defines the optimal action to take
+at any state $s$.
+
+For example, consider a "grid world" where the agent starts at a specific spot and their goal is to make it to
+the box marked `GOAL` - if they reach the goal, the agent "wins". However, if they land in the box marked `PIT`,
+then the agent loses.
+
+   x  |   0  |   1  |  2   |  3   |   4
+------|------|------|------|------|------
+  0   |      |      |      |      | GOAL
+  1   |      | xxxx |      |      | PIT
+  2   |      | xxxx |      |      |
+  3   |      | xxxx |      |      |
+  4   |  P   |      |      |      |
+
+This world can be viewed as an MDP where
+- $S = \{ (0, 0), (0, 1), (0, 2), ... (4, 4) \}$
+- $T(s, a, s') = 1$ if $s$ is adjacent to $s'$ else $0$
+- $A = \{U, D, L, R \}$
+- $R((0, 4)) = 100$, $R((1, 4)) == -100$
+
+Our goal here is to find an optimal policy $\pi^{*}(s) \to a$ which gives us the most efficient path to the goal state.
+In this example, this is very easy to eyeball. However, this can get much more difficult if the transition
+probabilities are not deterministic. For example, if the world is such that performing an action does "what you'd
+expect" (that is transition to the obvious expected state) with a probability of $0.8$, and has a $0.2$ probability
+of moving you a square at a right angle of the intended direction. This becomes a lot more difficult to eyeball.
+
+Note that this is a **markov** decision process because:
+- The transition model function $T(s, a, s')$ only cares about the current state. It does not care about anything
+  that came before.
+- The transition model doesn't change.
+
+So generally, to train an MDP we take in a sequence of $(s, a, r)$ pairs and use that to determine $\pi^{*}$.
+
+Based on the constraints above we find that the utility of a sequence of states
+
+$$U(s_0, s_1, ...) = \sum_{t}{\gamma^{t}R(s_t)}$$
+
+where $0 \leq \gamma < 1$.
+
+This is a geometric series so if we have $R_{max} = max(R(s) \for s \in S)$,
+
+$$U(s_0, s_1, ...) \leq \frac{R_{max}}{1 - \gamma}$$
+
+This notion of "discounting" the utility allows us to find a finite reward for a potentially infinite sequence of
+states.
+
+Based on all of this we can define the optimal policy $\pi^{*}$ as:
+
+$$\pi^{*} = \argmax_{\pi}{E[\sum_{t}{\gamma^{t}R(s_t)} | \pi]}$$
+
+Then we can redefine the utility of some state $s$ given some policy $\pi$ as:
+
+$$U^{\pi}(s) = E[\sum_{t}{\gamma^{t}R(s_t)} | \pi, s_0 = s]$$
+
+Note that the reward for a state is different from the utility from that state. The reward is the short term,
+immediate reward whereas the utility is the long term, delayed reward.
+
+So then we can say that:
+
+$$\pi^{*}(s) = \argmax_{a}{\sum_{s'}{T(s, a, s')U(s')}}$$
+
+where $U(s) = U^{\pi^{*}}(s)$ is the optimal utility of the state.
+
+and
+
+$$U(s) = R(s) + \gamma \max_{a}{\sum_{s'}{T(s, a, s')U(s')}}$$
+
+This is known as the **Bellman equation**. It is clearly a recursive function, so we need to use some computational
+tricks to find $\pi^{*}$. Namely, since this equation is non-linear we can't solve it analytically. However we
+can use an EM like approach to solve it.
+
+1. Start off with some arbitrary utilities
+2. For $t = [1, 2, ...]$
+   1. Update the utilities for each state by using the equation:
+      $$\hat{U}_{t}(s) = R(s) + \gamma \max_{a}{\sum_{s'}{T(s, a, s')\hat{U}_{t - 1}(s')}}$$
+   1. If the utilities have converged, break the loop
+
+This algorithm is known as **value iteration** (note the utility of the state can also be considered the *value* of
+the state).
+
+**Policy iteration** is a slight variation of value iteration. Generally we don't actually need to know the actual
+values of the states - we just want to converge onto an optimal policy. So we can do something similar.
+
+1. Start out with an arbitrary initial policy $pi_{0}$.
+2. For $t = [1, 2, ...]$
+   1. Update the policy:
+      $$\pi_{t} = \argmax_{a}{T(s, a, s')U_{t-1}(s')}$ where $U_t(s) = R(s) + \gamma \sum_{s'}{T(s, \pi_{t}(s), s')U_{t - 1}(s')}$$
+   1. If the policy has converged, break the loop
+
+
+## Reinforcement Learning Algorithms
+
+Value iteration and policy iteration are great techniques for solving an MDP where you know the model parameters.
+However, in general you don't know parameters like the transition probabilities, rewards by state, etc. You need to
+actually run through the environment to learn those parameters. In **reinforcement learning** we are given a series
+of observations of actions in an MDP - a sequence of the form $(s, a, r, s')$, and we have to use that to learn a
+policy.
+
+There are a lot of different approaches we can take when attempting reinforcement learning.
+- **Policy Search** is an approach where we try to directly learn the policy. This is a bit difficult because we
+  generally don't have access to the action we should have taken.
+- **Value based learning** is an approach where we attempt to learn the value or utility of the states. We can
+  then translate that to policy by taking some kind of `argmax`. Note that this value is not necessarily the same
+  as the value defined for value / policy iteration.
+- **Model based learning** is an approach which attempts to learn the transition and reward functions given the
+  sequence of $(s, a, r, s')$ pairs. Converting this into a policy essentially requires using the model we learn to
+  perform value or policy iteration.
+
+### Q Learning
+
+**Q Learning** is a very common value based learning algorithm which uses a value function function $Q(s, a)$ to
+define the value of a state / action pair.
+
+$$Q(s, a) = R(s) + \gamma \sum_{s'}{T(s, a, s') \max_{a'}{Q(s', a')}}$$
+
+So $Q(s, a)$ is measuring the long term value of taking action $a$ from state $s$. Note that this is different
+from the standard utility function $U(s)$ which measured the long term value of being in state $s$.
+
+We can also redefine our original value and policy equations in terms of $Q(s, a)$.
+
+Recall that:
+
+$$U(s) = R(s) + \gamma \max_{a}{\sum_{s'}{T(s, a, s')U(s')}}$$
+$$\pi(s) = \argmax_{a}{\sum_{s'}{T(s, a, s')U(s')}}$$
+
+We can also say that:
+
+$$U(s) = \max_{a}{Q(s, a)}$$
+$$\pi(s) = \argmax_{a}{Q(s, a)}$$
+
+This makes sense since for some fixed state $s_0$, each $Q(s_0, a)$ gives the value of the state given that you
+take action $a$ and behave optimally from there. So the value of the current state $s_0$ is just the Q value
+corresponding to the best possible action I can take from $s_0$. Similarly, the policy is that best possible
+action.
+
+So clearly we could just use our $Q$ function to solve MDPs via value iteration or policy iteration if we knew the
+$T$ and $R$ functions. However, we don't have that data. So Q-learning is attempting to learn these parameters from
+the transition data it has been given.
+
+
+1. Initialize arbitrary $\hat{Q}$
+2. For each observation $(s, a, r, s')$
+   1. Calculate the update parameter
+      $$\hat{q}(s, a) = r + \gamma \max_{a'}{\hat{Q_{prev}}(s', a')}$$
+   1. Update
+      $$\hat{Q}(s, a) = (1 - \alpha_t)\hat{Q_{prev}}(s, a) + \alpha_t \hat{q}(s, a)$$
+
+Note that the operation
+
+$$V = (1 - \alpha)V_{old} + \alpha v$$
+
+Calculates the **moving average** and converges to the expected value of $V$. So this means that, given enough
+samples (potentially an infinite number of samples), our approximate $\hat{Q}(s, a)$ converges to $Q(s, a)$.
+
+Note that we say "for each observation" in the algorithm, but really you are running an agent from state $s$,
+choosing some action $a$, and observing the next state $s'$ and reward $r$. So Q learning has a few tunable
+parameters which can make a huge amount of difference in what our algorithm learns and if it can converge onto
+the right value. We generally care about:
+- How do we initialize $Q$?
+- How do we decay the learning rate $\alpha_t$
+- How do we choose actions?
+
+There are a lot of approaches to tuning these parameters. For example, we could choose random actions or always
+choose a single action. However, these strategies are bad because they don't take into account what the algorithm
+has learned and so won't return good results. Furthermore, we could just follow the policy we've generated through
+previous iterations, but that runs the risk of getting stuck in local optima.
+
+So a generally good one is to use a simulated annealing like approach. So given some state $s$ we choose $a$ by
+following the policy we have developed through our current $\hat{Q}$ function with some probability $1 - \epsilon$
+otherwise we choose a random action.
+
+This leads to a more specific Q-Learning algorithm:
+
+1. Initialize arbitrary $\hat{Q}$
+2. While True
+   1. Given state s generate an observation by choosing an action and observing the resulting state and reward:
+        $$a =
+            \begin{cases}
+                 \hat{\pi}(s) \ &\text{if}\ \ rand() < 1 - \epsilon\\
+                rand(A) &
+            \end{cases}
+        $$
+        where
+        $$\hat{\pi}(s) = \argmax_{a'}{\hat{Q}(s, a')}$$
+   2. Calculate the update parameter
+        $$\hat{q}(s, a) = r + \gamma \max_{a'}{\hat{Q}_{prev}(s', a')}$$
+   3. Update
+        $$\hat{Q}(s, a) = (1 - \alpha_t)\hat{Q}_{prev}(s, a) + \alpha_t \hat{q}(s, a)$$
+
+It turns out that if the algorithm is **greedy in the limit and infinite epsilon** (GLIE), that this algorithm in
+the limit converges on the correct Q values and optimal policy.
+
+Another interesting approach is to initialize all of the $\hat{Q}$ values at the maximum possible value. This is
+called **optimism in the face of uncertainty** and allows the Q learning algorithm to explore paths it hasn't
+already tried. Eventually it will learn the correct values as it learns the actual rewards.
