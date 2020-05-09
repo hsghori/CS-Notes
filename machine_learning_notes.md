@@ -315,8 +315,8 @@ function to model perceptrons.
 
 $$\sigma(x) = \frac{1}{1 + e^{-x}}$$
 
-The sigmoid has the property that $\limit_{x \to -\infty}{\sigma(x)} = 0$ and
-$\limit_{x \to \infty}{\sigma(x)} = 1$. Around 0, there is an inflection point where the function quickly changes
+The sigmoid has the property that $\lim_{x \to -\infty}{\sigma(x)} = 0$ and
+$\lim_{x \to \infty}{\sigma(x)} = 1$. Around 0, there is an inflection point where the function quickly changes
 from $~0$ to $~1$. This makes the sigmoid function a differentiable alternative to using a unit step function.
 
 ![](src/ml/sigmoid.png)
@@ -492,7 +492,7 @@ individual weak learners. This is a very simple algorithm but in practice it can
 
 In boosting we define error as:
 
-$$E = P_{D([h(x) \neq c(x))$$
+$$E = P_{D}(h(x) \neq c(x))$$
 
 Essentially error is defined as the probability that a given sample is incorrect where $D$ is a probability
 distribution over the samples.
@@ -830,7 +830,7 @@ are fundamentally hard to solve. When thinking about learning algorithms we gene
 - probability of successful training: $p = 1 - \delta$
 - number of samples to train on: $m$
 - complexity of the hypothesis class
-- accuracy to which target concept is approximated: $\Epsilon$
+- accuracy to which target concept is approximated: $\epsilon$
 - manner in which training examples are presented
 - manner in which training examples are selected
 
@@ -1561,13 +1561,12 @@ For example, consider a "grid world" where the agent starts at a specific spot a
 the box marked `GOAL` - if they reach the goal, the agent "wins". However, if they land in the box marked `PIT`,
 then the agent loses.
 
-   x  |   0  |   1  |  2   |  3   |   4
-------|------|------|------|------|------
-  0   |      |      |      |      | GOAL
-  1   |      | xxxx |      |      | PIT
-  2   |      | xxxx |      |      |
-  3   |      | xxxx |      |      |
-  4   |  P   |      |      |      |
+  x   |   0  |   1  |  2   |  3
+------|------|------|------|------
+  0   |      |      |      | GOAL
+  1   |      | xxxx |      | PIT
+  2   |      | xxxx |      |
+  3   |  P   |      |      |
 
 This world can be viewed as an MDP where
 - $S = \{ (0, 0), (0, 1), (0, 2), ... (4, 4) \}$
@@ -1630,7 +1629,7 @@ can use an EM like approach to solve it.
 2. For $t = [1, 2, ...]$
    1. Update the utilities for each state by using the equation:
       $$\hat{U}_{t}(s) = R(s) + \gamma \max_{a}{\sum_{s'}{T(s, a, s')\hat{U}_{t - 1}(s')}}$$
-   1. If the utilities have converged, break the loop
+   2. If the utilities have converged, break the loop
 
 This algorithm is known as **value iteration** (note the utility of the state can also be considered the *value* of
 the state).
@@ -1641,7 +1640,10 @@ values of the states - we just want to converge onto an optimal policy. So we ca
 1. Start out with an arbitrary initial policy $pi_{0}$.
 2. For $t = [1, 2, ...]$
    1. Update the policy:
-      $$\pi_{t} = \argmax_{a}{T(s, a, s')U_{t-1}(s')}$ where $U_t(s) = R(s) + \gamma \sum_{s'}{T(s, \pi_{t}(s), s')U_{t - 1}(s')}$$
+
+        $$\pi_{t} = \argmax_{a}{T(s, a, s')U_{t-1}(s')}$$
+
+        where $U_t(s) = R(s) + \gamma \sum_{s'}{T(s, \pi_{t}(s), s')U_{t - 1}(s')}$
    1. If the policy has converged, break the loop
 
 
@@ -1750,3 +1752,331 @@ the limit converges on the correct Q values and optimal policy.
 Another interesting approach is to initialize all of the $\hat{Q}$ values at the maximum possible value. This is
 called **optimism in the face of uncertainty** and allows the Q learning algorithm to explore paths it hasn't
 already tried. Eventually it will learn the correct values as it learns the actual rewards.
+
+## Game Theory
+
+**Game theory** is a mathematical theory that centers around conflict - specifically how to behave optimally in a
+specific conflicts.
+
+When we think about games we often think of **zero sum games**. A zero sum game is a mathematical representation
+of a situation in which each participant's gain or loss of utility is exactly balanced by the losses or gains of
+the utility of the other participants. This means that in a zero sum game if *player 1* earns 1 point, *player 2*
+sees that as a loss of 1 point.
+
+We often think of these types of games as game trees.
+
+```
+                 root                (MAX) (Agent A)
+          /       |         \
+        x1        x2         x3      (MIN) (Agent B)
+      /   \      /  \       /  \
+     x11 x12  x21  x22   x31   x32   (MAX) (Agent A)
+   ...        ...       ...
+```
+
+the leaf nodes of the tree represent values that Agent A earns if they reach that point in the game tree.
+To find an optimal policy from any state then, Agent A can simply find the action that maximizes its reward - it
+does at by recursively checking each action assuming that Agent B acts optimally. This algorithm is known as
+**minimax**.
+
+```Python
+def max_values(state):
+  if state is terminal:
+  	return terminal(state) # value of terminal state
+  v = -inf
+  for each successor of state:
+  	v = max(v, min_values(successor))
+  return v
+
+def min_value(state)
+	if state is terminal:
+		return terminal(state) # value of terminal state
+	v = inf
+	for each successor of state:
+		v = min(v, max_values(successor))
+	return v
+```
+
+In a 2 player zero sum game of perfect information there always exists and optimal pure strategy for
+each player. This is true for deterministic and non-deterministic games. For non-deterministic games we simply have
+to take the expectation of any stochastic nodes in the tree. Furthermore, for these games Minimax yields the same
+result as Maximin. This is known as **Von Neuman's theorem**.
+
+However, consider a game of **hidden information**. For example:
+
+1. A picks a card. There is a 50% probability he picks a red card vs a black card. B cannot see the card.
+2. If A picked red he can fold or hold. If he folds he earns -20c.
+3. If A chooses to hold:
+   1. If B chooses to hold:
+      1. If A has a red card -> A earns -40c
+      2. If A has a black card -> A earns 30c
+  1. If B chooses to fold:
+     1. A earns 10c
+
+This game is said to have hidden information because, B does not know which state he is in at any given moment.
+We can work out a value matrix for this game as:
+
+Actions | B folds | B holds
+--------|---------|----------
+A folds | -5      | +5
+A holds | +10     | -5
+
+Note that for *A folds* we are actually saying that A will only fold on Red - he will always hold if he gets black.
+So for the A folds and B folds case we work out the value as:
+
+$$V = -20 * 0.5 + 10 * 0.5$$
+
+and for the A folds and B holds case we work out the value as:
+
+$$V = -20*0.5 + 30*0.5$$
+
+Note however, for this kind of system, minimax is not the same as maximin. So there is no pure strategy to solve
+this game. Instead we need to use some **mixed strategy** where we find a probability distribution over the
+possible actions.
+
+In simple games like the game above we can do this relatively easily. We define $P$ as the probability of A
+holding. Then we find the expected value of the game as
+
+- if B folds:
+  $$V = 10p -5(1-p))$$
+- If B holds:
+  $$V = -5p + 5(1-p)$$
+
+These actually end up defining a set of lines which intersect at the point 0.4.
+
+![](src/ml/game_theory_lines.png)
+
+Now A is trying to maximize its reward and B is trying to minimize its reward. So A will pick 0.4 as its hold
+probability because that is the probability that maximizes its reward in the "worst case" - if B picks the lower
+strategy. Note that this point can occur at the minimum (0), maximum (1), or intersection point of the lines (if it
+exists between 0 and 1).
+
+Now let's consider a non-zero sum game of imperfect information. The **prisoner's dilemma** is a classic problem in
+game theory. Two criminals are being interrogated by policeman in separate rooms. Each criminal is told if they
+"defect" (or rat out the other) they will go free and the other criminal will serve 9 months time. If both criminals
+defect at the same time they both serve 6 months time. If both "cooperate" (or both keep their mouth shut) they
+serve 1 month in jail.
+
+Actions     | B cooperate | B defect
+------------|-------------|-----------
+A cooperate |  -1, -1     | -9, 0
+A defect    |   0, -9     | -6, -6
+
+Note the tuples are (A reward, B reward). Note that this is not zero sum because the rewards do not balance each
+other out. Interestingly the *correct* choice here is to always defect.
+
+This problem is easy to solve just by looking at it, but most games are more complicated than that. The **Nash
+equilibrium** attempts to solve this. Consider a situation with $n$ players with strategies $S_1, S_2, ...S_n$.
+A set of strategies $S_1^{*} \in S_1, S_2^{*} \in S_2, ... S_n^{*} \in S_n$ is in Nash equilibrium if
+
+$$\forall_i S_{i}^{*} = \argmax_{S_i}{utility_i(S_1^{*}, ... S_{i}, ... S_n^{*})}$$
+
+That is, each of the strategies maximizes the utility for that agent $i$. This works for pure and mixed strategies.
+Another way of saying this is - in a situation where all n agents have chosen their strategies, the strategies are
+in Nash Equilibrium if none of the agents have a reason to change their strategy upon seeing the other agent
+strategies. When looking at strategies we say that a strategy **strictly dominates** another strategy if it is
+"better" than the other strategies no matter what the other agent does.
+
+For example, in the prisoner's dilemma:
+
+Actions     | B cooperate | B defect
+------------|-------------|-----------
+A cooperate |  -1, -1     | -9, 0
+A defect    |   0, -9     | -6, -6
+
+- If *B cooperates*, A should defect because it would save 1 month.
+- If *B defects*, A should defect because it would save 3 months.
+
+So for A, defecting strictly dominates cooperating. Since this situation is symetric, the exact same argument can
+be made for B.
+
+A few properties of Nash Equilibrium:
+- In the n player pure strategy game if the elimination of strictly dominated strategies eliminated all but ooe
+combination, that combination is the unique Nash Equilibrium.
+- Any nash equilibrium will survive elimination of strictly dominated strategies.
+- If n is finite, for all $i$, $S_i$ is finite.
+- If we are playing an n-repeating game, the Nash Equilibrium is the n-repeated equilibrium of a single instance of
+  the ame. This is only true if the game has a deterministic number of rounds. If the number of rounds is unknown,
+  then we can't just use the single game strategy.
+
+### Unbounded repeated games
+
+An unbounded repeated game is a game where we repeat the same game for some unknown number of rounds. For example
+we may play prisoners dilemma but at the end of each round terminate the game with a probability $\gamma$. Note
+that if $0 \leq \gamma < 1$ the number of rounds is expected to be finite and the expected number of rounds is
+$\frac{1}{1 - \gamma}$. In these games we care about the average reward earned over the run.
+
+In a repeated game setting, the possibility for "retaliation" opens the door for cooperation. For example, consider
+the prisoners dilemma:
+
+Actions     | B cooperate | B defect
+------------|-------------|-----------
+A cooperate |  -1, -1     | -9, 0
+A defect    |   0, -9     | -6, -6
+
+One, quite simple, strategy to play the prisoners dilemma in an unbounded repeated sequence is the "tit for tat"
+strategy. Essentially on the first round, cooperate. On every subsequent round, do what the opponent did in the
+previous round.
+
+So if given the opponent strategies of "always cooperate", "always defect", and "tit for tat" we can see that teh
+optimal strategies for the player are as follows:
+
+Opponent Strategy | Always Cooperate | Always Defect | Tit for tat
+------------------|------------------|---------------|--------------
+Always Cooperate  |                  |     x         |
+Always Defect     |                  |     x         |
+Tit for tat       |     x            |               |     x
+
+Now note that:
+- `(always cooperate, always defect)` is not a Nash equilibrium because from the opponents perspective it's better
+  to switch to always defect.
+- `(always defect, always defect)` is a Nash equilibrium because from both players perspectives that strategy gives
+  the optimal utility.
+- `(tit for tat, always cooperate)` is not a Nash equilibrium because, from the opponents perspective it's better
+  to switch to always defect.
+- `(tit for tat, tit for tat)` is a Nash equilibrium because from both players perspectives that strategy gives the
+  optimal utility.
+
+So here we have a game with multiple Nash equilibria.
+
+If we plot the possible rewards for the prisoners dilemma in a 2 dimensional plane we can see that they form a
+"convex hole". The region inside the convex hole is known as the **feasible region** which is the region of possible
+average rewards over some iterations of the game.
+
+![](src/ml/feasible_region.png)
+
+A **minmax profile** is a pair of payoffs, one for each player in a game, that represents the payoffs that can be
+achieved by a player defending itself from a malicious adversary.
+
+For example consider the following reward matrix
+
+Actions     | B left      | B right
+------------|-------------|-----------
+A left      |  1, 2       | 0, 0
+A right     |  0, 0       | 2, 1
+
+The minimax profile would give us the average payoffs of each player assuming the other player was acting
+maliciously. So that would be `(1, 1)`.
+
+The **security level profile** is similar but assumes that the other player is operating using a mixed strategy so
+B chooses left with some probability $p$.
+
+$$1p = 2(1-p)$$
+$$p = \frac{2}{3}$$
+
+Since the matrix is symmetric, the security level profile is `(2/3, 2/3)`.
+
+The minmax profile is a point in the feasible region - the region above and to the right of that point is the
+"acceptable region".
+
+The **folk theorem in Game Theory** says that any feasible payoff profile that strictly dominates the minmax /
+security level profile can be realized as a Nash equilibrium payoff profile with sufficiently large discount
+factor. This essentially says that if the minmax / security level profile strongly dominates all other actions, an
+agent can use it as a "threat". So the agents should behave to mutual benefit but as soon as the opponent harms the
+player agent, the player should apply the minmax / security level strategy. This is also known as the
+**grim trigger**.
+
+The problem with the grim trigger strategy is that the threat is implausible. We say that a strategy is
+**subgame perfect** if for any constructed history, the strategy will choose the best response. Consider
+grim vs tit for tat in the prisoners dilemma.
+
+```
+Grim        :  C D D D D D ...
+Tit for tat :  D C D D D D ...
+```
+
+(note that the constructed history does not need to be consistent with the strategy).
+
+We can see that at the second time step, Grim chose to defect which triggered a cascade of defects on both sides.
+But it would have been strictly better for Grim to have cooperated at that point. So grim is not subgame perfect.
+
+It turns out the tit for tat vs tit for tat is not subgame perfect either. If
+
+```
+A: C D C D C D...
+B: D C D C D C...
+```
+
+then the average for each agent is around -4.5. But if agent A had instead chosen to cooperate after the first
+defect, its average would have worked out to -1.
+
+The **Pavlov** strategy is similar to tit for tat
+- If both agents agree (both cooperate or both defect on the previous round) then cooperate
+- If the agents disagree (one cooperates and the other defects) then defect
+
+Pavlov v Pavlov is both in Nash equilibrium and subgame perfect. We can see the Nash equilibrium because both
+agents will cooperate and have no more optimal action. Subgame perfect because for each possible set of states,
+the agents will eventually reach the mutual cooperation state which is the best average we can hope for. So no
+matter what, there is no option where we can choose a better action (in the long run) than the Pavlov agent.
+
+```
+CC -> CC
+CD -> DD -> CC
+DC -> DD -> CC
+DD -> CC
+```
+
+The **computational folk theorem** says that for any 2 player game running for some nondeterministic number of
+iterations, we can build a pavlov like machine with a Nash equilibrium and is subgame perfect in polynmial time.
+Either:
+- we can construct the pavlov like machine
+- the game is zero sum in which case we can find the nash equilibrium in polynomial time using linear programming.
+- at most one player can improve its strategy (from what is found from linear programming in the zero sum case)
+  which gives us a nash equilibrium.
+
+### Stochastic Games
+
+**Stochastic games** provide a way of us to think about multi-agent MDPs. A stochastic game has
+- $S$: states
+- $A_i$: actions for player i
+- $T$: transitions. A transition here is of the form $T(s, (a_1, a_2, ..., a_n), s')$.
+- $R_i$: rewards for player i. Rewards are of the form $R_i(s, (a_1, a_2, ..., a_n), s')$.
+- $\gamma$: discount factor
+
+Note that the stochastic game model is really a generalization of the MDP. If we ignore all other agents in the
+transition and rewards then the agent just becomes part of the environment and this generalizes to an MDP.
+Furthermore, if this is a 2 player game and $R_1 = -R_2$ then this becomes a zero sum game. Finally if the $|S| =
+1$ then this becomes a repeated game.
+
+So given that this is a more general MDP we can reform the belman equations to try to learn policies (strategies)
+for the game.
+
+Lets assume that we're playing a two player zero sum game where $a \in A_1, b \in A_2$. A general bellman equation
+using the modified definition would look like:
+
+$$Q_i(s, (a, b)) = R(s, (a, b)) + \gamma \sum_{s'}{T(s, (a, b), s') \max_{a',b'}[Q_i(s', (a', b'))}$$
+
+But this doesn't make a lot of sense because it assumes that all agents are attempting to maximize the value for
+agent i. So we actually modify the equation to use minimax to estimate the future state values:
+
+$$Q_i(s, (a, b)) = R(s, (a, b)) + \gamma \sum_{s'}{T(s, (a, b), s') \text{minimax}_{a',b'}[Q_i(s', (a', b'))}$$
+
+We can then use this equation like we would use Q-learning and say for some observation
+$(s, <a, b>, (r_1, r_2), s')$ we can update $Q_i$ as:
+
+$$Q_i \gets^{\alpha} r_i + \gamma \text{minimax}_{a',b'}[Q_i(s', (a', b'))$$
+
+This is also known as minimax-Q.
+
+We find that:
+- We can do value iteration using these equations
+- minimax-Q converges to a unique solution
+- the policies for each agent can be computed independently
+- the q functions are enough to specify a policy
+- the updates are efficient (polynomial time)
+
+In **general sum games** we would actually change the q-function to:
+
+$$Q_i(s, (a, b)) = R(s, (a, b)) + \gamma \sum_{s'}{T(s, (a, b), s') \text{nash}_{a',b'}[Q_i(s', (a', b'))}$$
+
+which gives us a nash-Q algorithm:
+
+$$Q_i \gets^{\alpha} r_i + \gamma \text{nash}_{a',b'}[Q_i(s', (a', b'))$$
+
+However in nash-Q
+- Value iteration doesn't work
+- nash-Q doesn't converge converge
+- there is no unique solution
+- the policies cannot be computed independently
+- Q functions are not sufficient to specify a policy
+- the updates are not efficient (they are in class P-PAD which can be as hard as NP)
